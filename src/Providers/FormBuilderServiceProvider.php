@@ -19,6 +19,7 @@ use Capell\FormBuilder\Actions\EraseFormSubmissionPrivacyDataAction;
 use Capell\FormBuilder\Actions\InstallThemeDemoFormsAction;
 use Capell\FormBuilder\Console\Commands\ExportSubmissionsCommand;
 use Capell\FormBuilder\Console\Commands\PruneExpiredFormSubmissionsCommand;
+use Capell\FormBuilder\Console\Commands\SeedFormBuilderScreenshotFixtureCommand;
 use Capell\FormBuilder\Contracts\FormBuilderWebhookHostResolver;
 use Capell\FormBuilder\Contracts\SpamProtectionProvider;
 use Capell\FormBuilder\Enums\LivewireComponentEnum;
@@ -60,6 +61,7 @@ final class FormBuilderServiceProvider extends AbstractPackageServiceProvider
             ->hasRoute('payments')
             ->hasCommand(ExportSubmissionsCommand::class)
             ->hasCommand(PruneExpiredFormSubmissionsCommand::class)
+            ->hasCommand(SeedFormBuilderScreenshotFixtureCommand::class)
             ->hasMigrations([
                 '2026_05_10_190849_01_create_form-builder_table',
                 '2026_05_10_190849_02_create_submissions_table',

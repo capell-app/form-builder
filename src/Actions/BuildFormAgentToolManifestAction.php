@@ -8,11 +8,13 @@ use Capell\FormBuilder\Data\FormFieldData;
 use Capell\FormBuilder\Data\FormStepData;
 use Capell\FormBuilder\Enums\FormFieldType;
 use Illuminate\Support\Collection;
+use Lorisleiva\Actions\Concerns\AsFake;
 use Lorisleiva\Actions\Concerns\AsObject;
 
 /** Build a public write tool from the already hydrated, visible form fields. */
 final class BuildFormAgentToolManifestAction
 {
+    use AsFake;
     use AsObject;
 
     /**

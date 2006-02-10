@@ -46,27 +46,178 @@ Screenshot contract: `docs/screenshots.json`.
 
 ## Technical Shape
 
-- Service providers: `Capell\FormBuilder\Providers\FormBuilderServiceProvider`.
-- Config files: `packages/form-builder/config/capell-form-builder.php`.
-- Migrations: `packages/form-builder/database/migrations/2026_05_10_190849_01_create_form-builder_table.php`, `packages/form-builder/database/migrations/2026_05_10_190849_02_create_submissions_table.php`, `packages/form-builder/database/migrations/2026_07_12_000001_add_retention_to_submissions_table.php`.
-- Models: `Form`, `Submission`.
-- Filament classes: `FormResource`, `CreateForm`, `EditForm`, `ListForms`, `ListSubmissions`, `SubmissionResource`, `SubmissionsTable`.
-- Livewire components: `FormComponent`, `FormElementComponent`.
-- Route files: `packages/form-builder/routes/payments.php`.
-- Policies: `FormPolicy`, `SubmissionPolicy`.
-- Extension contracts: `FormBuilderWebhookHostResolver`, `SpamProtectionProvider`.
-- Events: `FormSubmitted`.
-- Actions: `ArchiveSubmissionAction`, `BuildFormComponentValidationRulesAction`, `BuildFormStepsAction`, `BuildFormSubmissionPrivacyExportAction`, `BuildFormValidationRulesAction`, `BuildSubmissionPayloadDataAction`, `BuildSubmissionPayloadEntriesAction`, `BuildSubmissionsCsvAction`, `CalculateFormFieldValuesAction`, `CalculateSubmissionSpamScoreAction`, `CreateFormPaymentCheckoutRedirectUrlAction`, `CreateFormPaymentCheckoutSessionAction`, `and 23 more`.
-- Data objects: `FormComponentStepStateData`, `FormFieldConditionData`, `FormFieldData`, `FormPaymentCheckoutData`, `FormSettingsData`, `FormStepData`, `FormSubmissionData`, `FormSubmissionPrivacyRecordIdsData`, `ResolvedFormWebhookEndpointData`, `SubmissionMetaData`, `SubmissionPayloadData`, `SubmissionSpamScoreData`.
-- Jobs: `DispatchSubmissionWebhookJob`.
-- Command signatures: `capell:form-builder:prune`.
-- Manifest action API: `archiveSubmission: Capell\FormBuilder\Actions\ArchiveSubmissionAction`, `buildFormSteps: Capell\FormBuilder\Actions\BuildFormStepsAction`, `buildFormValidationRules: Capell\FormBuilder\Actions\BuildFormValidationRulesAction`, `buildSubmissionPayloadData: Capell\FormBuilder\Actions\BuildSubmissionPayloadDataAction`, `calculateFormFieldValues: Capell\FormBuilder\Actions\CalculateFormFieldValuesAction`, `calculateSubmissionSpamScore: Capell\FormBuilder\Actions\CalculateSubmissionSpamScoreAction`, `createFormPaymentCheckout: Capell\FormBuilder\Actions\CreateFormPaymentCheckoutSessionAction`, `createFormPaymentCheckoutRedirectUrl: Capell\FormBuilder\Actions\CreateFormPaymentCheckoutRedirectUrlAction`, `createFormPaymentCheckoutUrl: Capell\FormBuilder\Actions\CreateFormPaymentCheckoutUrlAction`, `createSubmission: Capell\FormBuilder\Actions\CreateSubmissionAction`, `dispatchUnstoredFormSubmission: Capell\FormBuilder\Actions\DispatchUnstoredFormSubmissionAction`, `evaluateFormFieldVisibility: Capell\FormBuilder\Actions\EvaluateFormFieldVisibilityAction`, `and 5 more`.
-- Scheduled commands: `capell:form-builder:prune (daily; package registered)`.
-- Console command classes: `ExportSubmissionsCommand`, `PruneExpiredFormSubmissionsCommand`.
-- Manifest contributions: `admin-resource: Capell\FormBuilder\Manifest\FormResourceContribution`, `admin-resource: Capell\FormBuilder\Manifest\SubmissionResourceContribution`, `frontend-component: Capell\FormBuilder\Manifest\FormElementComponentContribution`, `model: Capell\FormBuilder\Manifest\FormModelContribution`, `model: Capell\FormBuilder\Manifest\SubmissionModelContribution`, `route: Capell\FormBuilder\Manifest\FormBuilderPaymentRoutesContribution`, `scheduled-job: Capell\FormBuilder\Manifest\FormBuilderPruneScheduleContribution`.
-- Health checks: `Capell\FormBuilder\Health\FormBuilderHealthCheck`.
-- Blade views: `packages/form-builder/resources/views/filament/submissions/payload.blade.php`, `packages/form-builder/resources/views/livewire/form-element.blade.php`, `packages/form-builder/resources/views/livewire/form.blade.php`, `packages/form-builder/resources/views/mail/submission-autoresponder.blade.php`, `packages/form-builder/resources/views/mail/submission-notification.blade.php`, `packages/form-builder/resources/views/mail/submission-reply.blade.php`.
-- Cache tags: `form-builder`.
+### Service providers
+
+- `Capell\FormBuilder\Providers\FormBuilderServiceProvider`
+
+### Config files
+
+- `packages/form-builder/config/capell-form-builder.php`
+
+### Migrations
+
+- `packages/form-builder/database/migrations/2026_05_10_190849_01_create_form-builder_table.php`
+- `packages/form-builder/database/migrations/2026_05_10_190849_02_create_submissions_table.php`
+- `packages/form-builder/database/migrations/2026_07_12_000001_add_retention_to_submissions_table.php`
+
+### Models
+
+- `Form`
+- `Submission`
+
+### Filament classes
+
+- `FormResource`
+- `CreateForm`
+- `EditForm`
+- `ListForms`
+- `ListSubmissions`
+- `SubmissionResource`
+- `SubmissionsTable`
+
+### Livewire components
+
+- `FormComponent`
+- `FormElementComponent`
+
+### Route files
+
+- `packages/form-builder/routes/payments.php`
+
+### Policies
+
+- `FormPolicy`
+- `SubmissionPolicy`
+
+### Extension contracts
+
+- `FormBuilderWebhookHostResolver`
+- `SpamProtectionProvider`
+
+### Events
+
+- `FormSubmitted`
+
+### Actions
+
+- `ArchiveSubmissionAction`
+- `BuildFormAgentToolManifestAction`
+- `BuildFormComponentValidationRulesAction`
+- `BuildFormStepsAction`
+- `BuildFormSubmissionPrivacyExportAction`
+- `BuildFormValidationAttributesAction`
+- `BuildFormValidationRulesAction`
+- `BuildSubmissionPayloadDataAction`
+- `BuildSubmissionPayloadEntriesAction`
+- `BuildSubmissionsCsvAction`
+- `CalculateFormFieldValuesAction`
+- `CalculateSubmissionSpamScoreAction`
+- `CreateFormPaymentCheckoutRedirectUrlAction`
+- `CreateFormPaymentCheckoutSessionAction`
+- `CreateFormPaymentCheckoutUrlAction`
+- `CreateSubmissionAction`
+- `DispatchSubmissionWebhookAction`
+- `DispatchUnstoredFormSubmissionAction`
+- `EraseFormSubmissionPrivacyDataAction`
+- `EvaluateFormFieldVisibilityAction`
+- `GuardFormSubmissionRateLimitAction`
+- `InstallThemeDemoFormsAction`
+- `IsFormPaymentIntegrationAvailableAction`
+- `MarkSubmissionReadAction`
+- `MarkSubmissionSpamAction`
+- `PruneExpiredFormSubmissionsAction`
+- `RedactSubmissionWebhookErrorMessageAction`
+- `ReplyToSubmissionAction`
+- `ResolveFormComponentFormAction`
+- `ResolveFormComponentStepStateAction`
+- `ResolveFormInitialValuesAction`
+- `ResolveFormPaymentCheckoutDataAction`
+- `ResolveFormSubmissionPrivacyRecordIdsAction`
+- `ResolveSubmissionReplyAddressAction`
+- `ResolveVisibleFormFieldsAction`
+- `SendSubmissionAutoresponderAction`
+- `SendSubmissionNotificationAction`
+
+### Data objects
+
+- `FormComponentStepStateData`
+- `FormFieldConditionData`
+- `FormFieldData`
+- `FormPaymentCheckoutData`
+- `FormSettingsData`
+- `FormStepData`
+- `FormSubmissionData`
+- `FormSubmissionPrivacyRecordIdsData`
+- `ResolvedFormWebhookEndpointData`
+- `SubmissionMetaData`
+- `SubmissionPayloadData`
+- `SubmissionSpamScoreData`
+
+### Jobs
+
+- `DispatchSubmissionWebhookJob`
+
+### Command signatures
+
+- `capell:form-builder:prune`
+
+### Manifest action API
+
+- `archiveSubmission: Capell\FormBuilder\Actions\ArchiveSubmissionAction`
+- `buildFormAgentToolManifest: Capell\FormBuilder\Actions\BuildFormAgentToolManifestAction`
+- `buildFormSteps: Capell\FormBuilder\Actions\BuildFormStepsAction`
+- `buildFormValidationRules: Capell\FormBuilder\Actions\BuildFormValidationRulesAction`
+- `buildSubmissionPayloadData: Capell\FormBuilder\Actions\BuildSubmissionPayloadDataAction`
+- `calculateFormFieldValues: Capell\FormBuilder\Actions\CalculateFormFieldValuesAction`
+- `calculateSubmissionSpamScore: Capell\FormBuilder\Actions\CalculateSubmissionSpamScoreAction`
+- `createFormPaymentCheckout: Capell\FormBuilder\Actions\CreateFormPaymentCheckoutSessionAction`
+- `createFormPaymentCheckoutRedirectUrl: Capell\FormBuilder\Actions\CreateFormPaymentCheckoutRedirectUrlAction`
+- `createFormPaymentCheckoutUrl: Capell\FormBuilder\Actions\CreateFormPaymentCheckoutUrlAction`
+- `createSubmission: Capell\FormBuilder\Actions\CreateSubmissionAction`
+- `dispatchUnstoredFormSubmission: Capell\FormBuilder\Actions\DispatchUnstoredFormSubmissionAction`
+- `evaluateFormFieldVisibility: Capell\FormBuilder\Actions\EvaluateFormFieldVisibilityAction`
+- `markSubmissionRead: Capell\FormBuilder\Actions\MarkSubmissionReadAction`
+- `markSubmissionSpam: Capell\FormBuilder\Actions\MarkSubmissionSpamAction`
+- `replyToSubmission: Capell\FormBuilder\Actions\ReplyToSubmissionAction`
+- `resolveVisibleFormFields: Capell\FormBuilder\Actions\ResolveVisibleFormFieldsAction`
+- `sendSubmissionNotification: Capell\FormBuilder\Actions\SendSubmissionNotificationAction`
+
+### Scheduled commands
+
+- `capell:form-builder:prune (daily; package registered)`
+
+### Console command classes
+
+- `ExportSubmissionsCommand`
+- `PruneExpiredFormSubmissionsCommand`
+
+### Manifest contributions
+
+- `admin-resource: Capell\FormBuilder\Manifest\FormResourceContribution`
+- `admin-resource: Capell\FormBuilder\Manifest\SubmissionResourceContribution`
+- `frontend-component: Capell\FormBuilder\Manifest\FormElementComponentContribution`
+- `model: Capell\FormBuilder\Manifest\FormModelContribution`
+- `model: Capell\FormBuilder\Manifest\SubmissionModelContribution`
+- `route: Capell\FormBuilder\Manifest\FormBuilderPaymentRoutesContribution`
+- `scheduled-job: Capell\FormBuilder\Manifest\FormBuilderPruneScheduleContribution`
+
+### Health checks
+
+- `Capell\FormBuilder\Health\FormBuilderHealthCheck`
+
+### Blade views
+
+- `packages/form-builder/resources/views/filament/submissions/payload.blade.php`
+- `packages/form-builder/resources/views/livewire/form-element.blade.php`
+- `packages/form-builder/resources/views/livewire/form.blade.php`
+- `packages/form-builder/resources/views/mail/submission-autoresponder.blade.php`
+- `packages/form-builder/resources/views/mail/submission-notification.blade.php`
+- `packages/form-builder/resources/views/mail/submission-reply.blade.php`
+
+### Cache tags
+
+- `form-builder`
+
 
 ## Data Model
 
@@ -82,7 +233,7 @@ Screenshot contract: `docs/screenshots.json`.
 - Required packages: `capell-app/admin`, `capell-app/core`, `capell-app/frontend`.
 - Admin navigation: declares `admin-resource: FormResourceContribution`, `admin-resource: SubmissionResourceContribution`; each Filament page or resource controls its own navigation visibility.
 - Admin/editor extensions: none declared.
-- Permissions: `ViewAny:Form`, `View:Form`, `Create:Form`, `Update:Form`, `Delete:Form`, `DeleteAny:Form`, `Restore:Form`, `RestoreAny:Form`, `ForceDelete:Form`, `ForceDeleteAny:Form`, `Reorder:Form`, `ViewAny:Submission`, `View:Submission`, `Reply:Submission`, `Update:Submission`.
+- Permissions: `ViewAny:Form`, `View:Form`, `Create:Form`, `Update:Form`, `Delete:Form`, `DeleteAny:Form`, `Restore:Form`, `RestoreAny:Form`, `ForceDelete:Form`, `ForceDeleteAny:Form`, `Reorder:Form`, `ViewAny:Submission`, `View:Submission`, `Reply:Submission`, `Update:Submission`; access also governed by package policies: `FormPolicy`, `SubmissionPolicy`.
 - Public routes: loads `routes/payments.php`; registers `FormBuilderPaymentRoutesContribution`.
 - Database changes: package migrations are declared.
 - Config: `config/capell-form-builder.php`.
@@ -114,8 +265,7 @@ Screenshot contract: `docs/screenshots.json`.
 ## Quick Start
 
 1. Install the package: `composer require capell-app/form-builder`.
-2. Run the required setup: `php artisan migrate`.
-3. Open the package admin surface at `/form-builder/forms` and confirm Form Builder is available.
+2. Open the package admin surface at `/form-builder/forms` and confirm Form Builder is available.
 
 ## Next Steps
 

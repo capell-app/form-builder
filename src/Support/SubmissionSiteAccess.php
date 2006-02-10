@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Capell\FormBuilder\Support;
 
 use Capell\Admin\Policies\Concerns\ResolvesShieldPermission;
+use Capell\Admin\Support\SiteScope;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -27,11 +28,14 @@ final class SubmissionSiteAccess
 
     private const string SUBJECT = 'Submission';
 
+    private const string GLOBAL_ACTOR_CACHE_KEY = 'capell.form-builder.submission-site-access.global-actors';
+
     private const string PERMITTED_SITE_IDS_CACHE_KEY = 'capell.form-builder.submission-site-access.permitted-site-ids';
 
     public static function flushMemoizedPermissions(): void
     {
         request()->attributes->remove(self::PERMITTED_SITE_IDS_CACHE_KEY);
+        request()->attributes->remove(self::GLOBAL_ACTOR_CACHE_KEY);
     }
 
     /**
@@ -113,9 +117,20 @@ final class SubmissionSiteAccess
     private static function isGlobalActor(Authenticatable $actor): bool
     {
         $configuredRole = config('capell.roles.super_admin', config('filament-shield.super_admin.name', 'super_admin'));
-        $superAdminRole = is_string($configuredRole) && $configuredRole !== '' ? $configuredRole : 'super_admin';
 
-        return $actor->hasRole($superAdminRole);
+        $key = self::modelType($actor) . '|' . self::modelIdString($actor)
+            . '|' . json_encode([$configuredRole, config('permission.teams')], JSON_THROW_ON_ERROR);
+        $cache = request()->attributes->get(self::GLOBAL_ACTOR_CACHE_KEY, []);
+        $cache = is_array($cache) ? $cache : [];
+
+        if (is_bool($cache[$key] ?? null)) {
+            return $cache[$key];
+        }
+
+        $cache[$key] = SiteScope::isGlobalActor($actor);
+        request()->attributes->set(self::GLOBAL_ACTOR_CACHE_KEY, $cache);
+
+        return $cache[$key];
     }
 
     /**

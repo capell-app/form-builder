@@ -40,7 +40,12 @@ final class DispatchUnstoredFormSubmissionAction
             return FormSubmissionData::fromUnstored($form, new SubmissionPayloadData, $meta, SubmissionStatus::Spam);
         }
 
-        $validated = Validator::make($input, BuildFormValidationRulesAction::run($form, $input))->validate();
+        $validated = Validator::make(
+            $input,
+            BuildFormValidationRulesAction::run($form, $input),
+            [],
+            BuildFormValidationAttributesAction::run($form, $input),
+        )->validate();
         $payload = BuildSubmissionPayloadDataAction::run($form, $validated, storeUploads: false);
 
         if ($spamScore->isSpam($this->spamThreshold())) {

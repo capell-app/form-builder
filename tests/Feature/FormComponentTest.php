@@ -31,6 +31,42 @@ use function Pest\Livewire\livewire;
 use Sinnbeck\DomAssertions\Asserts\AssertElement;
 use Sinnbeck\DomAssertions\Asserts\BaseAssert;
 
+it('renders editor labels in validation errors without exposing field paths or unescaped markup', function (string $method, string $label): void {
+    app()->setLocale('en');
+    $form = Form::factory()->create([
+        'handle' => 'label-validation',
+        'schema' => [
+            [
+                'key' => 'company_name', 'label' => $label, 'type' => 'text', 'required' => true,
+                'step_key' => $method === 'nextStep' ? 'Company' : null,
+            ],
+            [
+                'key' => 'contact_name', 'label' => 'Contact name', 'type' => 'text',
+                'required' => $method === 'nextStep',
+                'step_key' => $method === 'nextStep' ? 'Contact' : null,
+            ],
+        ],
+    ]);
+    bindFormBuilderFrontendSite($form->site);
+
+    $component = livewire(FormComponent::class, ['handle' => 'label-validation'])
+        ->call($method)
+        ->assertHasErrors(['data.company_name' => 'required'])
+        ->assertHasNoErrors(['data.contact_name'])
+        ->assertSee('The ' . $label . ' field is required.')
+        ->assertDontSee('The data.company name field is required.')
+        ->assertDontSeeHtml('<script>alert(1)</script>');
+
+    if ($method === 'nextStep') {
+        $component->assertSet('currentStepKey', 'company');
+    }
+})->with([
+    'submit label' => ['submit', 'Company name'],
+    'step label' => ['nextStep', 'Company name'],
+    'submit escaped label' => ['submit', '<script>alert(1)</script>'],
+    'step escaped label' => ['nextStep', '<script>alert(1)</script>'],
+]);
+
 it('keeps public form workflow buttons at the primary touch target size', function (): void {
     $formView = file_get_contents(dirname(__DIR__, 2) . '/resources/views/livewire/form.blade.php');
 

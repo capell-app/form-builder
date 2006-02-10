@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Capell\FormBuilder\Policies;
 
 use Capell\Admin\Policies\Concerns\ResolvesShieldPermission;
+use Capell\Admin\Support\SiteScope;
 use Capell\FormBuilder\Enums\SubmissionStatus;
 use Capell\FormBuilder\Models\Submission;
 use Capell\FormBuilder\Support\SubmissionSiteAccess;
@@ -64,7 +65,7 @@ final class SubmissionPolicy
 
     private function hasPermission(User $user, string $ability): bool
     {
-        if ($user->hasRole(config('capell.roles.super_admin', 'super_admin'))) {
+        if (SiteScope::isGlobalActor($user)) {
             return true;
         }
 

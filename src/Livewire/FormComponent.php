@@ -7,6 +7,7 @@ namespace Capell\FormBuilder\Livewire;
 use Capell\Core\Models\Site;
 use Capell\FormBuilder\Actions\BuildFormAgentToolManifestAction;
 use Capell\FormBuilder\Actions\BuildFormComponentValidationRulesAction;
+use Capell\FormBuilder\Actions\BuildFormValidationAttributesAction;
 use Capell\FormBuilder\Actions\CalculateFormFieldValuesAction;
 use Capell\FormBuilder\Actions\CreateFormPaymentCheckoutRedirectUrlAction;
 use Capell\FormBuilder\Actions\CreateSubmissionAction;
@@ -94,7 +95,11 @@ final class FormComponent extends Component
             return;
         }
 
-        $this->validate(BuildFormComponentValidationRulesAction::run($form, $this->data, $currentStep->fields));
+        $this->validate(
+            BuildFormComponentValidationRulesAction::run($form, $this->data, $currentStep->fields),
+            [],
+            BuildFormValidationAttributesAction::run($form, $this->data, 'data.'),
+        );
 
         $nextStep = $this->stepState()->stepAfter($currentStep->key);
 
@@ -132,7 +137,11 @@ final class FormComponent extends Component
 
         if (! $this->hasTriggeredHoneypot()) {
             $this->data = CalculateFormFieldValuesAction::run($form, $this->data);
-            $this->validate(BuildFormComponentValidationRulesAction::run($form, $this->data));
+            $this->validate(
+                BuildFormComponentValidationRulesAction::run($form, $this->data),
+                [],
+                BuildFormValidationAttributesAction::run($form, $this->data, 'data.'),
+            );
         }
 
         try {

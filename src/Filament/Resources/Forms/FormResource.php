@@ -13,6 +13,8 @@ use Capell\FormBuilder\Filament\Resources\Forms\Pages\CreateForm;
 use Capell\FormBuilder\Filament\Resources\Forms\Pages\EditForm;
 use Capell\FormBuilder\Filament\Resources\Forms\Pages\ListForms;
 use Capell\FormBuilder\Models\Form;
+use Capell\FormBuilder\Rules\ValidCalculationExpression;
+use Capell\FormBuilder\Support\CalculationExpression;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Repeater;
@@ -23,6 +25,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
@@ -248,6 +251,7 @@ final class FormResource extends Resource
             Select::make('type')
                 ->label(__('capell-form-builder::form.admin.fields.field_type'))
                 ->options(FormFieldType::class)
+                ->live()
                 ->required()
                 ->default(FormFieldType::Text->value),
             Toggle::make('required')
@@ -260,7 +264,7 @@ final class FormResource extends Resource
                 ->rows(2),
             KeyValue::make('options')
                 ->label(__('capell-form-builder::form.admin.fields.options'))
-                ->visible(fn (callable $get): bool => $get('type') === FormFieldType::Select->value)
+                ->visible(fn (Get $get): bool => $get('type') === FormFieldType::Select)
                 ->columnSpanFull(),
             TextInput::make('default_value')
                 ->label(__('capell-form-builder::form.admin.fields.default_value')),
@@ -273,26 +277,28 @@ final class FormResource extends Resource
                 ->maxLength(255),
             TextInput::make('calculation_expression')
                 ->label(__('capell-form-builder::form.admin.fields.calculation_expression'))
-                ->visible(fn (callable $get): bool => $get('type') === FormFieldType::Calculation->value)
+                ->maxLength(CalculationExpression::MAX_LENGTH)
+                ->rules([new ValidCalculationExpression])
+                ->visible(fn (Get $get): bool => $get('type') === FormFieldType::Calculation)
                 ->columnSpanFull(),
             TagsInput::make('accepted_file_types')
                 ->label(__('capell-form-builder::form.admin.fields.accepted_file_types'))
                 ->placeholder(__('capell-form-builder::form.admin.placeholders.accepted_file_types'))
-                ->visible(fn (callable $get): bool => $get('type') === FormFieldType::File->value),
+                ->visible(fn (Get $get): bool => $get('type') === FormFieldType::File),
             TextInput::make('max_file_size_kilobytes')
                 ->label(__('capell-form-builder::form.admin.fields.max_file_size_kilobytes'))
                 ->numeric()
                 ->minValue(1)
-                ->visible(fn (callable $get): bool => $get('type') === FormFieldType::File->value),
+                ->visible(fn (Get $get): bool => $get('type') === FormFieldType::File),
             TextInput::make('payment_amount_cents')
                 ->label(__('capell-form-builder::form.admin.fields.payment_amount_cents'))
                 ->numeric()
                 ->minValue(1)
-                ->visible(fn (callable $get): bool => $get('type') === FormFieldType::Payment->value),
+                ->visible(fn (Get $get): bool => $get('type') === FormFieldType::Payment),
             TextInput::make('payment_currency')
                 ->label(__('capell-form-builder::form.admin.fields.payment_currency'))
                 ->maxLength(3)
-                ->visible(fn (callable $get): bool => $get('type') === FormFieldType::Payment->value),
+                ->visible(fn (Get $get): bool => $get('type') === FormFieldType::Payment),
             Repeater::make('visibility_conditions')
                 ->label(__('capell-form-builder::form.admin.fields.visibility_conditions'))
                 ->schema([

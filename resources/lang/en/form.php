@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 return [
+    'calculation_failed' => 'This value could not be calculated. Please contact the form owner.',
+    'invalid_calculation_expression' => 'Enter a valid arithmetic expression using numbers, field keys, parentheses and +, -, * or /.',
     'admin' => [
         'fields' => [
             'accepted_file_types' => 'Accepted file types',

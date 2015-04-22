@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
 use Lorisleiva\Actions\Concerns\AsFake;
 use Lorisleiva\Actions\Concerns\AsObject;
+use RuntimeException;
 use Throwable;
 
 final class DispatchSubmissionWebhookAction
@@ -34,7 +35,7 @@ final class DispatchSubmissionWebhookAction
         try {
             $endpoint = $this->endpoint($url);
 
-            Http::timeout($this->timeoutSeconds())
+            $response = Http::timeout($this->timeoutSeconds())
                 ->withoutRedirecting()
                 ->withHeaders(['Host' => $endpoint->hostHeader()])
                 ->withOptions($this->requestOptions($endpoint))
@@ -57,6 +58,8 @@ final class DispatchSubmissionWebhookAction
                         ],
                     ],
                 ])->throw();
+
+            throw_unless($response->successful(), RuntimeException::class, sprintf('Submission webhook returned HTTP %d.', $response->status()));
 
             return true;
         } catch (Throwable $throwable) {
@@ -130,13 +133,7 @@ final class DispatchSubmissionWebhookAction
      */
     private function hasPrivateAddress(array $addresses): bool
     {
-        foreach ($addresses as $address) {
-            if ($this->isPrivateAddress($address)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($addresses, fn (string $address): bool => $this->isPrivateAddress($address));
     }
 
     private function isPrivateHostLabel(string $host): bool

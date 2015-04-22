@@ -738,6 +738,30 @@ it('redirects payment form submissions to a signed Payments checkout URL when Pa
     ]);
 });
 
+it('displays calculation validation errors on the public field without accepting a submission', function (bool $storeSubmissions): void {
+    Event::fake([FormSubmitted::class]);
+    $form = Form::factory()->create([
+        'handle' => 'invalid-calculation',
+        'settings' => ['store_submissions' => $storeSubmissions],
+        'schema' => [[
+            'key' => 'total',
+            'label' => 'Total',
+            'type' => FormFieldType::Calculation->value,
+            'calculation_expression' => '2 *',
+        ]],
+    ]);
+    bindFormBuilderFrontendSite($form->site);
+
+    livewire(FormComponent::class, ['handle' => $form->handle])
+        ->call('submit')
+        ->assertHasErrors(['data.total'])
+        ->assertSee(__('capell-form-builder::form.calculation_failed'))
+        ->assertSet('submitted', false);
+
+    expect(Submission::query()->count())->toBe(0);
+    Event::assertNotDispatched(FormSubmitted::class);
+})->with([true, false]);
+
 it('calculates and stores calculation fields through the Livewire form path', function (): void {
     $form = Form::factory()->create([
         'name' => 'Quote form',
@@ -807,7 +831,7 @@ it('dispatches submitted payloads when submissions are not stored', function ():
 
     Event::assertDispatched(
         FormSubmitted::class,
-        fn (FormSubmitted $event): bool => $event->submission === null
+        fn (FormSubmitted $event): bool => ! $event->submission instanceof Submission
             && $event->payload === ['email' => 'ben@example.com']
             && ! $event->submissionData->stored
             && $event->submissionData->payload->values === ['email' => 'ben@example.com'],

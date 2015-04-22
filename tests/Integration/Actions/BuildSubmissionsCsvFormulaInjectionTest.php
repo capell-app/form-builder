@@ -29,7 +29,19 @@ it('neutralises formula injection in user-submitted cell values', function (stri
     'minus sign' => ['-1', "'-1"],
     'at sign' => ['@x', "'@x"],
     'leading tab' => ["\tx", "'\tx"],
+    'space before formula' => [' =1+1', "' =1+1"],
+    'controls before formula' => [" \t@formula", "' \t@formula"],
 ]);
+
+it('encodes managed form metadata and field headings at the same CSV boundary', function (): void {
+    $form = Form::factory()->create(['name' => ' =1+1', 'schema' => []]);
+    Submission::factory()->for($form)->create(['payload' => ['values' => ['@heading' => 'Ordinary']]]);
+    $csv = BuildSubmissionsCsvAction::run($form);
+    expect($csv)->toContain("' =1+1")
+        ->toContain("'@heading")
+        ->toContain('Ordinary')
+        ->and($form->refresh()->name)->toBe(' =1+1');
+});
 
 it('does not prefix safe cell values', function (): void {
     $form = Form::factory()->create([

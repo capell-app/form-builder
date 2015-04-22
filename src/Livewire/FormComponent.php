@@ -136,7 +136,12 @@ final class FormComponent extends Component
         GuardFormSubmissionRateLimitAction::run($form, $this->allFields(), $this->data, request()->ip());
 
         if (! $this->hasTriggeredHoneypot()) {
-            $this->data = CalculateFormFieldValuesAction::run($form, $this->data);
+            try {
+                $this->data = CalculateFormFieldValuesAction::run($form, $this->data);
+            } catch (ValidationException $validationException) {
+                throw $this->normalizeActionValidationException($validationException);
+            }
+
             $this->validate(
                 BuildFormComponentValidationRulesAction::run($form, $this->data),
                 [],

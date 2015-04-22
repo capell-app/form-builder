@@ -68,6 +68,14 @@ final class BuildSubmissionsCsvAction
         return $this->writeCsv($rows);
     }
 
+    private static function csvValue(string|int|float|bool|null $value): string|int|float|bool|null
+    {
+        // Encode only at the spreadsheet boundary; retain scalar numbers and storage values.
+        return is_string($value) && preg_match('/^(?:[\x00-\x20]*[=+\-@]|[\x00-\x1f])/', $value) === 1
+            ? "'" . $value
+            : $value;
+    }
+
     /**
      * @param  Collection<int, Submission>  $submissions
      * @return array<int, string>
@@ -124,34 +132,12 @@ final class BuildSubmissionsCsvAction
         }
 
         if (is_scalar($value)) {
-            return $this->neutraliseFormulaInjection((string) $value);
+            return (string) $value;
         }
 
         $json = json_encode($value, JSON_THROW_ON_ERROR);
 
-        return is_string($json) ? $this->neutraliseFormulaInjection($json) : '';
-    }
-
-    /**
-     * Prefix a single apostrophe to any cell whose first character could be
-     * interpreted as a formula by a spreadsheet application (Excel, Sheets,
-     * LibreOffice). Without this, opening an exported CSV that contains
-     * attacker-controlled submission values can execute formulas, leading to
-     * data exfiltration or command execution on the operator's machine.
-     */
-    private function neutraliseFormulaInjection(string $value): string
-    {
-        if ($value === '') {
-            return $value;
-        }
-
-        $firstCharacter = $value[0];
-
-        if (in_array($firstCharacter, ['=', '+', '-', '@', "\t", "\r"], true)) {
-            return "'" . $value;
-        }
-
-        return $value;
+        return is_string($json) ? $json : '';
     }
 
     private function modelKey(Model $model): string
@@ -171,7 +157,7 @@ final class BuildSubmissionsCsvAction
         throw_if($stream === false, RuntimeException::class, 'Unable to open temporary CSV stream.');
 
         foreach ($rows as $row) {
-            fputcsv($stream, $row);
+            fputcsv($stream, array_map(self::csvValue(...), $row), escape: '');
         }
 
         rewind($stream);

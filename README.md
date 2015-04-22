@@ -135,6 +135,7 @@ Screenshot contract: `docs/screenshots.json`.
 - `ResolveFormSubmissionPrivacyRecordIdsAction`
 - `ResolveSubmissionReplyAddressAction`
 - `ResolveVisibleFormFieldsAction`
+- `SeedFormBuilderScreenshotFixtureAction`
 - `SendSubmissionAutoresponderAction`
 - `SendSubmissionNotificationAction`
 
@@ -159,6 +160,7 @@ Screenshot contract: `docs/screenshots.json`.
 
 ### Command signatures
 
+- `capell:form-builder:export-submissions`
 - `capell:form-builder:prune`
 
 ### Manifest action API
@@ -190,11 +192,13 @@ Screenshot contract: `docs/screenshots.json`.
 
 - `ExportSubmissionsCommand`
 - `PruneExpiredFormSubmissionsCommand`
+- `SeedFormBuilderScreenshotFixtureCommand`
 
 ### Manifest contributions
 
 - `admin-resource: Capell\FormBuilder\Manifest\FormResourceContribution`
 - `admin-resource: Capell\FormBuilder\Manifest\SubmissionResourceContribution`
+- `console-command: Capell\FormBuilder\Manifest\FormBuilderConsoleCommandsContribution`
 - `frontend-component: Capell\FormBuilder\Manifest\FormElementComponentContribution`
 - `model: Capell\FormBuilder\Manifest\FormModelContribution`
 - `model: Capell\FormBuilder\Manifest\SubmissionModelContribution`
@@ -240,7 +244,7 @@ Screenshot contract: `docs/screenshots.json`.
 - Settings: no package settings declared.
 - Queues or schedules: scheduled commands `capell:form-builder:prune (daily; package registered)`; queue jobs `DispatchSubmissionWebhookJob`.
 - Cache tags: `form-builder`.
-- Commands: `capell:form-builder:prune`.
+- Commands: `capell:form-builder:export-submissions`, `capell:form-builder:prune`.
 
 ## Common Pitfalls
 

@@ -70,6 +70,21 @@
             "key": "form-builder-submission-prune",
             "command": "capell:form-builder:prune",
             "frequency": "daily"
+        },
+        {
+            "type": "console-command",
+            "class": "Capell\\FormBuilder\\Manifest\\FormBuilderConsoleCommandsContribution",
+            "commands": [
+                "capell:form-builder:export-submissions",
+                "capell:form-builder:prune"
+            ],
+            "commandClasses": [
+                "Capell\\FormBuilder\\Console\\Commands\\ExportSubmissionsCommand",
+                "Capell\\FormBuilder\\Console\\Commands\\PruneExpiredFormSubmissionsCommand"
+            ],
+            "excludedCommands": {
+                "capell:form-builder-screenshot-fixture": "Seeds disposable screenshot data only; not an operational command."
+            }
         }
     ],
     "database": {
@@ -82,7 +97,8 @@
         "setup": null,
         "demo": null,
         "doctor": null,
-        "prune": "capell:form-builder:prune"
+        "prune": "capell:form-builder:prune",
+        "exportSubmissions": "capell:form-builder:export-submissions"
     },
     "actions": {
         "archiveSubmission": "Capell\\FormBuilder\\Actions\\ArchiveSubmissionAction",

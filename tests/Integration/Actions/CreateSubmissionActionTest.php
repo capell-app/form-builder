@@ -29,6 +29,26 @@ beforeEach(function (): void {
     ]));
 });
 
+it('rejects an invalid stored calculation before saving or dispatching a submission', function (): void {
+    Event::fake([FormSubmitted::class]);
+    $form = Form::factory()->create([
+        'schema' => [[
+            'key' => 'total',
+            'label' => 'Total',
+            'type' => 'calculation',
+            'calculation_expression' => '2 *',
+        ]],
+    ]);
+    Queue::fake();
+
+    expect(fn (): Submission => CreateSubmissionAction::run($form, [], new SubmissionMetaData))
+        ->toThrow(ValidationException::class);
+
+    expect(Submission::query()->count())->toBe(0);
+    Event::assertNotDispatched(FormSubmitted::class);
+    Queue::assertNothingPushed();
+});
+
 it('validates and stores a submission', function (): void {
     Event::fake([FormSubmitted::class]);
 
@@ -303,7 +323,7 @@ it('dispatches configured submission webhooks after successful stored submission
         fn (DispatchSubmissionWebhookJob $job): bool => $job->submissionId === $submissionId,
     );
 
-    (new DispatchSubmissionWebhookJob($submissionId))->handle();
+    new DispatchSubmissionWebhookJob($submissionId)->handle();
 
     Http::assertSent(fn ($request): bool => $request->url() === 'https://hooks.example.test/form'
         && $request['event'] === 'form.submitted'

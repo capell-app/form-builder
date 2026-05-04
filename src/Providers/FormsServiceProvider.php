@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Capell\Forms\Providers;
 
+use Capell\Admin\Data\AdminSurfaceContributionData;
 use Capell\Admin\Facades\CapellAdmin;
 use Capell\Core\Actions\RegisterBlazeOptimizedViewsAction;
 use Capell\Core\Data\VendorAssetData;
@@ -40,13 +41,9 @@ class FormsServiceProvider extends AbstractPackageServiceProvider
 
     public function registeringPackage(): void
     {
-        $this
-            ->registerPackageMetadata()
-            ->registerModels()
-            ->registerPackageAssets()
-            ->registerBlazeComponents();
+        $this->registerPackageMetadata();
 
-        $this->booted(function (): void {
+        $this->app->booted(function (): void {
             if (! $this->isPackageInstalled()) {
                 return;
             }
@@ -57,6 +54,10 @@ class FormsServiceProvider extends AbstractPackageServiceProvider
 
     public function packageBooted(): void
     {
+        if (! $this->isPackageInstalled()) {
+            return;
+        }
+
         Relation::morphMap([
             'form' => Form::class,
             'form_submission' => Submission::class,
@@ -66,6 +67,9 @@ class FormsServiceProvider extends AbstractPackageServiceProvider
     private function bootInstalledPackage(): self
     {
         return $this
+            ->registerModels()
+            ->registerPackageAssets()
+            ->registerBlazeComponents()
             ->registerResources()
             ->registerLivewireComponents()
             ->registerBladeComponents();
@@ -123,7 +127,10 @@ class FormsServiceProvider extends AbstractPackageServiceProvider
                 continue;
             }
 
-            CapellAdmin::registerResource($resource->name, class: $resource->value);
+            CapellAdmin::contributeToAdminSurface(AdminSurfaceContributionData::resource(
+                class: $resource->value,
+                group: $resource->name,
+            ));
         }
 
         return $this;

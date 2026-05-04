@@ -44,9 +44,6 @@
             "providers": [
                 "Capell\\Forms\\Providers\\FormsServiceProvider"
             ]
-        },
-        "branch-alias": {
-            "dev-main": "4.x-dev"
         }
     },
     "config": {

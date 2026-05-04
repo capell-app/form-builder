@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Symfony\Component\Finder\Finder;
 
 it('keeps forms package references inside the forms source package', function (): void {
-    $rootPath = dirname(__DIR__, 5);
+    $rootPath = dirname(__DIR__, 4);
     $violations = [];
 
     $files = (new Finder)
@@ -18,7 +18,7 @@ it('keeps forms package references inside the forms source package', function ()
     foreach ($files as $file) {
         $relativePath = str_replace($rootPath . '/', '', $file->getPathname());
 
-        if (str_starts_with($relativePath, 'packages/forms/forms/src/')) {
+        if (str_starts_with($relativePath, 'packages/forms/src/')) {
             continue;
         }
 

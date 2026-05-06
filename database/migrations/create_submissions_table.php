@@ -12,7 +12,7 @@ return new class extends Migration
     {
         Schema::create('submissions', function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('form_id')->constrained('form-builder')->cascadeOnDelete();
+            $table->foreignId('form_id')->constrained('forms')->cascadeOnDelete();
             $table->foreignId('site_id')->constrained('sites')->cascadeOnDelete();
             $table->longText('payload')->nullable();
             $table->longText('meta')->nullable();

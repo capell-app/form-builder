@@ -14,6 +14,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $form_id
+ * @property SubmissionPayloadData|null $payload
+ * @property SubmissionMetaData|null $meta
+ */
 class Submission extends Model
 {
     /** @use HasFactory<SubmissionFactory> */

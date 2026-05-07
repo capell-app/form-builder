@@ -140,7 +140,7 @@ class FormBuilderServiceProvider extends AbstractPackageServiceProvider
     {
         if ($this->isLivewireV3()) {
             foreach (LivewireComponentEnum::getComponents() as $name => $component) {
-                if (! $component) {
+                if ($component === null) {
                     continue;
                 }
 

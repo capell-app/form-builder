@@ -1,4 +1,5 @@
 {
+    "manifest-version": 2,
     "name": "capell-app/form-builder",
     "kind": "package",
     "capell-version": "^4.0",
@@ -6,9 +7,49 @@
     "tier": "premium",
     "bundle": "form-builder",
     "description": "FormBuilder adds form definitions, encrypted submissions, frontend Livewire rendering, validation, and submission status handling to Capell.",
-    "contexts": ["admin", "frontend"],
-    "requires": ["capell-app/core", "capell-app/admin", "capell-app/frontend"],
+    "surfaces": [
+        "admin",
+        "frontend"
+    ],
+    "dependencies": {
+        "requires": [
+            "capell-app/core",
+            "capell-app/admin",
+            "capell-app/frontend"
+        ],
+        "optional": [],
+        "conflicts": []
+    },
+    "lifecycle": {
+        "activation": "manual",
+        "defaultStatus": "available",
+        "requiresInstallCommand": false
+    },
     "providers": {
-        "shared": ["Capell\\FormBuilder\\Providers\\FormBuilderServiceProvider"]
-    }
+        "metadata": [],
+        "install": [],
+        "runtime": [
+            "Capell\\FormBuilder\\Providers\\FormBuilderServiceProvider"
+        ],
+        "admin": [],
+        "frontend": []
+    },
+    "database": {
+        "migrations": true,
+        "settings": false,
+        "requiredTables": []
+    },
+    "commands": {
+        "install": null,
+        "setup": null,
+        "setupParams": [],
+        "demo": null,
+        "demoParams": [],
+        "health": null
+    },
+    "settings": [],
+    "permissions": [],
+    "capabilities": [],
+    "assets": [],
+    "healthChecks": []
 }

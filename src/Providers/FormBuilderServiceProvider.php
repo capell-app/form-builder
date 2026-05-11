@@ -34,8 +34,8 @@ class FormBuilderServiceProvider extends AbstractPackageServiceProvider
             ->hasViews(self::$name)
             ->hasTranslations()
             ->hasMigrations([
-                'create_form-builder_table',
-                'create_submissions_table',
+                '2026_05_10_190849_01_create_form-builder_table',
+                '2026_05_10_190849_02_create_submissions_table',
             ]);
     }
 

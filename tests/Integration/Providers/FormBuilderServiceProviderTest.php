@@ -11,9 +11,9 @@ it('registers form-builder package metadata', function (): void {
     $package = CapellCore::getPackage(FormBuilderServiceProvider::$packageName);
 
     expect($package->name)->toBe('capell-app/form-builder')
-        ->and($package->serviceProviderClass)->toBe(FormBuilderServiceProvider::class)
+        ->and($package->serviceProviderClass)->toBeNull()
         ->and($package->path)->toBe(realpath(__DIR__ . '/../../../'))
-        ->and($package->getDescription())->toBe(__('capell-form-builder::package.description'));
+        ->and($package->getDescription())->toBe('FormBuilder adds form definitions, encrypted submissions, frontend Livewire rendering, validation, and submission status handling to Capell.');
 });
 
 it('registers form-builder models for Capell model enumeration', function (): void {

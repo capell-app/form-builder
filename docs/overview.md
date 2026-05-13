@@ -49,6 +49,14 @@ Lets editors collect responses from structured websites while keeping submission
 - Frontend form output.
 - Submission detail view.
 
+## Screenshots
+
+![Form mappings admin index](../../../public/docs/screenshots/packages/form-builder/form-builder-admin-index.png)
+
+![Create form mapping screen](../../../public/docs/screenshots/packages/form-builder/create-edit-form-schema-screen.png)
+
+The frontend and submission detail screenshots need seeded form definitions and submissions before they can represent the package accurately. Do not publish blank frontend captures for those states.
+
 ## Pitfalls
 
 - Disable IP/user agent collection where privacy policy requires it.

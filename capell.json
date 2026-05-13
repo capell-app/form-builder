@@ -13,10 +13,7 @@
         "bundle": "form-builder"
     },
     "namespace": "Capell\\FormBuilder",
-    "surfaces": [
-        "admin",
-        "frontend"
-    ],
+    "surfaces": ["admin", "frontend"],
     "dependencies": {
         "requires": [
             "capell-app/admin",
@@ -57,15 +54,10 @@
     "performance": {
         "frontendRenderBudgetMs": 20,
         "adminQueryBudget": 40,
-        "cacheTags": [
-            "form-builder"
-        ],
+        "cacheTags": ["form-builder"],
         "cacheSafety": {
             "cacheable": false,
-            "variesBy": [
-                "site",
-                "locale"
-            ],
+            "variesBy": ["site", "locale"],
             "sensitiveOutput": false,
             "invalidationSources": [],
             "queueInvalidation": true
@@ -81,16 +73,9 @@
     "marketplace": {
         "summary": "FormBuilder adds form definitions, encrypted submissions, frontend Livewire rendering, validation, and submission status handling to Capell.",
         "screenshots": [],
-        "categories": [
-            "admin",
-            "form-builder",
-            "frontend"
-        ]
+        "categories": ["admin", "form-builder", "frontend"]
     },
     "contributionTraceability": {
-        "deferredContributions": [
-            "admin-resource",
-            "model"
-        ]
+        "deferredContributions": ["admin-resource", "model"]
     }
 }

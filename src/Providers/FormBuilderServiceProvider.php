@@ -154,19 +154,6 @@ class FormBuilderServiceProvider extends AbstractPackageServiceProvider
         return $this;
     }
 
-    private function getVersion(): string
-    {
-        if (! class_exists(InstalledVersions::class)) {
-            return 'dev';
-        }
-
-        if (! InstalledVersions::isInstalled(static::$packageName)) {
-            return 'dev';
-        }
-
-        return InstalledVersions::getPrettyVersion(static::$packageName) ?? 'dev';
-    }
-
     private function isLivewireV3(): bool
     {
         if (! class_exists(InstalledVersions::class) || ! InstalledVersions::isInstalled('livewire/livewire')) {

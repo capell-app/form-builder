@@ -24,7 +24,7 @@ class Submission extends Model
     /** @use HasFactory<SubmissionFactory> */
     use HasFactory;
 
-    /** @var array<string> */
+    /** @var list<string> */
     protected $fillable = [
         'form_id',
         'site_id',

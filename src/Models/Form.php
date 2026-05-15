@@ -23,7 +23,7 @@ class Form extends Model
     /** @use HasFactory<FormFactory> */
     use HasFactory;
 
-    /** @var array<string> */
+    /** @var list<string> */
     protected $fillable = [
         'site_id',
         'name',

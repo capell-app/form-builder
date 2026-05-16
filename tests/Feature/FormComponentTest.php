@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\Mail;
 use function Pest\Livewire\livewire;
 
 it('renders and stores a submitted form', function (): void {
-    app(RecordExtensionRenderContributionAction::class)->clear();
+    resolve(RecordExtensionRenderContributionAction::class)->clear();
 
     $form = Form::factory()->create([
         'name' => 'Lead form',
@@ -50,7 +50,7 @@ it('renders and stores a submitted form', function (): void {
         ->and($submission->payload->values)->toBe(['email' => 'ben@example.com'])
         ->and($submission->meta->url)->toBeString();
 
-    $contribution = collect(app(RecordExtensionRenderContributionAction::class)->recorded())
+    $contribution = collect(resolve(RecordExtensionRenderContributionAction::class)->recorded())
         ->first(fn (mixed $record): bool => $record?->contributionClass === FormComponent::class);
 
     expect($contribution?->cacheable)->toBeFalse();
@@ -211,7 +211,7 @@ it('renders accessible public form states', function (): void {
 });
 
 it('renders a form element component from widget data for the current frontend site', function (): void {
-    app(RecordExtensionRenderContributionAction::class)->clear();
+    resolve(RecordExtensionRenderContributionAction::class)->clear();
 
     $form = Form::factory()->create([
         'name' => 'Contact',
@@ -232,7 +232,7 @@ it('renders a form element component from widget data for the current frontend s
         ->assertSee('Email')
         ->assertSeeHtml('capell-form-contact-block-email');
 
-    $contribution = collect(app(RecordExtensionRenderContributionAction::class)->recorded())
+    $contribution = collect(resolve(RecordExtensionRenderContributionAction::class)->recorded())
         ->first(fn (mixed $record): bool => $record?->contributionClass === FormElementComponent::class);
 
     expect($contribution?->cacheable)->toBeFalse();

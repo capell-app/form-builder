@@ -30,10 +30,10 @@ class SendSubmissionNotificationAction
                 submission: $submission,
                 replyToAddress: ResolveSubmissionReplyAddressAction::run($submission),
             ));
-        } catch (Throwable $exception) {
+        } catch (Throwable $throwable) {
             Log::warning('Failed to queue form submission notification.', [
                 'submission_id' => $submission->getKey(),
-                'exception' => $exception,
+                'exception' => $throwable,
             ]);
         }
     }

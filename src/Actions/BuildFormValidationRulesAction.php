@@ -73,10 +73,13 @@ class BuildFormValidationRulesAction
      */
     private function allowedEditorRules(array $rules, FormFieldData $field): array
     {
-        return array_values(array_filter(array_map(
-            fn (string $rule): ?string => $this->normalizeEditorRule($rule, $field),
-            $rules,
-        )));
+        return array_values(array_filter(
+            array_map(
+                fn (string $rule): ?string => $this->normalizeEditorRule($rule, $field),
+                $rules,
+            ),
+            static fn (?string $rule): bool => $rule !== null,
+        ));
     }
 
     /**

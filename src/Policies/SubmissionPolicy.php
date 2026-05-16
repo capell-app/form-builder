@@ -18,9 +18,15 @@ final class SubmissionPolicy
 
     public function viewAny(User $user): bool
     {
-        return $this->hasPermission($user, 'view_any')
-            || $this->hasPermission($user, 'view')
-            || SubmissionSiteAccess::actorCanAccessAnySite($user, SubmissionSiteAccess::VIEW_ABILITIES);
+        if ($this->hasPermission($user, 'view_any')) {
+            return true;
+        }
+
+        if ($this->hasPermission($user, 'view')) {
+            return true;
+        }
+
+        return SubmissionSiteAccess::actorCanAccessAnySite($user, SubmissionSiteAccess::VIEW_ABILITIES);
     }
 
     public function view(User $user, Submission $submission): bool
@@ -28,7 +34,7 @@ final class SubmissionPolicy
         return $this->viewAny($user)
             && SubmissionSiteAccess::actorCanAccessSite(
                 $user,
-                is_numeric($submission->site_id) ? (int) $submission->site_id : null,
+                $submission->site_id,
                 SubmissionSiteAccess::VIEW_ABILITIES,
             );
     }
@@ -37,7 +43,7 @@ final class SubmissionPolicy
     {
         return SubmissionSiteAccess::actorCanAccessSite(
             $user,
-            is_numeric($submission->site_id) ? (int) $submission->site_id : null,
+            $submission->site_id,
             SubmissionSiteAccess::REPLY_ABILITIES,
         );
     }
@@ -46,7 +52,7 @@ final class SubmissionPolicy
     {
         return SubmissionSiteAccess::actorCanAccessSite(
             $user,
-            is_numeric($submission->site_id) ? (int) $submission->site_id : null,
+            $submission->site_id,
             SubmissionSiteAccess::UPDATE_ABILITIES,
         );
     }

@@ -91,7 +91,11 @@ final class SubmissionSiteAccess
             return false;
         }
 
-        return self::isGlobalActor($actor) || self::permittedSiteIds($actor, $abilities)->isNotEmpty();
+        if (self::isGlobalActor($actor)) {
+            return true;
+        }
+
+        return self::permittedSiteIds($actor, $abilities)->isNotEmpty();
     }
 
     private static function isGlobalActor(Authenticatable $actor): bool

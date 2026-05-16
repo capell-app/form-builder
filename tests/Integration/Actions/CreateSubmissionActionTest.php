@@ -7,7 +7,9 @@ use Capell\FormBuilder\Data\SubmissionMetaData;
 use Capell\FormBuilder\Enums\SubmissionStatus;
 use Capell\FormBuilder\Events\FormSubmitted;
 use Capell\FormBuilder\Models\Form;
+use Capell\FormBuilder\Models\Submission;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 
 it('validates and stores a submission', function (): void {
@@ -92,3 +94,29 @@ it('throws a validation exception for invalid data', function (): void {
         meta: new SubmissionMetaData,
     );
 })->throws(ValidationException::class);
+
+it('stores valid submissions when notification queueing fails', function (): void {
+    Event::fake([FormSubmitted::class]);
+    Mail::shouldReceive('to')
+        ->once()
+        ->andThrow(new RuntimeException('SMTP unavailable'));
+
+    $form = Form::factory()->create([
+        'settings' => [
+            'store_submissions' => true,
+            'notification_email' => 'hello@capell.app',
+        ],
+        'schema' => [
+            ['key' => 'email', 'label' => 'Email', 'type' => 'email', 'required' => true, 'validation_rules' => ['email']],
+        ],
+    ]);
+
+    $submission = CreateSubmissionAction::run(
+        form: $form,
+        input: ['email' => 'ben@example.com'],
+        meta: new SubmissionMetaData,
+    );
+
+    expect($submission->exists)->toBeTrue()
+        ->and(Submission::query()->whereKey($submission->getKey())->exists())->toBeTrue();
+});

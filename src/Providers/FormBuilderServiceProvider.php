@@ -7,16 +7,22 @@ namespace Capell\FormBuilder\Providers;
 use Capell\Admin\Data\AdminSurfaceContributionData;
 use Capell\Admin\Facades\CapellAdmin;
 use Capell\Core\Actions\RegisterBlazeOptimizedViewsAction;
+use Capell\Core\Data\RenderableDefinitionData;
 use Capell\Core\Data\VendorAssetData;
+use Capell\Core\Enums\RenderableTypeEnum;
 use Capell\Core\Facades\CapellCore;
 use Capell\Core\Support\Packages\AbstractPackageServiceProvider;
+use Capell\Core\Support\Renderables\RenderableRegistry;
 use Capell\FormBuilder\Enums\LivewireComponentEnum;
 use Capell\FormBuilder\Enums\ResourceEnum;
+use Capell\FormBuilder\Livewire\FormElementComponent;
 use Capell\FormBuilder\Models\Form;
 use Capell\FormBuilder\Models\Submission;
+use Capell\FormBuilder\Policies\SubmissionPolicy;
 use Composer\InstalledVersions;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Gate;
 use Livewire\Livewire;
 use Spatie\LaravelPackageTools\Package;
 
@@ -52,6 +58,8 @@ class FormBuilderServiceProvider extends AbstractPackageServiceProvider
 
     public function packageBooted(): void
     {
+        Gate::policy(Submission::class, SubmissionPolicy::class);
+
         if (! $this->isPackageInstalled()) {
             return;
         }
@@ -68,6 +76,7 @@ class FormBuilderServiceProvider extends AbstractPackageServiceProvider
             ->registerModels()
             ->registerPackageAssets()
             ->registerBlazeComponents()
+            ->registerRenderables()
             ->registerResources()
             ->registerLivewireComponents()
             ->registerBladeComponents();
@@ -116,6 +125,17 @@ class FormBuilderServiceProvider extends AbstractPackageServiceProvider
                 group: $resource->name,
             ));
         }
+
+        return $this;
+    }
+
+    private function registerRenderables(): self
+    {
+        resolve(RenderableRegistry::class)->register(new RenderableDefinitionData(
+            key: LivewireComponentEnum::FormElement->value,
+            type: RenderableTypeEnum::Element,
+            livewire: FormElementComponent::class,
+        ));
 
         return $this;
     }

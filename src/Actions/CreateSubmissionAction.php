@@ -30,6 +30,7 @@ class CreateSubmissionAction
         $submission = $this->createSubmission($form, $this->storedPayload($form, $validated), $meta, SubmissionStatus::New);
 
         event(new FormSubmitted($form, $submission));
+        SendSubmissionNotificationAction::run($submission);
 
         return $submission;
     }

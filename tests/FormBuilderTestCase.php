@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Capell\FormBuilder\Tests;
 
+use Capell\Admin\Providers\AdminServiceProvider;
+use Capell\Admin\Providers\Filament\AdminPanelProvider;
 use Capell\Core\Facades\CapellCore;
 use Capell\FormBuilder\Providers\FormBuilderServiceProvider;
 use Capell\Tests\AbstractTestCase;
@@ -25,8 +27,10 @@ class FormBuilderTestCase extends AbstractTestCase
     {
         return [
             ...parent::getPackageProviders($app),
+            AdminServiceProvider::class,
             FormBuilderServiceProvider::class,
             LivewireServiceProvider::class,
+            AdminPanelProvider::class,
         ];
     }
 
@@ -35,6 +39,7 @@ class FormBuilderTestCase extends AbstractTestCase
     {
         parent::getEnvironmentSetUp($app);
 
+        CapellCore::forcePackageInstalled(AdminServiceProvider::$packageName);
         CapellCore::forcePackageInstalled(FormBuilderServiceProvider::$packageName);
     }
 }

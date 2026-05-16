@@ -8,6 +8,7 @@ use Capell\Core\Enums\Attribute\Component;
 use Capell\Core\Enums\Attribute\EnumAttributeHelper;
 use Capell\Core\Enums\Attribute\EnumAttributeInterface;
 use Capell\FormBuilder\Livewire\FormComponent;
+use Capell\FormBuilder\Livewire\FormElementComponent;
 
 enum LivewireComponentEnum: string implements EnumAttributeInterface
 {
@@ -15,6 +16,9 @@ enum LivewireComponentEnum: string implements EnumAttributeInterface
 
     #[Component(FormComponent::class)]
     case Form = 'capell-form-builder::form';
+
+    #[Component(FormElementComponent::class)]
+    case FormElement = 'capell-form-builder::element.form';
 
     /**
      * @return array<string, class-string|null>

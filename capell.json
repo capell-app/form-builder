@@ -32,7 +32,13 @@
         "admin": [],
         "frontend": []
     },
-    "contributes": [],
+    "contributes": [
+        {
+            "type": "frontend-component",
+            "class": "Capell\\FormBuilder\\Livewire\\FormElementComponent",
+            "surface": "frontend"
+        }
+    ],
     "database": {
         "migrations": true,
         "settings": false,
@@ -57,9 +63,20 @@
         "cacheTags": ["form-builder"],
         "cacheSafety": {
             "cacheable": false,
-            "variesBy": ["site", "locale"],
+            "variesBy": [],
             "sensitiveOutput": false,
-            "invalidationSources": [],
+            "invalidationSources": [
+                {
+                    "model": "Capell\\FormBuilder\\Models\\Form",
+                    "events": [
+                        "created",
+                        "updated",
+                        "deleted",
+                        "restored",
+                        "forceDeleted"
+                    ]
+                }
+            ],
             "queueInvalidation": true
         }
     },

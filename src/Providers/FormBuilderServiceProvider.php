@@ -9,12 +9,12 @@ use Capell\Admin\Facades\CapellAdmin;
 use Capell\Core\Actions\RegisterBlazeOptimizedViewsAction;
 use Capell\Core\Data\RenderableDefinitionData;
 use Capell\Core\Data\VendorAssetData;
-use Capell\Core\Enums\RenderableTypeEnum;
 use Capell\Core\Facades\CapellCore;
 use Capell\Core\Support\Packages\AbstractPackageServiceProvider;
 use Capell\Core\Support\Renderables\RenderableRegistry;
 use Capell\FormBuilder\Enums\LivewireComponentEnum;
 use Capell\FormBuilder\Enums\ResourceEnum;
+use Capell\FormBuilder\Livewire\FormComponent;
 use Capell\FormBuilder\Livewire\FormElementComponent;
 use Capell\FormBuilder\Models\Form;
 use Capell\FormBuilder\Models\Submission;
@@ -132,8 +132,14 @@ class FormBuilderServiceProvider extends AbstractPackageServiceProvider
     private function registerRenderables(): self
     {
         resolve(RenderableRegistry::class)->register(new RenderableDefinitionData(
+            key: 'capell-form-builder::block.form',
+            type: 'layout-block',
+            livewire: FormComponent::class,
+        ));
+
+        resolve(RenderableRegistry::class)->register(new RenderableDefinitionData(
             key: LivewireComponentEnum::FormElement->value,
-            type: RenderableTypeEnum::Element,
+            type: 'form-field',
             livewire: FormElementComponent::class,
         ));
 

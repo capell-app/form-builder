@@ -25,7 +25,7 @@ use Throwable;
 
 final class FormComponent extends Component
 {
-    private const PackageName = 'capell-app/form-builder';
+    private const string PackageName = 'capell-app/form-builder';
 
     /** @var array<string, mixed> */
     public array $data = [];

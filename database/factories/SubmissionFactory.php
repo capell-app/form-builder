@@ -9,6 +9,7 @@ use Capell\FormBuilder\Enums\SubmissionStatus;
 use Capell\FormBuilder\Models\Form;
 use Capell\FormBuilder\Models\Submission;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Override;
 
 /**
  * @extends Factory<Submission>
@@ -17,6 +18,7 @@ class SubmissionFactory extends Factory
 {
     protected $model = Submission::class;
 
+    #[Override]
     public function configure(): static
     {
         return $this->afterMaking(function (Submission $submission): void {

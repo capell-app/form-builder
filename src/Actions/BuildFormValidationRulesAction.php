@@ -13,9 +13,9 @@ class BuildFormValidationRulesAction
 {
     use AsAction;
 
-    private const DEFAULT_SHORT_TEXT_MAX_LENGTH = 255;
+    private const int DEFAULT_SHORT_TEXT_MAX_LENGTH = 255;
 
-    private const DEFAULT_LONG_TEXT_MAX_LENGTH = 10000;
+    private const int DEFAULT_LONG_TEXT_MAX_LENGTH = 10000;
 
     /**
      * @return array<string, array<int, string>>

@@ -16,15 +16,15 @@ final class SubmissionSiteAccess
     use ResolvesShieldPermission;
 
     /** @var list<string> */
-    public const VIEW_ABILITIES = ['view_any', 'view'];
+    public const array VIEW_ABILITIES = ['view_any', 'view'];
 
     /** @var list<string> */
-    public const REPLY_ABILITIES = ['reply'];
+    public const array REPLY_ABILITIES = ['reply'];
 
     /** @var list<string> */
-    public const UPDATE_ABILITIES = ['update'];
+    public const array UPDATE_ABILITIES = ['update'];
 
-    private const SUBJECT = 'Submission';
+    private const string SUBJECT = 'Submission';
 
     /**
      * @param  list<string>  $abilities

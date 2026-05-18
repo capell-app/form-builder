@@ -14,7 +14,7 @@ final class SubmissionPolicy
 {
     use ResolvesShieldPermission;
 
-    private const SUBJECT = 'Submission';
+    private const string SUBJECT = 'Submission';
 
     public function viewAny(User $user): bool
     {

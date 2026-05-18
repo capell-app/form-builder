@@ -18,7 +18,7 @@ use Throwable;
 
 class FormElementComponent extends Component implements RegistersExtensionFrontendComponent
 {
-    private const PackageName = 'capell-app/form-builder';
+    private const string PackageName = 'capell-app/form-builder';
 
     public string $formReference = '';
 

@@ -66,16 +66,19 @@ final class SubmissionResource extends Resource
         return $user instanceof Authenticatable && Gate::forUser($user)->allows('viewAny', Submission::class);
     }
 
+    #[Override]
     public static function getNavigationLabel(): string
     {
         return (string) __('capell-form-builder::navigation.submissions');
     }
 
+    #[Override]
     public static function getNavigationGroup(): ?string
     {
         return (string) __('capell-admin::navigation.group_content');
     }
 
+    #[Override]
     public static function getPages(): array
     {
         return [

@@ -12,4 +12,5 @@ return [
     'reply_recipient_missing' => 'This submission does not include a valid email address to reply to.',
     'reply_sent' => 'Reply sent.',
     'status_updated' => 'Submission status updated.',
+    'too_many_submissions' => 'Too many submissions. Please wait a moment and try again.',
 ];

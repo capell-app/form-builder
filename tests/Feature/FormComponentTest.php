@@ -56,6 +56,40 @@ it('renders and stores a submitted form', function (): void {
     expect($contribution?->cacheable)->toBeFalse();
 });
 
+it('rate limits repeated public form submissions for the same form, email, and ip', function (): void {
+    config()->set('capell-form-builder.throttle.max_attempts', 2);
+    config()->set('capell-form-builder.throttle.decay_seconds', 60);
+
+    $form = Form::factory()->create([
+        'name' => 'Lead form',
+        'handle' => 'limited-lead-form',
+        'schema' => [
+            [
+                'key' => 'email',
+                'label' => 'Email',
+                'type' => FormFieldType::Email->value,
+                'required' => true,
+            ],
+        ],
+    ]);
+    bindFormBuilderFrontendSite($form->site);
+
+    foreach (range(1, 2) as $attempt) {
+        livewire(FormComponent::class, ['handle' => 'limited-lead-form'])
+            ->set('data.email', 'ben@example.com')
+            ->call('submit')
+            ->assertSet('submitted', true);
+    }
+
+    livewire(FormComponent::class, ['handle' => 'limited-lead-form'])
+        ->set('data.email', 'ben@example.com')
+        ->call('submit')
+        ->assertHasErrors(['data'])
+        ->assertSet('submitted', false);
+
+    expect(Submission::query()->count())->toBe(2);
+});
+
 it('submits after hydration without a frontend site context', function (): void {
     $form = Form::factory()->create([
         'name' => 'Lead form',
@@ -554,6 +588,41 @@ it('silently swallows honeypot submissions when submissions are not stored', fun
     Event::assertNotDispatched(FormSubmitted::class);
 
     expect(Submission::query()->count())->toBe(0);
+});
+
+it('throttles repeated public form submissions for the same form email and ip address', function (): void {
+    config()->set('capell-form-builder.throttle.max_attempts', 2);
+    config()->set('capell-form-builder.throttle.decay_seconds', 60);
+
+    $form = Form::factory()->create([
+        'name' => 'Lead form',
+        'handle' => 'lead-form',
+        'schema' => [
+            [
+                'key' => 'email',
+                'label' => 'Email',
+                'type' => FormFieldType::Email->value,
+                'required' => true,
+            ],
+        ],
+    ]);
+    bindFormBuilderFrontendSite($form->site);
+
+    foreach (range(1, 2) as $attempt) {
+        livewire(FormComponent::class, ['handle' => 'lead-form'])
+            ->set('data.email', 'ben@example.com')
+            ->call('submit')
+            ->assertHasNoErrors()
+            ->assertSet('submitted', true);
+    }
+
+    livewire(FormComponent::class, ['handle' => 'lead-form'])
+        ->set('data.email', 'ben@example.com')
+        ->call('submit')
+        ->assertHasErrors(['data'])
+        ->assertSee(__('capell-form-builder::message.too_many_submissions'));
+
+    expect(Submission::query()->count())->toBe(2);
 });
 
 function bindFormBuilderFrontendSite(Site $site): void

@@ -6,4 +6,8 @@ return [
     'store_submissions' => true,
     'collect_ip_address' => true,
     'collect_user_agent' => true,
+    'throttle' => [
+        'max_attempts' => 12,
+        'decay_seconds' => 60,
+    ],
 ];

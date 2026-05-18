@@ -18,7 +18,9 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 use Spatie\LaravelData\DataCollection;
 use Throwable;
@@ -63,6 +65,7 @@ final class FormComponent extends Component
 
         $metadata = $this->metadata();
         $settings = $this->settings();
+        $this->assertSubmissionIsNotRateLimited($form);
 
         if ($this->hasTriggeredHoneypot()) {
             if ($settings->storeSubmissions) {
@@ -109,6 +112,42 @@ final class FormComponent extends Component
             'formInstanceId' => $this->instanceId,
             'settings' => $this->settings(),
         ]);
+    }
+
+    /**
+     * @throws ValidationException
+     */
+    private function assertSubmissionIsNotRateLimited(Form $form): void
+    {
+        $key = $this->rateLimitKey($form);
+        $maxAttempts = $this->configuredThrottleValue('max_attempts', 12);
+
+        if (RateLimiter::tooManyAttempts($key, $maxAttempts)) {
+            throw ValidationException::withMessages([
+                'data' => __('capell-form-builder::message.too_many_submissions'),
+            ]);
+        }
+
+        RateLimiter::hit($key, $this->configuredThrottleValue('decay_seconds', 60));
+    }
+
+    private function rateLimitKey(Form $form): string
+    {
+        $email = is_scalar($this->data['email'] ?? null) ? Str::lower((string) $this->data['email']) : '';
+
+        return 'capell-form-builder:submit:' . hash('sha256', implode('|', [
+            (string) $form->getKey(),
+            (string) $form->site_id,
+            $email,
+            (string) request()->ip(),
+        ]));
+    }
+
+    private function configuredThrottleValue(string $key, int $default): int
+    {
+        $value = config('capell-form-builder.throttle.' . $key);
+
+        return is_numeric($value) ? max(1, (int) $value) : $default;
     }
 
     private function resolveForm(int|string|null $handle = null): ?Form

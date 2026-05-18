@@ -52,6 +52,12 @@
                         <ul
                             class="capell-form__error-summary-list mt-2 list-disc space-y-1 pl-5"
                         >
+                            @error('data')
+                                <li>
+                                    {{ $message }}
+                                </li>
+                            @enderror
+
                             @foreach ($fields as $field)
                                 @php
                                     $errorKey = 'data.' . $field->key;

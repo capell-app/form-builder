@@ -2,7 +2,7 @@
     use Capell\FormBuilder\Enums\FormFieldType;
 @endphp
 
-<div class="capell-form w-full">
+<div class="capell-form-builder-form capell-form w-full">
     @if ($form)
         @if ($submitted)
             <p

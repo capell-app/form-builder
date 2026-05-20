@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-use Capell\Forms\Data\SubmissionMetaData;
-use Capell\Forms\Data\SubmissionPayloadData;
-use Capell\Forms\Enums\SubmissionStatus;
-use Capell\Forms\Models\Form;
-use Capell\Forms\Models\Submission;
+use Capell\FormBuilder\Data\SubmissionMetaData;
+use Capell\FormBuilder\Data\SubmissionPayloadData;
+use Capell\FormBuilder\Enums\SubmissionStatus;
+use Capell\FormBuilder\Models\Form;
+use Capell\FormBuilder\Models\Submission;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
 

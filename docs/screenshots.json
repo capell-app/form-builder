@@ -1,59 +1,69 @@
 {
-    "package": "forms",
-    "composerName": "capell-app/forms",
+    "package": "form-builder",
+    "composerName": "capell-app/form-builder",
     "generatedFor": "deployment-screenshot-runner",
     "requiresInstalledPackage": true,
-    "outputDirectory": "public/docs/screenshots/packages/forms",
+    "outputDirectory": "public/docs/screenshots/packages/form-builder",
     "entries": [
         {
-            "id": "forms-admin-index",
-            "title": "Forms admin index.",
-            "package": "forms",
+            "id": "form-builder-admin-index",
+            "title": "FormBuilder admin index.",
+            "package": "form-builder",
             "surface": "admin",
             "targetType": "admin-surface",
             "target": null,
             "required": true,
-            "notes": "Resolved by the deployment screenshot runner after the package is installed and demo data is prepared."
+            "notes": "Capture after installing capell-app/form-builder in the isolated demo harness and seeding the data required for this use case.",
+            "useCase": "An administrator reviews form definitions and their publication/status state.",
+            "screenshotPath": "public/docs/screenshots/packages/form-builder/form-builder-admin-index.png"
         },
         {
             "id": "create-edit-form-schema-screen",
             "title": "Create/edit form schema screen.",
-            "package": "forms",
+            "package": "form-builder",
             "surface": "admin",
             "targetType": "admin-surface",
             "target": null,
             "required": true,
-            "notes": "Resolved by the deployment screenshot runner after the package is installed and demo data is prepared."
+            "notes": "Capture after installing capell-app/form-builder in the isolated demo harness and seeding the data required for this use case.",
+            "useCase": "An editor builds or adjusts a form schema, field types, validation, and notification settings.",
+            "screenshotPath": "public/docs/screenshots/packages/form-builder/create-edit-form-schema-screen.png"
         },
         {
             "id": "submissions-index",
             "title": "Submissions index.",
-            "package": "forms",
+            "package": "form-builder",
             "surface": "admin",
             "targetType": "admin-surface",
             "target": null,
             "required": true,
-            "notes": "Resolved by the deployment screenshot runner after the package is installed and demo data is prepared."
+            "notes": "Capture after installing capell-app/form-builder in the isolated demo harness and seeding the data required for this use case.",
+            "useCase": "An administrator triages unread, spam, archived, and normal submissions.",
+            "screenshotPath": "public/docs/screenshots/packages/form-builder/submissions-index.png"
         },
         {
             "id": "frontend-form-output",
             "title": "Frontend form output.",
-            "package": "forms",
+            "package": "form-builder",
             "surface": "frontend",
             "targetType": "frontend-url",
             "target": null,
             "required": true,
-            "notes": "Resolved by the deployment screenshot runner after the package is installed and demo data is prepared."
+            "notes": "Capture after installing capell-app/form-builder in the isolated demo harness and seeding the data required for this use case.",
+            "useCase": "A visitor completes a seeded public form rendered through the frontend component.",
+            "screenshotPath": "public/docs/screenshots/packages/form-builder/frontend-form-output.png"
         },
         {
             "id": "submission-detail-view",
             "title": "Submission detail view.",
-            "package": "forms",
+            "package": "form-builder",
             "surface": "admin",
             "targetType": "admin-surface",
             "target": null,
             "required": true,
-            "notes": "Resolved by the deployment screenshot runner after the package is installed and demo data is prepared."
+            "notes": "Capture after installing capell-app/form-builder in the isolated demo harness and seeding the data required for this use case.",
+            "useCase": "An administrator reads a submission payload and reply context without exposing encrypted raw storage.",
+            "screenshotPath": "public/docs/screenshots/packages/form-builder/submission-detail-view.png"
         }
     ]
 }

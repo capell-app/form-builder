@@ -2,6 +2,6 @@
 
 declare(strict_types=1);
 
-use Capell\Forms\Tests\FormsTestCase;
+use Capell\FormBuilder\Tests\FormBuilderTestCase;
 
-pest()->extend(FormsTestCase::class)->group('forms')->in(__DIR__);
+pest()->extend(FormBuilderTestCase::class)->group('form-builder')->in(__DIR__);

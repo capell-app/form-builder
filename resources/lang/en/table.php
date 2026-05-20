@@ -3,13 +3,18 @@
 declare(strict_types=1);
 
 return [
+    'archive' => 'Archive',
     'form' => 'Form',
+    'mark_read' => 'Mark read',
+    'mark_spam' => 'Mark spam',
+    'payload' => 'Submission details',
+    'payload_empty' => 'No submitted fields were stored for this submission.',
+    'reply' => 'Reply',
+    'reply_message' => 'Message',
+    'reply_subject' => 'Subject',
+    'reply_to' => 'Reply to',
+    'site' => 'Site',
     'status' => 'Status',
+    'submissions_empty' => 'No form submissions yet',
     'submitted_at' => 'Submitted',
-    'payload' => 'Payload',
-    'meta' => 'Meta',
-    'ip_address' => 'IP address',
-    'user_agent' => 'User agent',
-    'url' => 'URL',
-    'referer' => 'Referer',
 ];

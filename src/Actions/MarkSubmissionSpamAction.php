@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Capell\Forms\Actions;
+namespace Capell\FormBuilder\Actions;
 
-use Capell\Forms\Enums\SubmissionStatus;
-use Capell\Forms\Models\Submission;
+use Capell\FormBuilder\Enums\SubmissionStatus;
+use Capell\FormBuilder\Models\Submission;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 class MarkSubmissionSpamAction

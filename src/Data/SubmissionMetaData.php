@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Capell\Forms\Data;
+namespace Capell\FormBuilder\Data;
 
 use Spatie\LaravelData\Attributes\MapName;
 use Spatie\LaravelData\Data;

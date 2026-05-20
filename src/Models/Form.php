@@ -2,25 +2,29 @@
 
 declare(strict_types=1);
 
-namespace Capell\Forms\Models;
+namespace Capell\FormBuilder\Models;
 
 use Capell\Core\Models\Site;
-use Capell\Forms\Data\FormFieldData;
-use Capell\Forms\Data\FormSettingsData;
-use Capell\Forms\Database\Factories\FormFactory;
+use Capell\FormBuilder\Data\FormFieldData;
+use Capell\FormBuilder\Data\FormSettingsData;
+use Capell\FormBuilder\Database\Factories\FormFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Override;
 use Spatie\LaravelData\DataCollection;
 
+/**
+ * @property DataCollection<int, FormFieldData>|null $schema
+ */
 class Form extends Model
 {
     /** @use HasFactory<FormFactory> */
     use HasFactory;
 
-    /** @var array<string> */
+    /** @var list<string> */
     protected $fillable = [
         'site_id',
         'name',
@@ -51,6 +55,7 @@ class Form extends Model
     /**
      * @return array<string, string>
      */
+    #[Override]
     protected function casts(): array
     {
         return [

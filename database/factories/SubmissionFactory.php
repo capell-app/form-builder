@@ -2,13 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Capell\Forms\Database\Factories;
+namespace Capell\FormBuilder\Database\Factories;
 
 use Capell\Core\Models\Site;
-use Capell\Forms\Enums\SubmissionStatus;
-use Capell\Forms\Models\Form;
-use Capell\Forms\Models\Submission;
+use Capell\FormBuilder\Enums\SubmissionStatus;
+use Capell\FormBuilder\Models\Form;
+use Capell\FormBuilder\Models\Submission;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Override;
 
 /**
  * @extends Factory<Submission>
@@ -17,6 +18,7 @@ class SubmissionFactory extends Factory
 {
     protected $model = Submission::class;
 
+    #[Override]
     public function configure(): static
     {
         return $this->afterMaking(function (Submission $submission): void {
@@ -48,7 +50,7 @@ class SubmissionFactory extends Factory
             ],
             'meta' => [
                 'ip_address' => '127.0.0.1',
-                'user_agent' => 'Forms test agent',
+                'user_agent' => 'FormBuilder test agent',
                 'url' => 'https://example.test/contact',
                 'referer' => null,
             ],

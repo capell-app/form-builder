@@ -2,16 +2,20 @@
 
 declare(strict_types=1);
 
-namespace Capell\Forms\Actions;
+namespace Capell\FormBuilder\Actions;
 
-use Capell\Forms\Data\FormFieldData;
-use Capell\Forms\Enums\FormFieldType;
-use Capell\Forms\Models\Form;
+use Capell\FormBuilder\Data\FormFieldData;
+use Capell\FormBuilder\Enums\FormFieldType;
+use Capell\FormBuilder\Models\Form;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 class BuildFormValidationRulesAction
 {
     use AsAction;
+
+    private const int DEFAULT_SHORT_TEXT_MAX_LENGTH = 255;
+
+    private const int DEFAULT_LONG_TEXT_MAX_LENGTH = 10000;
 
     /**
      * @return array<string, array<int, string>>
@@ -21,7 +25,6 @@ class BuildFormValidationRulesAction
         $rules = [];
 
         foreach ($form->schema ?? [] as $field) {
-            /** @var FormFieldData $field */
             $rules[$field->key] = $this->rulesForField($field);
         }
 
@@ -53,12 +56,14 @@ class BuildFormValidationRulesAction
         }
 
         if ($field->type === FormFieldType::Checkbox) {
-            $rules[] = 'accepted';
+            $rules[] = $field->required ? 'accepted' : 'boolean';
         }
+
+        $rules = $this->applyDefaultMaxRule($rules, $field);
 
         return array_values(array_unique([
             ...$rules,
-            ...$this->allowedEditorRules($field->validationRules),
+            ...$this->allowedEditorRules($field->validationRules, $field),
         ]));
     }
 
@@ -66,12 +71,57 @@ class BuildFormValidationRulesAction
      * @param  array<int, string>  $rules
      * @return array<int, string>
      */
-    private function allowedEditorRules(array $rules): array
+    private function allowedEditorRules(array $rules, FormFieldData $field): array
     {
         return array_values(array_filter(
-            $rules,
-            fn (string $rule): bool => preg_match('/^(min|max|size):\d+$/', $rule) === 1
-                || in_array($rule, ['email', 'url', 'alpha', 'alpha_dash', 'alpha_num'], true),
+            array_map(
+                fn (string $rule): ?string => $this->normalizeEditorRule($rule, $field),
+                $rules,
+            ),
+            static fn (?string $rule): bool => $rule !== null,
         ));
+    }
+
+    /**
+     * @param  array<int, string>  $rules
+     * @return array<int, string>
+     */
+    private function applyDefaultMaxRule(array $rules, FormFieldData $field): array
+    {
+        $defaultMax = $this->defaultMaxLength($field);
+
+        if ($defaultMax === null) {
+            return $rules;
+        }
+
+        return [
+            ...$rules,
+            'max:' . $defaultMax,
+        ];
+    }
+
+    private function normalizeEditorRule(string $rule, FormFieldData $field): ?string
+    {
+        if (preg_match('/^max:(\d+)$/', $rule, $matches) === 1) {
+            $max = (int) $matches[1];
+            $upperBound = $this->defaultMaxLength($field);
+
+            return 'max:' . ($upperBound === null ? $max : min($max, $upperBound));
+        }
+
+        if (preg_match('/^(min|size):\d+$/', $rule) === 1) {
+            return $rule;
+        }
+
+        return in_array($rule, ['email', 'url', 'alpha', 'alpha_dash', 'alpha_num'], true) ? $rule : null;
+    }
+
+    private function defaultMaxLength(FormFieldData $field): ?int
+    {
+        return match ($field->type) {
+            FormFieldType::Text, FormFieldType::Email, FormFieldType::Hidden, FormFieldType::Select => self::DEFAULT_SHORT_TEXT_MAX_LENGTH,
+            FormFieldType::Textarea => self::DEFAULT_LONG_TEXT_MAX_LENGTH,
+            default => null,
+        };
     }
 }

@@ -2,15 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Capell\Forms\Actions;
+namespace Capell\FormBuilder\Actions;
 
-use Capell\Forms\Data\FormFieldData;
-use Capell\Forms\Data\SubmissionMetaData;
-use Capell\Forms\Data\SubmissionPayloadData;
-use Capell\Forms\Enums\SubmissionStatus;
-use Capell\Forms\Events\FormSubmitted;
-use Capell\Forms\Models\Form;
-use Capell\Forms\Models\Submission;
+use Capell\FormBuilder\Data\SubmissionMetaData;
+use Capell\FormBuilder\Data\SubmissionPayloadData;
+use Capell\FormBuilder\Enums\SubmissionStatus;
+use Capell\FormBuilder\Events\FormSubmitted;
+use Capell\FormBuilder\Models\Form;
+use Capell\FormBuilder\Models\Submission;
 use Illuminate\Support\Facades\Validator;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -23,21 +22,57 @@ class CreateSubmissionAction
      */
     public function handle(Form $form, array $input, SubmissionMetaData $meta): Submission
     {
-        $validated = Validator::make($input, BuildFormValidationRulesAction::run($form))->validate();
+        if ($this->hasTriggeredHoneypot($form, $input)) {
+            return $this->createSubmission($form, [], $meta, SubmissionStatus::Spam);
+        }
 
+        $validated = Validator::make($input, BuildFormValidationRulesAction::run($form))->validate();
+        $submission = $this->createSubmission($form, $this->storedPayload($form, $validated), $meta, SubmissionStatus::New);
+
+        event(new FormSubmitted($form, $submission));
+        SendSubmissionNotificationAction::run($submission);
+
+        return $submission;
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    private function createSubmission(
+        Form $form,
+        array $payload,
+        SubmissionMetaData $meta,
+        SubmissionStatus $status,
+    ): Submission {
         $submission = new Submission;
         $submission->forceFill([
             'form_id' => $form->getKey(),
             'site_id' => $form->site_id,
-            'payload' => new SubmissionPayloadData($this->storedPayload($form, $validated)),
+            'payload' => new SubmissionPayloadData($payload),
             'meta' => $meta,
-            'status' => SubmissionStatus::New,
+            'status' => $status,
             'submitted_at' => now(),
         ])->save();
 
-        event(new FormSubmitted($form, $submission));
-
         return $submission;
+    }
+
+    /**
+     * @param  array<string, mixed>  $input
+     */
+    private function hasTriggeredHoneypot(Form $form, array $input): bool
+    {
+        foreach ($form->schema ?? [] as $field) {
+            if (! $field->type->isSpamTrap()) {
+                continue;
+            }
+
+            if (filled($input[$field->key] ?? null)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -49,7 +84,6 @@ class CreateSubmissionAction
         $values = [];
 
         foreach ($form->schema ?? [] as $field) {
-            /** @var FormFieldData $field */
             if (! $field->type->isStoredInPayload()) {
                 continue;
             }

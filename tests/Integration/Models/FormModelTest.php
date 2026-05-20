@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-use Capell\Forms\Data\FormFieldData;
-use Capell\Forms\Data\FormSettingsData;
-use Capell\Forms\Enums\FormFieldType;
-use Capell\Forms\Models\Form;
-use Capell\Forms\Models\Submission;
+use Capell\FormBuilder\Data\FormFieldData;
+use Capell\FormBuilder\Data\FormSettingsData;
+use Capell\FormBuilder\Enums\FormFieldType;
+use Capell\FormBuilder\Models\Form;
+use Capell\FormBuilder\Models\Submission;
 use Illuminate\Database\QueryException;
 use Spatie\LaravelData\DataCollection;
 
@@ -43,7 +43,7 @@ it('has submissions', function (): void {
     expect($form->submissions()->pluck('id')->all())->toBe([$submission->getKey()]);
 });
 
-it('scopes active forms', function (): void {
+it('scopes active form-builder', function (): void {
     Form::factory()->create(['handle' => 'enabled', 'is_active' => true]);
     Form::factory()->create(['handle' => 'disabled', 'is_active' => false]);
 

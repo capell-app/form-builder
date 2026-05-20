@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Capell\Forms\Database\Factories;
+namespace Capell\FormBuilder\Database\Factories;
 
 use Capell\Core\Database\Factories\SiteFactory;
 use Capell\Core\Models\Site;
-use Capell\Forms\Models\Form;
+use Capell\FormBuilder\Models\Form;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 

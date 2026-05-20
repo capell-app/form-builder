@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Capell\Forms\Data;
+namespace Capell\FormBuilder\Data;
 
-use Capell\Forms\Enums\FormFieldType;
+use Capell\FormBuilder\Enums\FormFieldType;
 use Spatie\LaravelData\Attributes\MapName;
 use Spatie\LaravelData\Data;
 use Spatie\LaravelData\Mappers\SnakeCaseMapper;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Capell\Forms\Enums;
+namespace Capell\FormBuilder\Enums;
 
 use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasIcon;
@@ -39,10 +39,10 @@ enum SubmissionStatus: string implements HasColor, HasIcon, HasLabel
     public function getLabel(): string
     {
         return match ($this) {
-            self::New => __('capell-forms::generic.submission_status.new'),
-            self::Read => __('capell-forms::generic.submission_status.read'),
-            self::Archived => __('capell-forms::generic.submission_status.archived'),
-            self::Spam => __('capell-forms::generic.submission_status.spam'),
+            self::New => __('capell-form-builder::generic.submission_status.new'),
+            self::Read => __('capell-form-builder::generic.submission_status.read'),
+            self::Archived => __('capell-form-builder::generic.submission_status.archived'),
+            self::Spam => __('capell-form-builder::generic.submission_status.spam'),
         };
     }
 }

@@ -3,16 +3,15 @@
 declare(strict_types=1);
 
 return [
-    'forms' => 'Forms',
+    'boolean' => [
+        'no' => 'No',
+        'yes' => 'Yes',
+    ],
     'form' => 'Form',
-    'inbox' => 'Inbox',
-    'submission' => 'Submission',
-    'submissions' => 'Submissions',
-    'submit' => 'Submit',
     'submission_status' => [
+        'archived' => 'Archived',
         'new' => 'New',
         'read' => 'Read',
-        'archived' => 'Archived',
         'spam' => 'Spam',
     ],
 ];

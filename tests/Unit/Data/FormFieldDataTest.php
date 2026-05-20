@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use Capell\Forms\Data\FormFieldData;
-use Capell\Forms\Data\FormSettingsData;
-use Capell\Forms\Data\SubmissionPayloadData;
-use Capell\Forms\Enums\FormFieldType;
+use Capell\FormBuilder\Data\FormFieldData;
+use Capell\FormBuilder\Data\FormSettingsData;
+use Capell\FormBuilder\Data\SubmissionPayloadData;
+use Capell\FormBuilder\Enums\FormFieldType;
 
 it('creates form field data from editor state', function (): void {
     $field = FormFieldData::from([

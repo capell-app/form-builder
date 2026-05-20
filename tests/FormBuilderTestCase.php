@@ -2,19 +2,21 @@
 
 declare(strict_types=1);
 
-namespace Capell\Forms\Tests;
+namespace Capell\FormBuilder\Tests;
 
+use Capell\Admin\Providers\AdminServiceProvider;
+use Capell\Admin\Providers\Filament\AdminPanelProvider;
 use Capell\Core\Facades\CapellCore;
-use Capell\Forms\Providers\FormsServiceProvider;
+use Capell\FormBuilder\Providers\FormBuilderServiceProvider;
 use Capell\Tests\AbstractTestCase;
 use Livewire\LivewireServiceProvider;
 use Override;
 
-class FormsTestCase extends AbstractTestCase
+class FormBuilderTestCase extends AbstractTestCase
 {
     protected function getPackageServiceName(): string
     {
-        return 'capell-forms';
+        return 'capell-form-builder';
     }
 
     /**
@@ -25,8 +27,10 @@ class FormsTestCase extends AbstractTestCase
     {
         return [
             ...parent::getPackageProviders($app),
-            FormsServiceProvider::class,
+            AdminServiceProvider::class,
+            FormBuilderServiceProvider::class,
             LivewireServiceProvider::class,
+            AdminPanelProvider::class,
         ];
     }
 
@@ -35,6 +39,7 @@ class FormsTestCase extends AbstractTestCase
     {
         parent::getEnvironmentSetUp($app);
 
-        CapellCore::forcePackageInstalled(FormsServiceProvider::$packageName);
+        CapellCore::forcePackageInstalled(AdminServiceProvider::$packageName);
+        CapellCore::forcePackageInstalled(FormBuilderServiceProvider::$packageName);
     }
 }

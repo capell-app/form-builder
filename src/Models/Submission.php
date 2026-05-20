@@ -2,24 +2,30 @@
 
 declare(strict_types=1);
 
-namespace Capell\Forms\Models;
+namespace Capell\FormBuilder\Models;
 
 use Capell\Core\Models\Site;
-use Capell\Forms\Casts\EncryptedDataCast;
-use Capell\Forms\Data\SubmissionMetaData;
-use Capell\Forms\Data\SubmissionPayloadData;
-use Capell\Forms\Database\Factories\SubmissionFactory;
-use Capell\Forms\Enums\SubmissionStatus;
+use Capell\FormBuilder\Casts\EncryptedDataCast;
+use Capell\FormBuilder\Data\SubmissionMetaData;
+use Capell\FormBuilder\Data\SubmissionPayloadData;
+use Capell\FormBuilder\Database\Factories\SubmissionFactory;
+use Capell\FormBuilder\Enums\SubmissionStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Override;
 
+/**
+ * @property int $form_id
+ * @property SubmissionPayloadData|null $payload
+ * @property SubmissionMetaData|null $meta
+ */
 class Submission extends Model
 {
     /** @use HasFactory<SubmissionFactory> */
     use HasFactory;
 
-    /** @var array<string> */
+    /** @var list<string> */
     protected $fillable = [
         'form_id',
         'site_id',
@@ -44,6 +50,7 @@ class Submission extends Model
     /**
      * @return array<string, string>
      */
+    #[Override]
     protected function casts(): array
     {
         return [

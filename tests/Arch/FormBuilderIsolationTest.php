@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Symfony\Component\Finder\Finder;
 
-it('keeps forms package references inside the forms source package', function (): void {
+it('keeps form-builder package references inside the form-builder source package', function (): void {
     $rootPath = dirname(__DIR__, 4);
     $violations = [];
 
@@ -13,12 +13,12 @@ it('keeps forms package references inside the forms source package', function ()
         ->in($rootPath . '/packages')
         ->path('/\/src\//')
         ->name('*.php')
-        ->contains('Capell\\Forms');
+        ->contains('Capell\\FormBuilder');
 
     foreach ($files as $file) {
         $relativePath = str_replace($rootPath . '/', '', $file->getPathname());
 
-        if (str_starts_with($relativePath, 'packages/forms/src/')) {
+        if (str_starts_with($relativePath, 'packages/form-builder/src/')) {
             continue;
         }
 
@@ -29,6 +29,6 @@ it('keeps forms package references inside the forms source package', function ()
 });
 
 arch()
-    ->expect('Capell\Forms')
+    ->expect('Capell\FormBuilder')
     ->classes()
     ->toUseStrictEquality();

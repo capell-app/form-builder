@@ -2,19 +2,23 @@
 
 declare(strict_types=1);
 
-namespace Capell\Forms\Enums;
+namespace Capell\FormBuilder\Enums;
 
 use Capell\Core\Enums\Attribute\Component;
 use Capell\Core\Enums\Attribute\EnumAttributeHelper;
 use Capell\Core\Enums\Attribute\EnumAttributeInterface;
-use Capell\Forms\Livewire\FormComponent;
+use Capell\FormBuilder\Livewire\FormComponent;
+use Capell\FormBuilder\Livewire\FormElementComponent;
 
 enum LivewireComponentEnum: string implements EnumAttributeInterface
 {
     use EnumAttributeHelper;
 
     #[Component(FormComponent::class)]
-    case Form = 'capell-forms::form';
+    case Form = 'capell-form-builder::form';
+
+    #[Component(FormElementComponent::class)]
+    case FormElement = 'capell-form-builder::element.form';
 
     /**
      * @return array<string, class-string|null>

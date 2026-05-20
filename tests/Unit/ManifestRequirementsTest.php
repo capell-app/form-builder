@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-describe('forms capell.json manifest', function (): void {
+describe('form-builder capell.json manifest', function (): void {
     it('declares requires using full composer package names', function (): void {
         $manifest = json_decode(
             file_get_contents(__DIR__ . '/../../capell.json'),
             associative: true,
         );
 
-        $requires = $manifest['requires'] ?? [];
+        $requires = $manifest['dependencies']['requires'] ?? [];
 
         foreach ($requires as $requirement) {
             expect($requirement)->toContain('/');
@@ -22,8 +22,8 @@ describe('forms capell.json manifest', function (): void {
             associative: true,
         );
 
-        expect($manifest['requires'])->toContain('capell-app/core')
-            ->and($manifest['requires'])->toContain('capell-app/admin')
-            ->and($manifest['requires'])->toContain('capell-app/frontend');
+        expect($manifest['dependencies']['requires'])->toContain('capell-app/core')
+            ->and($manifest['dependencies']['requires'])->toContain('capell-app/admin')
+            ->and($manifest['dependencies']['requires'])->toContain('capell-app/frontend');
     });
 });

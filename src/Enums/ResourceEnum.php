@@ -2,6 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Capell\Forms\Enums;
+namespace Capell\FormBuilder\Enums;
 
-enum ResourceEnum: string {}
+use Capell\FormBuilder\Filament\Resources\Submissions\SubmissionResource;
+
+enum ResourceEnum: string
+{
+    case Submissions = SubmissionResource::class;
+}

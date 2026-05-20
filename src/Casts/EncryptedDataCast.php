@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Capell\Forms\Casts;
+namespace Capell\FormBuilder\Casts;
 
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
 use Illuminate\Contracts\Encryption\DecryptException;

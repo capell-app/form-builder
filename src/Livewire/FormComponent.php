@@ -2,36 +2,53 @@
 
 declare(strict_types=1);
 
-namespace Capell\Forms\Livewire;
+namespace Capell\FormBuilder\Livewire;
 
-use Capell\Forms\Actions\CreateSubmissionAction;
-use Capell\Forms\Data\FormFieldData;
-use Capell\Forms\Data\FormSettingsData;
-use Capell\Forms\Data\SubmissionMetaData;
-use Capell\Forms\Enums\FormFieldType;
-use Capell\Forms\Events\FormSubmitted;
-use Capell\Forms\Models\Form;
+use Capell\Core\Models\Site;
+use Capell\FormBuilder\Actions\BuildFormValidationRulesAction;
+use Capell\FormBuilder\Actions\CreateSubmissionAction;
+use Capell\FormBuilder\Data\FormFieldData;
+use Capell\FormBuilder\Data\FormSettingsData;
+use Capell\FormBuilder\Data\SubmissionMetaData;
+use Capell\FormBuilder\Events\FormSubmitted;
+use Capell\FormBuilder\Models\Form;
+use Capell\Frontend\Actions\Performance\RecordExtensionRenderContributionAction;
+use Capell\Frontend\Facades\Frontend;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 use Spatie\LaravelData\DataCollection;
+use Throwable;
 
 final class FormComponent extends Component
 {
-    public int|string|null $handle = null;
+    private const string PackageName = 'capell-app/form-builder';
 
     /** @var array<string, mixed> */
     public array $data = [];
 
-    public ?Form $form = null;
+    public string $formReference = '';
+
+    public string $instanceId = '';
 
     public bool $submitted = false;
 
-    public function mount(int|string|null $handle = null): void
+    private ?Form $resolvedForm = null;
+
+    public function mount(int|string|null $handle = null, ?string $instanceId = null, ?string $formReference = null): void
     {
-        $this->handle = $handle;
-        $this->form = $this->resolveForm($handle);
+        $this->instanceId = $this->resolveInstanceId($instanceId);
+        $this->formReference = is_string($formReference) ? $formReference : '';
+        $this->resolvedForm = $this->resolveForm($handle);
+
+        if ($this->resolvedForm instanceof Form) {
+            $this->formReference = $this->encryptFormReference($this->resolvedForm);
+        }
 
         foreach ($this->fields() as $field) {
             $this->data[$field->key] = $field->defaultValue;
@@ -40,30 +57,41 @@ final class FormComponent extends Component
 
     public function submit(): void
     {
-        if (! $this->form instanceof Form) {
+        $form = $this->form();
+
+        if (! $form instanceof Form) {
             return;
         }
 
+        $metadata = $this->metadata();
+        $settings = $this->settings();
+        $this->assertSubmissionIsNotRateLimited($form);
+
         if ($this->hasTriggeredHoneypot()) {
+            if ($settings->storeSubmissions) {
+                CreateSubmissionAction::run(
+                    form: $form,
+                    input: $this->data,
+                    meta: $metadata,
+                );
+            }
+
             $this->submitted = true;
+            $this->reset('data');
 
             return;
         }
 
         $this->validate($this->rules());
 
-        $metadata = $this->metadata();
-        $settings = $this->settings();
-        $submission = null;
-
         if ($settings->storeSubmissions) {
-            $submission = CreateSubmissionAction::run(
-                form: $this->form,
+            CreateSubmissionAction::run(
+                form: $form,
                 input: $this->data,
                 meta: $metadata,
             );
         } else {
-            event(new FormSubmitted($this->form, metadata: $metadata));
+            event(new FormSubmitted($form, metadata: $metadata, payload: $this->storedPayload()));
         }
 
         $this->submitted = true;
@@ -72,19 +100,75 @@ final class FormComponent extends Component
 
     public function render(): View
     {
-        return view('capell-forms::livewire.form', [
+        $form = $this->form();
+
+        if ($form instanceof Form) {
+            $this->recordNonCacheableRenderContribution();
+        }
+
+        return view('capell-form-builder::livewire.form', [
             'fields' => $this->fields(),
+            'form' => $form,
+            'formInstanceId' => $this->instanceId,
             'settings' => $this->settings(),
         ]);
     }
 
-    private function resolveForm(int|string|null $handle): ?Form
+    /**
+     * @throws ValidationException
+     */
+    private function assertSubmissionIsNotRateLimited(Form $form): void
+    {
+        $key = $this->rateLimitKey($form);
+        $maxAttempts = $this->configuredThrottleValue('max_attempts', 12);
+
+        if (RateLimiter::tooManyAttempts($key, $maxAttempts)) {
+            throw ValidationException::withMessages([
+                'data' => __('capell-form-builder::message.too_many_submissions'),
+            ]);
+        }
+
+        RateLimiter::hit($key, $this->configuredThrottleValue('decay_seconds', 60));
+    }
+
+    private function rateLimitKey(Form $form): string
+    {
+        $email = is_scalar($this->data['email'] ?? null) ? Str::lower((string) $this->data['email']) : '';
+
+        return 'capell-form-builder:submit:' . hash('sha256', implode('|', [
+            (string) $form->getKey(),
+            (string) $form->site_id,
+            $email,
+            (string) request()->ip(),
+        ]));
+    }
+
+    private function configuredThrottleValue(string $key, int $default): int
+    {
+        $value = config('capell-form-builder.throttle.' . $key);
+
+        return is_numeric($value) ? max(1, (int) $value) : $default;
+    }
+
+    private function resolveForm(int|string|null $handle = null): ?Form
+    {
+        return $this->resolveFormFromReference() ?? $this->resolveFormForCurrentSite($handle);
+    }
+
+    private function resolveFormForCurrentSite(int|string|null $handle): ?Form
     {
         if ($handle === null || $handle === '') {
             return null;
         }
 
+        $site = $this->currentSite();
+        if (! $site instanceof Site) {
+            return null;
+        }
+
         return Form::query()
+            ->active()
+            ->where('site_id', $site->getKey())
             ->where(function (Builder $builder) use ($handle): void {
                 if (is_numeric($handle)) {
                     $builder->whereKey((int) $handle);
@@ -95,12 +179,69 @@ final class FormComponent extends Component
             ->first();
     }
 
+    private function resolveFormFromReference(): ?Form
+    {
+        if ($this->formReference === '') {
+            return null;
+        }
+
+        try {
+            $reference = json_decode(Crypt::decryptString($this->formReference), true, flags: JSON_THROW_ON_ERROR);
+        } catch (Throwable) {
+            return null;
+        }
+
+        $formId = $reference['form_id'] ?? null;
+        $siteId = $reference['site_id'] ?? null;
+
+        if (! is_numeric($formId) || ! is_numeric($siteId)) {
+            return null;
+        }
+
+        $currentSite = $this->currentSite();
+        if ($currentSite instanceof Site && (int) $currentSite->getKey() !== (int) $siteId) {
+            return null;
+        }
+
+        return Form::query()
+            ->active()
+            ->whereKey((int) $formId)
+            ->where('site_id', (int) $siteId)
+            ->first();
+    }
+
+    private function encryptFormReference(Form $form): string
+    {
+        return Crypt::encryptString(json_encode([
+            'form_id' => $form->getKey(),
+            'site_id' => $form->site_id,
+        ], JSON_THROW_ON_ERROR));
+    }
+
+    private function form(): ?Form
+    {
+        return $this->resolvedForm ??= $this->resolveForm();
+    }
+
+    private function resolveInstanceId(?string $instanceId): string
+    {
+        if ($instanceId !== null && trim($instanceId) !== '') {
+            $normalizedInstanceId = Str::slug($instanceId);
+
+            if ($normalizedInstanceId !== '') {
+                return $normalizedInstanceId;
+            }
+        }
+
+        return (string) Str::uuid();
+    }
+
     /**
      * @return Collection<int, FormFieldData>
      */
     private function fields(): Collection
     {
-        $fields = $this->form?->schema;
+        $fields = $this->form()?->schema;
 
         if ($fields instanceof DataCollection) {
             return $fields->toCollection();
@@ -111,9 +252,11 @@ final class FormComponent extends Component
 
     private function settings(): FormSettingsData
     {
-        return $this->form?->settings instanceof FormSettingsData
-            ? $this->form->settings
-            : new FormSettingsData(successMessage: __('capell-forms::message.form_submitted'));
+        $form = $this->form();
+
+        return $form?->settings instanceof FormSettingsData
+            ? $form->settings
+            : new FormSettingsData(successMessage: __('capell-form-builder::message.form_submitted'));
     }
 
     /**
@@ -121,35 +264,41 @@ final class FormComponent extends Component
      */
     private function rules(): array
     {
-        $rules = [];
+        $form = $this->form();
+
+        if (! $form instanceof Form) {
+            return [];
+        }
+
+        return collect(BuildFormValidationRulesAction::run($form))
+            ->mapWithKeys(fn (array $rules, string $fieldKey): array => ['data.' . $fieldKey => $rules])
+            ->all();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function storedPayload(): array
+    {
+        $payload = [];
 
         foreach ($this->fields() as $field) {
             if (! $field->type->isStoredInPayload()) {
                 continue;
             }
 
-            $fieldRules = $field->validationRules;
-
-            if ($field->required) {
-                array_unshift($fieldRules, 'required');
-            } else {
-                array_unshift($fieldRules, 'nullable');
+            if (array_key_exists($field->key, $this->data)) {
+                $payload[$field->key] = $this->data[$field->key];
             }
-
-            if ($field->type === FormFieldType::Email) {
-                $fieldRules[] = 'email';
-            }
-
-            $rules['data.' . $field->key] = array_values(array_unique($fieldRules));
         }
 
-        return $rules;
+        return $payload;
     }
 
     private function hasTriggeredHoneypot(): bool
     {
         foreach ($this->fields() as $field) {
-            if ($field->type !== FormFieldType::Honeypot) {
+            if (! $field->type->isSpamTrap()) {
                 continue;
             }
 
@@ -164,12 +313,40 @@ final class FormComponent extends Component
     private function metadata(): SubmissionMetaData
     {
         $request = request();
+        $settings = $this->settings();
 
         return new SubmissionMetaData(
-            ipAddress: $request->ip(),
-            userAgent: $request->userAgent(),
+            ipAddress: $settings->collectIpAddress ? $request->ip() : null,
+            userAgent: $settings->collectUserAgent ? $request->userAgent() : null,
             url: $request->fullUrl(),
             referer: $request->headers->get('referer'),
+        );
+    }
+
+    private function currentSite(): ?Site
+    {
+        try {
+            $site = Frontend::site();
+
+            return $site instanceof Site ? $site : null;
+        } catch (Throwable) {
+            return null;
+        }
+    }
+
+    private function recordNonCacheableRenderContribution(): void
+    {
+        RecordExtensionRenderContributionAction::run(
+            packageName: self::PackageName,
+            surface: 'frontend',
+            contributionType: 'livewire-component',
+            contributionClass: self::class,
+            elapsedMilliseconds: 0.0,
+            frontendRenderBudgetMs: 20,
+            cacheTags: ['form-builder'],
+            cacheable: false,
+            sensitiveOutput: false,
+            variesBy: ['site', 'locale'],
         );
     }
 }

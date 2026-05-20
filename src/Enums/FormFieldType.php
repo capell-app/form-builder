@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Capell\Forms\Enums;
+namespace Capell\FormBuilder\Enums;
 
 use Filament\Support\Contracts\HasLabel;
 
@@ -19,18 +19,23 @@ enum FormFieldType: string implements HasLabel
     public function getLabel(): string
     {
         return match ($this) {
-            self::Text => __('capell-forms::form.field_type.text'),
-            self::Email => __('capell-forms::form.field_type.email'),
-            self::Textarea => __('capell-forms::form.field_type.textarea'),
-            self::Select => __('capell-forms::form.field_type.select'),
-            self::Checkbox => __('capell-forms::form.field_type.checkbox'),
-            self::Hidden => __('capell-forms::form.field_type.hidden'),
-            self::Honeypot => __('capell-forms::form.field_type.honeypot'),
+            self::Text => __('capell-form-builder::form.field_type.text'),
+            self::Email => __('capell-form-builder::form.field_type.email'),
+            self::Textarea => __('capell-form-builder::form.field_type.textarea'),
+            self::Select => __('capell-form-builder::form.field_type.select'),
+            self::Checkbox => __('capell-form-builder::form.field_type.checkbox'),
+            self::Hidden => __('capell-form-builder::form.field_type.hidden'),
+            self::Honeypot => __('capell-form-builder::form.field_type.honeypot'),
         };
     }
 
     public function isStoredInPayload(): bool
     {
         return $this !== self::Honeypot;
+    }
+
+    public function isSpamTrap(): bool
+    {
+        return $this === self::Honeypot;
     }
 }

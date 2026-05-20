@@ -125,6 +125,11 @@ it('allows users with submission view permission to access submissions', functio
         ->and(SubmissionResource::canViewAny())->toBeTrue();
 });
 
+it('places submissions in reports navigation', function (): void {
+    expect(SubmissionResource::getNavigationGroup())->toBe((string) __('capell-admin::navigation.group_reports'))
+        ->and(SubmissionResource::getNavigationSort())->toBe(10);
+});
+
 it('hides the reply action from users without reply permission', function (): void {
     Permission::findOrCreate('ViewAny:Submission');
     $form = Form::factory()->create();

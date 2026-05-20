@@ -24,6 +24,8 @@ final class SubmissionResource extends Resource
 
     protected static string|BackedEnum|null $activeNavigationIcon = Heroicon::Inbox;
 
+    protected static ?int $navigationSort = 10;
+
     protected static ?string $recordTitleAttribute = 'id';
 
     #[Override]
@@ -75,7 +77,7 @@ final class SubmissionResource extends Resource
     #[Override]
     public static function getNavigationGroup(): ?string
     {
-        return (string) __('capell-admin::navigation.group_content');
+        return (string) __('capell-admin::navigation.group_reports');
     }
 
     #[Override]

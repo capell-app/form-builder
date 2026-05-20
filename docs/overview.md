@@ -82,7 +82,10 @@ The frontend and submission detail screenshots need seeded form definitions and 
 
 ## Admin Surfaces
 
-- None proven in this package directory.
+- Resource: `SubmissionResource`.
+- Page: `ListSubmissions`.
+- Navigation: Form submissions under the reports group.
+- Table actions include read, archive, spam, reply, and payload review states.
 
 ## Commands
 

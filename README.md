@@ -6,7 +6,7 @@ FormBuilder adds form definitions, encrypted submissions, frontend Livewire rend
 
 - Package: `capell-app/form-builder`
 - Namespace: `Capell\FormBuilder\`
-- Surfaces: Livewire, database
+- Surfaces: Filament admin resource, frontend Livewire, database
 - Service providers: `packages/form-builder/src/Providers/FormBuilderServiceProvider.php`
 - Capell dependencies: `capell-app/admin`, `capell-app/core`, `capell-app/frontend`
 
@@ -15,6 +15,7 @@ FormBuilder adds form definitions, encrypted submissions, frontend Livewire rend
 FormBuilder adds form definitions, encrypted submissions, frontend Livewire rendering, validation, and submission status handling to Capell.
 
 - Form and submission models.
+- Admin submissions resource under the reports navigation group.
 - Frontend Livewire form component.
 - Actions for validation, submission creation, archiving, read state, and spam marking.
 - FormSubmitted event.
@@ -110,9 +111,9 @@ Screenshots are generated from [docs/screenshots.json](docs/screenshots.json) du
 
 ## Admin And Access
 
-- None proven in this package directory.
-
-- None proven in this package directory.
+- Admin resource: `SubmissionResource`.
+- Navigation: Form submissions under the reports group.
+- Access is governed by `SubmissionPolicy` and site-scoped submission queries.
 
 ## Common Pitfalls
 

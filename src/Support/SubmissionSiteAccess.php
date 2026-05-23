@@ -108,7 +108,7 @@ final class SubmissionSiteAccess
 
     /**
      * @param  list<string>  $abilities
-     * @return Collection<int, int>
+     * @return Collection<int, positive-int>
      */
     private static function permittedSiteIds(Authenticatable $actor, array $abilities): Collection
     {
@@ -129,7 +129,7 @@ final class SubmissionSiteAccess
 
     /**
      * @param  Collection<int, string>  $permissionNames
-     * @return Collection<int, int>
+     * @return Collection<int, positive-int>
      */
     private static function rolePermissionSiteIds(Authenticatable $actor, Collection $permissionNames): Collection
     {
@@ -153,12 +153,13 @@ final class SubmissionSiteAccess
             ->pluck($tables['model_has_roles'] . '.' . $teamColumn)
             ->map(fn (mixed $siteId): int => (int) $siteId)
             ->filter(fn (int $siteId): bool => $siteId > 0)
-            ->values();
+            ->values()
+            ->map(fn (int $siteId): int => $siteId);
     }
 
     /**
      * @param  Collection<int, string>  $permissionNames
-     * @return Collection<int, int>
+     * @return Collection<int, positive-int>
      */
     private static function directPermissionSiteIds(Authenticatable $actor, Collection $permissionNames): Collection
     {
@@ -180,7 +181,8 @@ final class SubmissionSiteAccess
             ->pluck($tables['model_has_permissions'] . '.' . $teamColumn)
             ->map(fn (mixed $siteId): int => (int) $siteId)
             ->filter(fn (int $siteId): bool => $siteId > 0)
-            ->values();
+            ->values()
+            ->map(fn (int $siteId): int => $siteId);
     }
 
     /**

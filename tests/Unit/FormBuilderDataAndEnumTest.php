@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Capell\FormBuilder\Actions\BuildSubmissionPayloadEntriesAction;
 use Capell\FormBuilder\Data\SubmissionMetaData;
+use Capell\FormBuilder\Data\SubmissionPayloadData;
 use Capell\FormBuilder\Enums\FormFieldType;
 use Capell\FormBuilder\Enums\LivewireComponentEnum;
 use Capell\FormBuilder\Enums\ResourceEnum;
@@ -45,13 +46,13 @@ it('maps submission metadata from snake case arrays', function (): void {
 
 it('formats payload entries without a loaded form schema', function (): void {
     $submission = new Submission;
-    $submission->payload = [
+    $submission->payload = SubmissionPayloadData::from([
         'values' => [
             'full_name' => 'Ben Johnson',
             'selected_options' => ['One', false, null],
             'empty_value' => '',
         ],
-    ];
+    ]);
 
     expect(BuildSubmissionPayloadEntriesAction::run($submission)->all())->toBe([
         [

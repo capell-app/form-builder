@@ -10,6 +10,18 @@ FormBuilder adds form definitions, encrypted submissions, frontend Livewire rend
 - Service providers: `packages/form-builder/src/Providers/FormBuilderServiceProvider.php`
 - Capell dependencies: `capell-app/admin`, `capell-app/core`, `capell-app/frontend`
 
+## Why It Helps Your Capell Workflow
+
+- Lets editors build and publish forms while the package owns encrypted submissions, validation, notifications, and status handling.
+- Helps owners collect leads, enquiries, and operational requests without custom Livewire work for every form.
+- Gives developers a predictable form/submission model that can connect to Public Actions, Email Studio, and campaign workflows.
+
+## Best Used With
+
+- [Public Actions](../public-actions/README.md)
+- [Email Studio](../email-studio/README.md)
+- [Campaign Studio](../campaign-studio/README.md)
+
 ## What It Adds
 
 FormBuilder adds form definitions, encrypted submissions, frontend Livewire rendering, validation, and submission status handling to Capell.
@@ -123,6 +135,7 @@ Screenshots are generated from [docs/screenshots.json](docs/screenshots.json) du
 
 ## Docs
 
+- [docs index](docs/README.md)
 - [credits-and-acknowledgements.md](docs/credits-and-acknowledgements.md)
 - [overview.md](docs/overview.md)
 

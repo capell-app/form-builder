@@ -4,7 +4,7 @@ Status: **Available, schema-owning** · Kind: **package** · Tier: **premium** �
 
 This page is the consolidated implementation overview for the FormBuilder package. It is extracted from the package README, service providers, migrations, config files, routes, resources, models, actions, and the shared Capell ERD notes where available.
 
-## What This Plugin Adds
+## What This Package Adds
 
 FormBuilder adds form definitions, encrypted submissions, frontend Livewire rendering, validation, and submission status handling to Capell.
 

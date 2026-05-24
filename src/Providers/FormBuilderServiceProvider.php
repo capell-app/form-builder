@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Capell\FormBuilder\Providers;
 
 use Capell\Admin\Data\AdminSurfaceContributionData;
+use Capell\Admin\Data\MarketingStudioActionData;
+use Capell\Admin\Enums\MarketingStudioSectionEnum;
 use Capell\Admin\Facades\CapellAdmin;
 use Capell\Core\Actions\RegisterBlazeOptimizedViewsAction;
 use Capell\Core\Data\RenderableDefinitionData;
@@ -14,6 +16,7 @@ use Capell\Core\Support\Packages\AbstractPackageServiceProvider;
 use Capell\Core\Support\Renderables\RenderableRegistry;
 use Capell\FormBuilder\Enums\LivewireComponentEnum;
 use Capell\FormBuilder\Enums\ResourceEnum;
+use Capell\FormBuilder\Filament\Resources\Submissions\SubmissionResource;
 use Capell\FormBuilder\Livewire\FormComponent;
 use Capell\FormBuilder\Livewire\FormElementComponent;
 use Capell\FormBuilder\Models\Form;
@@ -94,6 +97,7 @@ class FormBuilderServiceProvider extends AbstractPackageServiceProvider
             ->registerBlazeComponents()
             ->registerRenderables()
             ->registerResources()
+            ->registerMarketingStudioActions()
             ->registerLivewireComponents()
             ->registerBladeComponents();
     }
@@ -136,6 +140,20 @@ class FormBuilderServiceProvider extends AbstractPackageServiceProvider
                 group: $resource->name,
             ));
         }
+
+        return $this;
+    }
+
+    private function registerMarketingStudioActions(): self
+    {
+        CapellAdmin::registerMarketingStudioAction(new MarketingStudioActionData(
+            key: 'form-builder.submissions',
+            label: fn (): string => __('capell-form-builder::navigation.submissions'),
+            url: fn (): string => SubmissionResource::getUrl(),
+            section: MarketingStudioSectionEnum::Forms,
+            icon: 'heroicon-o-inbox-stack',
+            sort: 10,
+        ));
 
         return $this;
     }

@@ -103,7 +103,7 @@ final class SubmissionSiteAccess
         $configuredRole = config('capell.roles.super_admin', config('filament-shield.super_admin.name', 'super_admin'));
         $superAdminRole = is_string($configuredRole) && $configuredRole !== '' ? $configuredRole : 'super_admin';
 
-        return method_exists($actor, 'hasRole') && $actor->hasRole($superAdminRole);
+        return $actor->hasRole($superAdminRole);
     }
 
     /**
@@ -217,12 +217,12 @@ final class SubmissionSiteAccess
 
     private static function modelType(Authenticatable $actor): string
     {
-        return method_exists($actor, 'getMorphClass') ? $actor->getMorphClass() : $actor::class;
+        return $actor->getMorphClass();
     }
 
     private static function modelId(Authenticatable $actor): mixed
     {
-        return method_exists($actor, 'getKey') ? $actor->getKey() : $actor->getAuthIdentifier();
+        return $actor->getKey();
     }
 
     private static function qualifyColumn(Builder $query, string $column): string

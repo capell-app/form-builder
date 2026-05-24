@@ -59,7 +59,7 @@ final class SubmissionPolicy
 
     private function hasPermission(User $user, string $ability): bool
     {
-        if (method_exists($user, 'hasRole') && $user->hasRole(config('capell.roles.super_admin', 'super_admin'))) {
+        if ($user->hasRole(config('capell.roles.super_admin', 'super_admin'))) {
             return true;
         }
 

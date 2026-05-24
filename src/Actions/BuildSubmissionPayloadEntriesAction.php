@@ -19,7 +19,7 @@ final class BuildSubmissionPayloadEntriesAction
      */
     public function handle(Submission $submission): Collection
     {
-        $values = $submission->payload?->values ?? [];
+        $values = $submission->payload->values ?? [];
         $labels = $this->fieldLabels($submission);
 
         return collect($values)

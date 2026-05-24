@@ -70,6 +70,22 @@ class FormBuilderServiceProvider extends AbstractPackageServiceProvider
         ], merge: true);
     }
 
+    protected function isPackageInstalled(): bool
+    {
+        return CapellCore::getPackage(static::$packageName)->isInstalled();
+    }
+
+    protected function isLivewireV3(): bool
+    {
+        if (! class_exists(InstalledVersions::class) || ! InstalledVersions::isInstalled('livewire/livewire')) {
+            return true;
+        }
+
+        $version = InstalledVersions::getVersion('livewire/livewire');
+
+        return version_compare($version, '4.0.0', '<');
+    }
+
     private function bootInstalledPackage(): self
     {
         return $this
@@ -80,11 +96,6 @@ class FormBuilderServiceProvider extends AbstractPackageServiceProvider
             ->registerResources()
             ->registerLivewireComponents()
             ->registerBladeComponents();
-    }
-
-    private function isPackageInstalled(): bool
-    {
-        return CapellCore::getPackage(static::$packageName)->isInstalled();
     }
 
     private function registerModels(): self
@@ -178,16 +189,5 @@ class FormBuilderServiceProvider extends AbstractPackageServiceProvider
         Blade::anonymousComponentNamespace('Capell\\FormBuilder\\View\\Components');
 
         return $this;
-    }
-
-    private function isLivewireV3(): bool
-    {
-        if (! class_exists(InstalledVersions::class) || ! InstalledVersions::isInstalled('livewire/livewire')) {
-            return true;
-        }
-
-        $version = InstalledVersions::getVersion('livewire/livewire');
-
-        return version_compare($version, '4.0.0', '<');
     }
 }

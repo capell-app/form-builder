@@ -7,6 +7,7 @@ namespace Capell\FormBuilder\Support;
 use Capell\Admin\Policies\Concerns\ResolvesShieldPermission;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -28,6 +29,8 @@ final class SubmissionSiteAccess
 
     /**
      * @param  list<string>  $abilities
+     * @param  Builder<Model>  $query
+     * @return Builder<Model>
      */
     public static function applyToQuery(
         Builder $query,
@@ -39,6 +42,8 @@ final class SubmissionSiteAccess
 
     /**
      * @param  list<string>  $abilities
+     * @param  Builder<Model>  $query
+     * @return Builder<Model>
      */
     public static function applyToSiteScopedQuery(
         Builder $query,
@@ -225,6 +230,9 @@ final class SubmissionSiteAccess
         return $actor->getKey();
     }
 
+    /**
+     * @param  Builder<Model>  $query
+     */
     private static function qualifyColumn(Builder $query, string $column): string
     {
         return str_contains($column, '.')

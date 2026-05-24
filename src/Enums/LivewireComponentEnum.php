@@ -10,6 +10,7 @@ use Capell\Core\Enums\Attribute\EnumAttributeInterface;
 use Capell\FormBuilder\Livewire\FormComponent;
 use Capell\FormBuilder\Livewire\FormElementComponent;
 
+/** @implements EnumAttributeInterface<Component> */
 enum LivewireComponentEnum: string implements EnumAttributeInterface
 {
     use EnumAttributeHelper;

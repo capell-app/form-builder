@@ -19,7 +19,7 @@
                         {{ $entry['label'] }}
                     </dt>
                     <dd
-                        class="whitespace-pre-wrap break-words text-sm text-gray-950 sm:col-span-2 dark:text-white"
+                        class="text-sm break-words whitespace-pre-wrap text-gray-950 sm:col-span-2 dark:text-white"
                     >
                         {{ $entry['value'] }}
                     </dd>

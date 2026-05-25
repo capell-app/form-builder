@@ -27,6 +27,7 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Livewire;
+use Override;
 use Spatie\LaravelPackageTools\Package;
 
 class FormBuilderServiceProvider extends AbstractPackageServiceProvider
@@ -73,11 +74,13 @@ class FormBuilderServiceProvider extends AbstractPackageServiceProvider
         ], merge: true);
     }
 
+    #[Override]
     protected function isPackageInstalled(): bool
     {
         return CapellCore::getPackage(static::$packageName)->isInstalled();
     }
 
+    #[Override]
     protected function isLivewireV3(): bool
     {
         if (! class_exists(InstalledVersions::class) || ! InstalledVersions::isInstalled('livewire/livewire')) {

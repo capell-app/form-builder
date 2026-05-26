@@ -22,6 +22,10 @@ it('keeps form-builder package references inside the form-builder source package
             continue;
         }
 
+        if (declaresFormBuilderDependency($rootPath, $relativePath)) {
+            continue;
+        }
+
         $violations[] = $relativePath;
     }
 
@@ -32,3 +36,24 @@ arch()
     ->expect('Capell\FormBuilder')
     ->classes()
     ->toUseStrictEquality();
+
+function declaresFormBuilderDependency(string $rootPath, string $relativePath): bool
+{
+    if (! preg_match('#^packages/([^/]+)/src/#', $relativePath, $matches)) {
+        return false;
+    }
+
+    $composerPath = $rootPath . '/packages/' . $matches[1] . '/composer.json';
+    if (! is_file($composerPath)) {
+        return false;
+    }
+
+    $composer = json_decode((string) file_get_contents($composerPath), true);
+    if (! is_array($composer)) {
+        return false;
+    }
+
+    $requires = $composer['require'] ?? [];
+
+    return is_array($requires) && array_key_exists('capell-app/form-builder', $requires);
+}

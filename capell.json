@@ -55,7 +55,10 @@
     "capabilities": [
         "form-builder",
         "form-builder-admin",
-        "form-builder-frontend"
+        "form-builder-frontend",
+        "public-form",
+        "requires-livewire",
+        "cache-blocking"
     ],
     "performance": {
         "frontendRenderBudgetMs": 20,

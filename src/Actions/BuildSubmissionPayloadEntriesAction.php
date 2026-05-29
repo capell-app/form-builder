@@ -19,7 +19,7 @@ final class BuildSubmissionPayloadEntriesAction
      */
     public function handle(Submission $submission): Collection
     {
-        $values = $submission->payload?->values ?? [];
+        $values = $submission->payload->values ?? [];
         $labels = $this->fieldLabels($submission);
 
         return collect($values)
@@ -44,19 +44,21 @@ final class BuildSubmissionPayloadEntriesAction
 
         $fields = $schema instanceof DataCollection ? $schema->items() : $schema;
 
-        return collect($fields)
-            ->mapWithKeys(function (mixed $field): array {
-                if ($field instanceof FormFieldData) {
-                    return [$field->key => $field->label];
-                }
+        $labels = [];
 
-                if (is_array($field) && is_string($field['key'] ?? null) && is_string($field['label'] ?? null)) {
-                    return [$field['key'] => $field['label']];
-                }
+        foreach ($fields as $field) {
+            if ($field instanceof FormFieldData) {
+                $labels[$field->key] = $field->label;
 
-                return [];
-            })
-            ->all();
+                continue;
+            }
+
+            if (is_array($field) && is_string($field['key'] ?? null) && is_string($field['label'] ?? null)) {
+                $labels[$field['key']] = $field['label'];
+            }
+        }
+
+        return $labels;
     }
 
     private function formatValue(mixed $value): string

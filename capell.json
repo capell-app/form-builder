@@ -20,7 +20,7 @@
             "capell-app/core",
             "capell-app/frontend"
         ],
-        "optional": [],
+        "supports": [],
         "conflicts": []
     },
     "providers": {
@@ -55,7 +55,10 @@
     "capabilities": [
         "form-builder",
         "form-builder-admin",
-        "form-builder-frontend"
+        "form-builder-frontend",
+        "public-form",
+        "requires-livewire",
+        "cache-blocking"
     ],
     "performance": {
         "frontendRenderBudgetMs": 20,
@@ -111,7 +114,13 @@
     },
     "marketplace": {
         "summary": "FormBuilder adds form definitions, encrypted submissions, frontend Livewire rendering, validation, and submission status handling to Capell.",
-        "screenshots": [],
+        "screenshots": [
+            {
+                "path": "docs/assets/marketplace/extension-card.jpg",
+                "alt": "Form Builder extension preview image",
+                "caption": "Form Builder extension preview"
+            }
+        ],
         "categories": ["admin", "form-builder", "frontend"]
     },
     "contributionTraceability": {

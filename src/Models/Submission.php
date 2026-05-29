@@ -37,11 +37,17 @@ class Submission extends Model
 
     protected static string $factory = SubmissionFactory::class;
 
+    /**
+     * @return BelongsTo<Form, $this>
+     */
     public function form(): BelongsTo
     {
         return $this->belongsTo(Form::class);
     }
 
+    /**
+     * @return BelongsTo<Site, $this>
+     */
     public function site(): BelongsTo
     {
         return $this->belongsTo(Site::class);

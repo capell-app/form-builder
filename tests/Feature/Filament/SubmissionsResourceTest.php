@@ -125,8 +125,9 @@ it('allows users with submission view permission to access submissions', functio
         ->and(SubmissionResource::canViewAny())->toBeTrue();
 });
 
-it('places submissions in reports navigation', function (): void {
-    expect(SubmissionResource::getNavigationGroup())->toBe((string) __('capell-admin::navigation.group_reports'))
+it('places submissions under marketing studio navigation', function (): void {
+    expect(SubmissionResource::getNavigationGroup())->toBeNull()
+        ->and(SubmissionResource::getNavigationParentItem())->toBe((string) __('capell-admin::navigation.marketing_studio'))
         ->and(SubmissionResource::getNavigationSort())->toBe(10);
 });
 

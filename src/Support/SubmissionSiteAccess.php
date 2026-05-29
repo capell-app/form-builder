@@ -7,6 +7,7 @@ namespace Capell\FormBuilder\Support;
 use Capell\Admin\Policies\Concerns\ResolvesShieldPermission;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -28,6 +29,8 @@ final class SubmissionSiteAccess
 
     /**
      * @param  list<string>  $abilities
+     * @param  Builder<Model>  $query
+     * @return Builder<Model>
      */
     public static function applyToQuery(
         Builder $query,
@@ -39,6 +42,8 @@ final class SubmissionSiteAccess
 
     /**
      * @param  list<string>  $abilities
+     * @param  Builder<Model>  $query
+     * @return Builder<Model>
      */
     public static function applyToSiteScopedQuery(
         Builder $query,
@@ -103,12 +108,12 @@ final class SubmissionSiteAccess
         $configuredRole = config('capell.roles.super_admin', config('filament-shield.super_admin.name', 'super_admin'));
         $superAdminRole = is_string($configuredRole) && $configuredRole !== '' ? $configuredRole : 'super_admin';
 
-        return method_exists($actor, 'hasRole') && $actor->hasRole($superAdminRole);
+        return $actor->hasRole($superAdminRole);
     }
 
     /**
      * @param  list<string>  $abilities
-     * @return Collection<int, int>
+     * @return Collection<int, positive-int>
      */
     private static function permittedSiteIds(Authenticatable $actor, array $abilities): Collection
     {
@@ -129,7 +134,7 @@ final class SubmissionSiteAccess
 
     /**
      * @param  Collection<int, string>  $permissionNames
-     * @return Collection<int, int>
+     * @return Collection<int, positive-int>
      */
     private static function rolePermissionSiteIds(Authenticatable $actor, Collection $permissionNames): Collection
     {
@@ -153,12 +158,13 @@ final class SubmissionSiteAccess
             ->pluck($tables['model_has_roles'] . '.' . $teamColumn)
             ->map(fn (mixed $siteId): int => (int) $siteId)
             ->filter(fn (int $siteId): bool => $siteId > 0)
-            ->values();
+            ->values()
+            ->map(fn (int $siteId): int => $siteId);
     }
 
     /**
      * @param  Collection<int, string>  $permissionNames
-     * @return Collection<int, int>
+     * @return Collection<int, positive-int>
      */
     private static function directPermissionSiteIds(Authenticatable $actor, Collection $permissionNames): Collection
     {
@@ -180,7 +186,8 @@ final class SubmissionSiteAccess
             ->pluck($tables['model_has_permissions'] . '.' . $teamColumn)
             ->map(fn (mixed $siteId): int => (int) $siteId)
             ->filter(fn (int $siteId): bool => $siteId > 0)
-            ->values();
+            ->values()
+            ->map(fn (int $siteId): int => $siteId);
     }
 
     /**
@@ -215,14 +222,17 @@ final class SubmissionSiteAccess
 
     private static function modelType(Authenticatable $actor): string
     {
-        return method_exists($actor, 'getMorphClass') ? $actor->getMorphClass() : $actor::class;
+        return $actor->getMorphClass();
     }
 
     private static function modelId(Authenticatable $actor): mixed
     {
-        return method_exists($actor, 'getKey') ? $actor->getKey() : $actor->getAuthIdentifier();
+        return $actor->getKey();
     }
 
+    /**
+     * @param  Builder<Model>  $query
+     */
     private static function qualifyColumn(Builder $query, string $column): string
     {
         return str_contains($column, '.')

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Capell\FormBuilder\Providers;
 
 use Capell\Admin\Data\AdminSurfaceContributionData;
+use Capell\Admin\Data\MarketingStudioActionData;
+use Capell\Admin\Enums\MarketingStudioSectionEnum;
 use Capell\Admin\Facades\CapellAdmin;
 use Capell\Core\Actions\RegisterBlazeOptimizedViewsAction;
 use Capell\Core\Data\RenderableDefinitionData;
@@ -14,6 +16,7 @@ use Capell\Core\Support\Packages\AbstractPackageServiceProvider;
 use Capell\Core\Support\Renderables\RenderableRegistry;
 use Capell\FormBuilder\Enums\LivewireComponentEnum;
 use Capell\FormBuilder\Enums\ResourceEnum;
+use Capell\FormBuilder\Filament\Resources\Submissions\SubmissionResource;
 use Capell\FormBuilder\Livewire\FormComponent;
 use Capell\FormBuilder\Livewire\FormElementComponent;
 use Capell\FormBuilder\Models\Form;
@@ -24,6 +27,7 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Livewire;
+use Override;
 use Spatie\LaravelPackageTools\Package;
 
 class FormBuilderServiceProvider extends AbstractPackageServiceProvider
@@ -70,6 +74,24 @@ class FormBuilderServiceProvider extends AbstractPackageServiceProvider
         ], merge: true);
     }
 
+    #[Override]
+    protected function isPackageInstalled(): bool
+    {
+        return CapellCore::getPackage(static::$packageName)->isInstalled();
+    }
+
+    #[Override]
+    protected function isLivewireV3(): bool
+    {
+        if (! class_exists(InstalledVersions::class) || ! InstalledVersions::isInstalled('livewire/livewire')) {
+            return true;
+        }
+
+        $version = InstalledVersions::getVersion('livewire/livewire');
+
+        return version_compare($version, '4.0.0', '<');
+    }
+
     private function bootInstalledPackage(): self
     {
         return $this
@@ -78,13 +100,9 @@ class FormBuilderServiceProvider extends AbstractPackageServiceProvider
             ->registerBlazeComponents()
             ->registerRenderables()
             ->registerResources()
+            ->registerMarketingStudioActions()
             ->registerLivewireComponents()
             ->registerBladeComponents();
-    }
-
-    private function isPackageInstalled(): bool
-    {
-        return CapellCore::getPackage(static::$packageName)->isInstalled();
     }
 
     private function registerModels(): self
@@ -125,6 +143,20 @@ class FormBuilderServiceProvider extends AbstractPackageServiceProvider
                 group: $resource->name,
             ));
         }
+
+        return $this;
+    }
+
+    private function registerMarketingStudioActions(): self
+    {
+        CapellAdmin::registerMarketingStudioAction(new MarketingStudioActionData(
+            key: 'form-builder.submissions',
+            label: fn (): string => __('capell-form-builder::navigation.submissions'),
+            url: fn (): string => SubmissionResource::getUrl(),
+            section: MarketingStudioSectionEnum::Forms,
+            icon: 'heroicon-o-inbox-stack',
+            sort: 10,
+        ));
 
         return $this;
     }
@@ -178,16 +210,5 @@ class FormBuilderServiceProvider extends AbstractPackageServiceProvider
         Blade::anonymousComponentNamespace('Capell\\FormBuilder\\View\\Components');
 
         return $this;
-    }
-
-    private function isLivewireV3(): bool
-    {
-        if (! class_exists(InstalledVersions::class) || ! InstalledVersions::isInstalled('livewire/livewire')) {
-            return true;
-        }
-
-        $version = InstalledVersions::getVersion('livewire/livewire');
-
-        return version_compare($version, '4.0.0', '<');
     }
 }

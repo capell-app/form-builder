@@ -51,7 +51,7 @@ it('renders and stores a submitted form', function (): void {
         ->and($submission->meta->url)->toBeString();
 
     $contribution = collect(resolve(RecordExtensionRenderContributionAction::class)->recorded())
-        ->first(fn (mixed $record): bool => $record?->contributionClass === FormComponent::class);
+        ->first(fn (mixed $record): bool => $record->contributionClass === FormComponent::class);
 
     expect($contribution?->cacheable)->toBeFalse();
 });
@@ -267,7 +267,7 @@ it('renders a form element component from widget data for the current frontend s
         ->assertSeeHtml('capell-form-contact-block-email');
 
     $contribution = collect(resolve(RecordExtensionRenderContributionAction::class)->recorded())
-        ->first(fn (mixed $record): bool => $record?->contributionClass === FormElementComponent::class);
+        ->first(fn (mixed $record): bool => $record->contributionClass === FormElementComponent::class);
 
     expect($contribution?->cacheable)->toBeFalse();
 });

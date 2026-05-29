@@ -16,9 +16,9 @@ class ResolveSubmissionReplyAddressAction
     {
         $submission->loadMissing('form');
 
-        $values = $submission->payload?->values ?? [];
+        $values = $submission->payload->values ?? [];
 
-        foreach ($submission->form?->schema ?? [] as $field) {
+        foreach ($submission->form->schema ?? [] as $field) {
             if ($field->type !== FormFieldType::Email) {
                 continue;
             }

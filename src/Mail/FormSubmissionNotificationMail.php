@@ -28,7 +28,7 @@ class FormSubmissionNotificationMail extends Mailable implements ShouldQueue
         return new Envelope(
             replyTo: $this->replyToAddress !== null ? [new Address($this->replyToAddress)] : [],
             subject: (string) __('capell-form-builder::message.notification_subject', [
-                'form' => $this->submission->form?->name ?? __('capell-form-builder::generic.form'),
+                'form' => $this->submission->form->name ?? __('capell-form-builder::generic.form'),
             ]),
         );
     }

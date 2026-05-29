@@ -9,6 +9,9 @@ use Capell\FormBuilder\Enums\FormFieldType;
 use Capell\FormBuilder\Models\Form;
 use Lorisleiva\Actions\Concerns\AsAction;
 
+/**
+ * @method static array<string, array<int, string>> run(Form $form)
+ */
 class BuildFormValidationRulesAction
 {
     use AsAction;

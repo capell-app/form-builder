@@ -18,6 +18,7 @@ use Spatie\LaravelData\DataCollection;
 
 /**
  * @property DataCollection<int, FormFieldData>|null $schema
+ * @property FormSettingsData|null $settings
  */
 class Form extends Model
 {
@@ -37,16 +38,26 @@ class Form extends Model
 
     protected static string $factory = FormFactory::class;
 
+    /**
+     * @return BelongsTo<Site, $this>
+     */
     public function site(): BelongsTo
     {
         return $this->belongsTo(Site::class);
     }
 
+    /**
+     * @return HasMany<Submission, $this>
+     */
     public function submissions(): HasMany
     {
         return $this->hasMany(Submission::class);
     }
 
+    /**
+     * @param  Builder<Model>  $query
+     * @return Builder<Model>
+     */
     protected function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);

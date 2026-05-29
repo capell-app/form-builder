@@ -10,6 +10,7 @@ use Capell\Core\Enums\Attribute\EnumAttributeInterface;
 use Capell\FormBuilder\Livewire\FormComponent;
 use Capell\FormBuilder\Livewire\FormElementComponent;
 
+/** @implements EnumAttributeInterface<Component> */
 enum LivewireComponentEnum: string implements EnumAttributeInterface
 {
     use EnumAttributeHelper;
@@ -27,6 +28,6 @@ enum LivewireComponentEnum: string implements EnumAttributeInterface
     {
         $attributes = self::getAllCaseAttributes(Component::class);
 
-        return array_map(fn (?Component $attribute): ?string => $attribute?->class ?? null, $attributes);
+        return array_map(fn (?Component $attribute): ?string => $attribute->class ?? null, $attributes);
     }
 }

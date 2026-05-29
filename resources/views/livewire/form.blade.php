@@ -120,7 +120,7 @@
                                 <textarea
                                     wire:model="data.{{ $field->key }}"
                                     id="{{ $fieldId }}"
-                                    class="capell-form__control block min-h-28 w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900/10"
+                                    class="capell-form__control block min-h-28 w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900"
                                     placeholder="{{ $field->placeholder }}"
                                     @if ($describedBy !== '') aria-describedby="{{ $describedBy }}" @endif
                                     aria-invalid="{{ $errors->has($errorKey) ? 'true' : 'false' }}"
@@ -130,7 +130,7 @@
                                 <select
                                     wire:model="data.{{ $field->key }}"
                                     id="{{ $fieldId }}"
-                                    class="capell-form__control block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900/10"
+                                    class="capell-form__control block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900"
                                     @if ($describedBy !== '') aria-describedby="{{ $describedBy }}" @endif
                                     aria-invalid="{{ $errors->has($errorKey) ? 'true' : 'false' }}"
                                     @required($field->required)
@@ -150,7 +150,7 @@
                                     type="checkbox"
                                     wire:model="data.{{ $field->key }}"
                                     id="{{ $fieldId }}"
-                                    class="capell-form__checkbox h-4 w-4 rounded border-gray-300 text-gray-900 focus:ring-gray-900/20"
+                                    class="capell-form__checkbox h-4 w-4 rounded border-gray-300 text-gray-900 focus:ring-gray-900/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900"
                                     @if ($describedBy !== '') aria-describedby="{{ $describedBy }}" @endif
                                     aria-invalid="{{ $errors->has($errorKey) ? 'true' : 'false' }}"
                                     @required($field->required)
@@ -160,7 +160,7 @@
                                     type="{{ $field->type->value }}"
                                     wire:model="data.{{ $field->key }}"
                                     id="{{ $fieldId }}"
-                                    class="capell-form__control block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900/10"
+                                    class="capell-form__control block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900"
                                     placeholder="{{ $field->placeholder }}"
                                     @if ($describedBy !== '') aria-describedby="{{ $describedBy }}" @endif
                                     aria-invalid="{{ $errors->has($errorKey) ? 'true' : 'false' }}"
@@ -192,7 +192,7 @@
 
                 <button
                     type="submit"
-                    class="capell-form__submit inline-flex min-h-10 items-center justify-center rounded-md bg-gray-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60"
+                    class="capell-form__submit inline-flex min-h-10 items-center justify-center rounded-md bg-gray-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900 disabled:cursor-not-allowed disabled:opacity-60"
                     wire:loading.attr="disabled"
                     wire:target="submit"
                 >

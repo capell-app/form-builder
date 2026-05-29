@@ -26,7 +26,7 @@ enum SubmissionStatus: string implements HasColor, HasIcon, HasLabel
         };
     }
 
-    public function getIcon(): string|Heroicon
+    public function getIcon(): Heroicon
     {
         return match ($this) {
             self::New => Heroicon::OutlinedInbox,

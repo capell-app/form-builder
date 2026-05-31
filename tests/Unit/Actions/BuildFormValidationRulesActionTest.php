@@ -112,3 +112,81 @@ it('allows optional checkboxes to be false', function (): void {
         'terms' => ['required', 'accepted'],
     ]);
 });
+
+it('builds rules only for fields visible under conditional logic', function (): void {
+    $form = Form::factory()->make([
+        'schema' => [
+            [
+                'key' => 'interest',
+                'label' => 'Interest',
+                'type' => 'select',
+                'required' => true,
+                'options' => [
+                    'sales' => 'Sales',
+                    'support' => 'Support',
+                ],
+            ],
+            [
+                'key' => 'support_message',
+                'label' => 'Support message',
+                'type' => 'textarea',
+                'required' => true,
+                'visibility_conditions' => [
+                    [
+                        'field_key' => 'interest',
+                        'operator' => 'equals',
+                        'value' => 'support',
+                    ],
+                ],
+            ],
+        ],
+    ]);
+
+    expect(BuildFormValidationRulesAction::run($form, ['interest' => 'sales']))->toBe([
+        'interest' => ['required', 'string', 'in:sales,support', 'max:255'],
+    ])->and(BuildFormValidationRulesAction::run($form, ['interest' => 'support']))->toBe([
+        'interest' => ['required', 'string', 'in:sales,support', 'max:255'],
+        'support_message' => ['required', 'string', 'max:10000'],
+    ]);
+});
+
+it('builds validation rules for numeric file payment and calculation fields', function (): void {
+    $form = Form::factory()->make([
+        'schema' => [
+            [
+                'key' => 'attendees',
+                'label' => 'Attendees',
+                'type' => 'number',
+                'required' => true,
+            ],
+            [
+                'key' => 'brief',
+                'label' => 'Brief',
+                'type' => 'file',
+                'required' => false,
+                'accepted_file_types' => ['pdf', '.docx', 'bad/type'],
+                'max_file_size_kilobytes' => 2048,
+            ],
+            [
+                'key' => 'amount_cents',
+                'label' => 'Amount',
+                'type' => 'payment',
+                'required' => true,
+            ],
+            [
+                'key' => 'total',
+                'label' => 'Total',
+                'type' => 'calculation',
+                'required' => true,
+                'calculation_expression' => 'attendees * 100',
+            ],
+        ],
+    ]);
+
+    expect(BuildFormValidationRulesAction::run($form))->toBe([
+        'attendees' => ['required', 'numeric'],
+        'brief' => ['nullable', 'file', 'max:2048', 'mimes:pdf,docx'],
+        'amount_cents' => ['required', 'integer', 'min:1'],
+        'total' => ['required', 'numeric'],
+    ]);
+});

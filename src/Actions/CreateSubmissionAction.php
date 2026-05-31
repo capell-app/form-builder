@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Capell\FormBuilder\Actions;
 
+use Capell\FormBuilder\Data\FormFieldData;
 use Capell\FormBuilder\Data\SubmissionMetaData;
 use Capell\FormBuilder\Data\SubmissionPayloadData;
 use Capell\FormBuilder\Enums\SubmissionStatus;
 use Capell\FormBuilder\Events\FormSubmitted;
 use Capell\FormBuilder\Models\Form;
 use Capell\FormBuilder\Models\Submission;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Validator;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -22,11 +24,13 @@ class CreateSubmissionAction
      */
     public function handle(Form $form, array $input, SubmissionMetaData $meta): Submission
     {
+        $input = CalculateFormFieldValuesAction::run($form, $input);
+
         if ($this->hasTriggeredHoneypot($form, $input)) {
             return $this->createSubmission($form, [], $meta, SubmissionStatus::Spam);
         }
 
-        $validated = Validator::make($input, BuildFormValidationRulesAction::run($form))->validate();
+        $validated = Validator::make($input, BuildFormValidationRulesAction::run($form, $input))->validate();
         $submission = $this->createSubmission($form, $this->storedPayload($form, $validated), $meta, SubmissionStatus::New);
 
         event(new FormSubmitted($form, $submission));
@@ -63,6 +67,10 @@ class CreateSubmissionAction
     private function hasTriggeredHoneypot(Form $form, array $input): bool
     {
         foreach ($form->schema ?? [] as $field) {
+            if (is_array($field)) {
+                $field = FormFieldData::from($field);
+            }
+
             if (! $field->type->isSpamTrap()) {
                 continue;
             }
@@ -83,16 +91,29 @@ class CreateSubmissionAction
     {
         $values = [];
 
-        foreach ($form->schema ?? [] as $field) {
+        foreach (ResolveVisibleFormFieldsAction::run($form, $validated) as $field) {
             if (! $field->type->isStoredInPayload()) {
                 continue;
             }
 
             if (array_key_exists($field->key, $validated)) {
-                $values[$field->key] = $validated[$field->key];
+                $values[$field->key] = $this->storedValue($validated[$field->key]);
             }
         }
 
         return $values;
+    }
+
+    private function storedValue(mixed $value): mixed
+    {
+        if (! $value instanceof UploadedFile) {
+            return $value;
+        }
+
+        return [
+            'original_name' => $value->getClientOriginalName(),
+            'mime_type' => $value->getClientMimeType(),
+            'size' => $value->getSize(),
+        ];
     }
 }

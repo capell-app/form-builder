@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Capell\FormBuilder\Data\FormFieldData;
 use Capell\FormBuilder\Data\FormSettingsData;
 use Capell\FormBuilder\Data\SubmissionPayloadData;
+use Capell\FormBuilder\Enums\FormFieldConditionOperator;
 use Capell\FormBuilder\Enums\FormFieldType;
 
 it('creates form field data from editor state', function (): void {
@@ -18,12 +19,29 @@ it('creates form field data from editor state', function (): void {
         'options' => [],
         'default_value' => null,
         'validation_rules' => ['email'],
+        'step_key' => 'contact',
+        'calculation_expression' => null,
+        'accepted_file_types' => [],
+        'max_file_size_kilobytes' => null,
+        'payment_amount_cents' => null,
+        'payment_currency' => null,
+        'visibility_conditions' => [
+            [
+                'field_key' => 'interest',
+                'operator' => 'equals',
+                'value' => 'support',
+            ],
+        ],
     ]);
 
     expect($field->key)->toBe('email')
         ->and($field->type)->toBe(FormFieldType::Email)
         ->and($field->required)->toBeTrue()
-        ->and($field->validationRules)->toBe(['email']);
+        ->and($field->stepKey)->toBe('contact')
+        ->and($field->validationRules)->toBe(['email'])
+        ->and($field->visibilityConditions()[0]->fieldKey)->toBe('interest')
+        ->and($field->visibilityConditions()[0]->operator)->toBe(FormFieldConditionOperator::Equals)
+        ->and($field->visibilityConditions()[0]->value)->toBe('support');
 });
 
 it('provides simple default form settings', function (): void {

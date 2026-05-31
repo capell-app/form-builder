@@ -120,3 +120,46 @@ it('stores valid submissions when notification queueing fails', function (): voi
     expect($submission->exists)->toBeTrue()
         ->and(Submission::query()->whereKey($submission->getKey())->exists())->toBeTrue();
 });
+
+it('does not validate or store fields hidden by conditional logic', function (): void {
+    $form = Form::factory()->create([
+        'schema' => [
+            [
+                'key' => 'interest',
+                'label' => 'Interest',
+                'type' => 'select',
+                'required' => true,
+                'options' => [
+                    'sales' => 'Sales',
+                    'support' => 'Support',
+                ],
+            ],
+            [
+                'key' => 'support_message',
+                'label' => 'Support message',
+                'type' => 'textarea',
+                'required' => true,
+                'visibility_conditions' => [
+                    [
+                        'field_key' => 'interest',
+                        'operator' => 'equals',
+                        'value' => 'support',
+                    ],
+                ],
+            ],
+        ],
+    ]);
+
+    $submission = CreateSubmissionAction::run(
+        form: $form,
+        input: [
+            'interest' => 'sales',
+            'support_message' => 'This should be ignored.',
+        ],
+        meta: new SubmissionMetaData,
+    );
+
+    expect($submission->payload->values)->toBe([
+        'interest' => 'sales',
+    ]);
+});

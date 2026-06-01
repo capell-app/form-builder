@@ -51,9 +51,9 @@ Lets editors collect responses from structured websites while keeping submission
 
 ## Screenshots
 
-![Form mappings admin index](../../../public/docs/screenshots/packages/form-builder/form-builder-admin-index.png)
+![Form mappings admin index](screenshots/form-builder-admin-index.png)
 
-![Create form mapping screen](../../../public/docs/screenshots/packages/form-builder/create-edit-form-schema-screen.png)
+![Create form mapping screen](screenshots/create-edit-form-schema-screen.png)
 
 The frontend and submission detail screenshots need seeded form definitions and submissions before they can represent the package accurately. Do not publish blank frontend captures for those states.
 
@@ -135,7 +135,7 @@ erDiagram
 
 ## Screenshot Automation
 
-Deployment should read [screenshots.json](screenshots.json), install the package with demo data, resolve each admin surface or frontend URL, and write images to `public/docs/screenshots/packages/form-builder`.
+Deployment should read [screenshots.json](screenshots.json), install the package with demo data, resolve each admin surface or frontend URL, and write images to `packages/form-builder/docs/screenshots`.
 
 - FormBuilder admin index.
 - Create/edit form schema screen.

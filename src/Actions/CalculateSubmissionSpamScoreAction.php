@@ -73,8 +73,10 @@ final class CalculateSubmissionSpamScoreAction
             if (is_array($field)) {
                 $field = FormFieldData::from($field);
             }
-
-            if (! $field instanceof FormFieldData || ! $field->type->isSpamTrap()) {
+            if (! $field instanceof FormFieldData) {
+                continue;
+            }
+            if (! $field->type->isSpamTrap()) {
                 continue;
             }
 

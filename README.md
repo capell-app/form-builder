@@ -29,9 +29,9 @@ FormBuilder adds form definitions, encrypted submissions, frontend Livewire rend
 - Form and submission models.
 - Admin submissions resource under the reports navigation group.
 - Frontend Livewire form component.
-- Actions for validation, submission creation, archiving, read state, and spam marking.
+- Actions for validation, conditional visibility, multi-step grouping, calculations, spam scoring, submission creation, archiving, read state, and spam marking.
 - FormSubmitted event.
-- Configurable submission storage and request metadata collection.
+- Configurable submission storage, request metadata collection, file upload rules, payment field metadata, notifications, and replies.
 
 ## Why It Matters
 
@@ -112,7 +112,7 @@ Screenshots are generated from [docs/screenshots.json](docs/screenshots.json) du
 
 - Adds form-builder and submissions tables.
 - Adds frontend Livewire form component.
-- Adds config keys for storing submissions, IP address collection, and user agent collection.
+- Adds config keys for storing submissions, IP address collection, user agent collection, throttling, and spam scoring.
 - No routes are visible in this package.
 
 ## Install And Setup
@@ -132,6 +132,7 @@ Screenshots are generated from [docs/screenshots.json](docs/screenshots.json) du
 - Disable IP/user agent collection where privacy policy requires it.
 - Run migrations before rendering form components.
 - Validate field schema before accepting public submissions.
+- Tune spam scoring thresholds and blocked keywords for the site’s risk profile before using automatic spam triage in production.
 
 ## Docs
 

@@ -11,10 +11,15 @@ use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 #[MapName(SnakeCaseMapper::class)]
 class SubmissionMetaData extends Data
 {
+    /**
+     * @param  list<string>  $spamReasons
+     */
     public function __construct(
         public ?string $ipAddress = null,
         public ?string $userAgent = null,
         public ?string $url = null,
         public ?string $referer = null,
+        public int $spamScore = 0,
+        public array $spamReasons = [],
     ) {}
 }

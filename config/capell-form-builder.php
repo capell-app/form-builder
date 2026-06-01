@@ -10,4 +10,10 @@ return [
         'max_attempts' => 12,
         'decay_seconds' => 60,
     ],
+    'spam_scoring' => [
+        'enabled' => true,
+        'spam_threshold' => 75,
+        'max_links' => 5,
+        'blocked_keywords' => [],
+    ],
 ];

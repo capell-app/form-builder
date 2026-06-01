@@ -25,12 +25,26 @@ class CreateSubmissionAction
     public function handle(Form $form, array $input, SubmissionMetaData $meta): Submission
     {
         $input = CalculateFormFieldValuesAction::run($form, $input);
+        $spamScore = CalculateSubmissionSpamScoreAction::run($form, $input, $meta);
+        $meta = new SubmissionMetaData(
+            ipAddress: $meta->ipAddress,
+            userAgent: $meta->userAgent,
+            url: $meta->url,
+            referer: $meta->referer,
+            spamScore: $spamScore->score,
+            spamReasons: $spamScore->reasons,
+        );
 
-        if ($this->hasTriggeredHoneypot($form, $input)) {
+        if ($spamScore->isSpam($this->spamThreshold()) && $this->hasTriggeredHoneypot($form, $input)) {
             return $this->createSubmission($form, [], $meta, SubmissionStatus::Spam);
         }
 
         $validated = Validator::make($input, BuildFormValidationRulesAction::run($form, $input))->validate();
+
+        if ($spamScore->isSpam($this->spamThreshold())) {
+            return $this->createSubmission($form, $this->storedPayload($form, $validated), $meta, SubmissionStatus::Spam);
+        }
+
         $submission = $this->createSubmission($form, $this->storedPayload($form, $validated), $meta, SubmissionStatus::New);
 
         event(new FormSubmitted($form, $submission));
@@ -81,6 +95,13 @@ class CreateSubmissionAction
         }
 
         return false;
+    }
+
+    private function spamThreshold(): int
+    {
+        $threshold = config('capell-form-builder.spam_scoring.spam_threshold', 75);
+
+        return is_numeric($threshold) ? max(1, min(100, (int) $threshold)) : 75;
     }
 
     /**

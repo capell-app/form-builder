@@ -42,7 +42,7 @@
     "database": {
         "migrations": true,
         "settings": false,
-        "requiredTables": []
+        "requiredTables": ["form-builder", "submissions"]
     },
     "commands": {
         "install": null,
@@ -57,6 +57,13 @@
         "form-builder-admin",
         "form-builder-frontend",
         "public-form",
+        "form-builder-conditional-logic",
+        "form-builder-multi-step",
+        "form-builder-calculations",
+        "form-builder-file-upload-rules",
+        "form-builder-spam-scoring",
+        "form-builder-payment-fields",
+        "form-builder-submission-workflows",
         "requires-livewire",
         "cache-blocking"
     ],

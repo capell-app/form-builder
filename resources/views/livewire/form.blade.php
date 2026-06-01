@@ -217,10 +217,16 @@
                     wire:loading.attr="disabled"
                     wire:target="submit"
                 >
-                    <span wire:loading.remove wire:target="submit">
+                    <span
+                        wire:loading.remove
+                        wire:target="submit"
+                    >
                         {{ __('capell-form-builder::form.submit') }}
                     </span>
-                    <span wire:loading wire:target="submit">
+                    <span
+                        wire:loading
+                        wire:target="submit"
+                    >
                         {{ __('capell-form-builder::form.submitting') }}
                     </span>
                 </button>

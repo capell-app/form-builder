@@ -63,12 +63,12 @@ it('formats payload entries without a loaded form schema', function (): void {
         [
             'key' => 'selected_options',
             'label' => 'Selected Options',
-            'value' => 'One, ' . __('capell-form-builder::generic.boolean.no') . ', —',
+            'value' => 'One, ' . __('capell-form-builder::generic.boolean.no') . ', ' . __('capell-form-builder::generic.empty_value'),
         ],
         [
             'key' => 'empty_value',
             'label' => 'Empty Value',
-            'value' => '—',
+            'value' => __('capell-form-builder::generic.empty_value'),
         ],
     ]);
 });

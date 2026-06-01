@@ -74,7 +74,7 @@ final class BuildSubmissionPayloadEntriesAction
         }
 
         if ($value === null || $value === '') {
-            return '—';
+            return (string) __('capell-form-builder::generic.empty_value');
         }
 
         return (string) $value;

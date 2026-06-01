@@ -17,7 +17,7 @@ use Override;
 use Spatie\LaravelData\DataCollection;
 
 /**
- * @property DataCollection<int, FormFieldData>|null $schema
+ * @property DataCollection<int, FormFieldData>|array<int, FormFieldData|array<string, mixed>>|null $schema
  * @property FormSettingsData|null $settings
  */
 class Form extends Model

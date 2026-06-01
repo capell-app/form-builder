@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use Capell\Core\Models\Site;
+use Capell\FormBuilder\Data\SubmissionMetaData;
+use Capell\FormBuilder\Data\SubmissionPayloadData;
 use Capell\FormBuilder\Enums\FormFieldType;
 use Capell\FormBuilder\Enums\SubmissionStatus;
 use Capell\FormBuilder\Events\FormSubmitted;
@@ -45,10 +47,12 @@ it('renders and stores a submitted form', function (): void {
         ->assertSet('submitted', true);
 
     $submission = Submission::query()->firstOrFail();
+    $payload = formComponentSubmissionPayload($submission);
+    $meta = formComponentSubmissionMeta($submission);
 
     expect($submission->form_id)->toBe($form->getKey())
-        ->and($submission->payload->values)->toBe(['email' => 'ben@example.com'])
-        ->and($submission->meta->url)->toBeString();
+        ->and($payload->values)->toBe(['email' => 'ben@example.com'])
+        ->and($meta->url)->toBeString();
 
     $contribution = collect(resolve(RecordExtensionRenderContributionAction::class)->recorded())
         ->first(fn (mixed $record): bool => $record->contributionClass === FormComponent::class);
@@ -341,8 +345,9 @@ it('stores submissions and sends notification mail when configured', function ()
         ->assertSet('submitted', true);
 
     $submission = Submission::query()->firstOrFail();
+    $payload = formComponentSubmissionPayload($submission);
 
-    expect($submission->payload->values)->toBe([
+    expect($payload->values)->toBe([
         'name' => 'Ben Johnson',
         'email' => 'ben@example.com',
         'message' => 'Can you help with a Capell migration?',
@@ -445,6 +450,59 @@ it('uses full schema validation when submissions are not stored', function (): v
     Event::assertNotDispatched(FormSubmitted::class);
 });
 
+it('renders and validates only fields visible under conditional logic', function (): void {
+    $form = Form::factory()->create([
+        'name' => 'Lead form',
+        'handle' => 'conditional-lead-form',
+        'schema' => [
+            [
+                'key' => 'interest',
+                'label' => 'Interest',
+                'type' => FormFieldType::Select->value,
+                'required' => true,
+                'options' => [
+                    'sales' => 'Sales',
+                    'support' => 'Support',
+                ],
+            ],
+            [
+                'key' => 'support_message',
+                'label' => 'Support message',
+                'type' => FormFieldType::Textarea->value,
+                'required' => true,
+                'visibility_conditions' => [
+                    [
+                        'field_key' => 'interest',
+                        'operator' => 'equals',
+                        'value' => 'support',
+                    ],
+                ],
+            ],
+        ],
+    ]);
+    bindFormBuilderFrontendSite($form->site);
+
+    livewire(FormComponent::class, ['handle' => 'conditional-lead-form'])
+        ->assertSee('Interest')
+        ->assertDontSee('Support message')
+        ->set('data.interest', 'sales')
+        ->call('submit')
+        ->assertHasNoErrors()
+        ->assertSet('submitted', true);
+
+    expect(formComponentSubmissionPayload(Submission::query()->firstOrFail())->values)->toBe([
+        'interest' => 'sales',
+    ]);
+
+    livewire(FormComponent::class, ['handle' => 'conditional-lead-form'])
+        ->set('data.interest', 'support')
+        ->assertSee('Support message')
+        ->call('submit')
+        ->assertHasErrors([
+            'data.support_message' => 'required',
+        ]);
+});
+
 it('honours public metadata collection settings', function (): void {
     Event::fake([FormSubmitted::class]);
 
@@ -474,8 +532,13 @@ it('honours public metadata collection settings', function (): void {
 
     Event::assertDispatched(
         FormSubmitted::class,
-        fn (FormSubmitted $event): bool => $event->metadata?->ipAddress === null
-            && $event->metadata->userAgent === null,
+        function (FormSubmitted $event): bool {
+            $metadata = $event->metadata;
+
+            return $metadata instanceof SubmissionMetaData
+                && $metadata->ipAddress === null
+                && $metadata->userAgent === null;
+        },
     );
 });
 
@@ -508,10 +571,11 @@ it('records honeypot submissions as spam through the Livewire form', function ()
         ->assertSet('submitted', true);
 
     $submission = Submission::query()->firstOrFail();
+    $payload = formComponentSubmissionPayload($submission);
 
     expect($submission->form_id)->toBe($form->getKey())
         ->and($submission->status)->toBe(SubmissionStatus::Spam)
-        ->and($submission->payload->values)->toBe([]);
+        ->and($payload->values)->toBe([]);
 
     Event::assertNotDispatched(FormSubmitted::class);
 });
@@ -545,10 +609,11 @@ it('records honeypot submissions as spam before validating public fields', funct
         ->assertSet('submitted', true);
 
     $submission = Submission::query()->firstOrFail();
+    $payload = formComponentSubmissionPayload($submission);
 
     expect($submission->form_id)->toBe($form->getKey())
         ->and($submission->status)->toBe(SubmissionStatus::Spam)
-        ->and($submission->payload->values)->toBe([]);
+        ->and($payload->values)->toBe([]);
 
     Event::assertNotDispatched(FormSubmitted::class);
 });
@@ -631,4 +696,22 @@ function bindFormBuilderFrontendSite(Site $site): void
 
     app()->instance(CapellFrontendContext::class, new CapellFrontendContext($state));
     Frontend::clearResolvedInstance(CapellFrontendContext::class);
+}
+
+function formComponentSubmissionPayload(Submission $submission): SubmissionPayloadData
+{
+    $payload = $submission->payload;
+
+    throw_unless($payload instanceof SubmissionPayloadData, RuntimeException::class, 'Expected form submission payload data to be cast.');
+
+    return $payload;
+}
+
+function formComponentSubmissionMeta(Submission $submission): SubmissionMetaData
+{
+    $meta = $submission->meta;
+
+    throw_unless($meta instanceof SubmissionMetaData, RuntimeException::class, 'Expected form submission meta data to be cast.');
+
+    return $meta;
 }

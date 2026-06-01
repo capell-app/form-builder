@@ -53,6 +53,8 @@ it('encrypts payload and meta at rest while restoring structured data', function
         ->where('id', $submission->getKey())
         ->first();
 
+    throw_unless($rawSubmission instanceof stdClass, RuntimeException::class, 'Expected raw submission row to exist.');
+
     expect($rawSubmission->payload)->not->toContain('ben@example.com')
         ->and($rawSubmission->meta)->not->toContain('127.0.0.1');
 

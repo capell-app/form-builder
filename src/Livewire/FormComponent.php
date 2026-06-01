@@ -6,7 +6,9 @@ namespace Capell\FormBuilder\Livewire;
 
 use Capell\Core\Models\Site;
 use Capell\FormBuilder\Actions\BuildFormValidationRulesAction;
+use Capell\FormBuilder\Actions\CalculateFormFieldValuesAction;
 use Capell\FormBuilder\Actions\CreateSubmissionAction;
+use Capell\FormBuilder\Actions\ResolveVisibleFormFieldsAction;
 use Capell\FormBuilder\Data\FormFieldData;
 use Capell\FormBuilder\Data\FormSettingsData;
 use Capell\FormBuilder\Data\SubmissionMetaData;
@@ -22,11 +24,14 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 use Spatie\LaravelData\DataCollection;
 use Throwable;
 
 final class FormComponent extends Component
 {
+    use WithFileUploads;
+
     private const string PackageName = 'capell-app/form-builder';
 
     /** @var array<string, mixed> */
@@ -50,7 +55,7 @@ final class FormComponent extends Component
             $this->formReference = $this->encryptFormReference($this->resolvedForm);
         }
 
-        foreach ($this->fields() as $field) {
+        foreach ($this->allFields() as $field) {
             $this->data[$field->key] = $field->defaultValue;
         }
     }
@@ -82,7 +87,9 @@ final class FormComponent extends Component
             return;
         }
 
-        $this->validate($this->rules());
+        $this->data = CalculateFormFieldValuesAction::run($form, $this->data);
+
+        $this->validate($this->rules($this->data));
 
         if ($settings->storeSubmissions) {
             CreateSubmissionAction::run(
@@ -239,15 +246,29 @@ final class FormComponent extends Component
     /**
      * @return Collection<int, FormFieldData>
      */
-    private function fields(): Collection
+    private function allFields(): Collection
     {
         $fields = $this->form()?->schema;
 
         if ($fields instanceof DataCollection) {
-            return $fields->toCollection();
+            return new Collection($fields->toCollection()->all());
         }
 
         return collect();
+    }
+
+    /**
+     * @return Collection<int, FormFieldData>
+     */
+    private function fields(): Collection
+    {
+        $form = $this->form();
+
+        if (! $form instanceof Form) {
+            return collect();
+        }
+
+        return ResolveVisibleFormFieldsAction::run($form, $this->data);
     }
 
     private function settings(): FormSettingsData
@@ -260,9 +281,10 @@ final class FormComponent extends Component
     }
 
     /**
+     * @param  array<string, mixed>  $input
      * @return array<string, array<int, string>>
      */
-    private function rules(): array
+    private function rules(array $input = []): array
     {
         $form = $this->form();
 
@@ -270,7 +292,7 @@ final class FormComponent extends Component
             return [];
         }
 
-        return collect(BuildFormValidationRulesAction::run($form))
+        return collect(BuildFormValidationRulesAction::run($form, $input))
             ->mapWithKeys(fn (array $rules, string $fieldKey): array => ['data.' . $fieldKey => $rules])
             ->all();
     }

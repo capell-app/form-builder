@@ -10,7 +10,7 @@ use Capell\FormBuilder\Models\Form;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * @method static array<string, array<int, string>> run(Form $form)
+ * @method static array<string, array<int, string>> run(Form $form, array<string, mixed> $input = [])
  */
 class BuildFormValidationRulesAction
 {
@@ -20,14 +20,19 @@ class BuildFormValidationRulesAction
 
     private const int DEFAULT_LONG_TEXT_MAX_LENGTH = 10000;
 
+    private const int DEFAULT_FILE_MAX_KILOBYTES = 10240;
+
+    private const int MAX_FILE_MAX_KILOBYTES = 51200;
+
     /**
+     * @param  array<string, mixed>  $input
      * @return array<string, array<int, string>>
      */
-    public function handle(Form $form): array
+    public function handle(Form $form, array $input = []): array
     {
         $rules = [];
 
-        foreach ($form->schema ?? [] as $field) {
+        foreach (ResolveVisibleFormFieldsAction::run($form, $input) as $field) {
             $rules[$field->key] = $this->rulesForField($field);
         }
 
@@ -56,6 +61,26 @@ class BuildFormValidationRulesAction
         if ($field->type === FormFieldType::Select) {
             $rules[] = 'string';
             $rules[] = 'in:' . implode(',', array_keys($field->options));
+        }
+
+        if (in_array($field->type, [FormFieldType::Number, FormFieldType::Calculation], true)) {
+            $rules[] = 'numeric';
+        }
+
+        if ($field->type === FormFieldType::File) {
+            $rules[] = 'file';
+            $rules[] = 'max:' . $this->fileMaxKilobytes($field);
+
+            $fileTypes = $this->safeFileTypes($field);
+
+            if ($fileTypes !== []) {
+                $rules[] = 'mimes:' . implode(',', $fileTypes);
+            }
+        }
+
+        if ($field->type === FormFieldType::Payment) {
+            $rules[] = 'integer';
+            $rules[] = 'min:1';
         }
 
         if ($field->type === FormFieldType::Checkbox) {
@@ -116,7 +141,11 @@ class BuildFormValidationRulesAction
             return $rule;
         }
 
-        return in_array($rule, ['email', 'url', 'alpha', 'alpha_dash', 'alpha_num'], true) ? $rule : null;
+        if (preg_match('/^mimes:[a-z0-9_,]+$/', $rule) === 1 && $field->type === FormFieldType::File) {
+            return $rule;
+        }
+
+        return in_array($rule, ['email', 'url', 'alpha', 'alpha_dash', 'alpha_num', 'numeric', 'integer'], true) ? $rule : null;
     }
 
     private function defaultMaxLength(FormFieldData $field): ?int
@@ -126,5 +155,28 @@ class BuildFormValidationRulesAction
             FormFieldType::Textarea => self::DEFAULT_LONG_TEXT_MAX_LENGTH,
             default => null,
         };
+    }
+
+    private function fileMaxKilobytes(FormFieldData $field): int
+    {
+        if ($field->maxFileSizeKilobytes === null) {
+            return self::DEFAULT_FILE_MAX_KILOBYTES;
+        }
+
+        return max(1, min($field->maxFileSizeKilobytes, self::MAX_FILE_MAX_KILOBYTES));
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function safeFileTypes(FormFieldData $field): array
+    {
+        return array_values(array_unique(array_filter(
+            array_map(
+                static fn (string $type): string => strtolower(trim($type, " \t\n\r\0\x0B.")),
+                $field->acceptedFileTypes,
+            ),
+            static fn (string $type): bool => preg_match('/^[a-z0-9]+$/', $type) === 1,
+        )));
     }
 }

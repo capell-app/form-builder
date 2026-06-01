@@ -33,7 +33,7 @@ class SubmissionFactory extends Factory
             }
 
             if ($submission->form_id !== null) {
-                $submission->site_id = Form::query()->findOrFail($submission->form_id)->site_id;
+                $submission->site_id = Form::query()->findOrFail((int) $submission->form_id)->site_id;
             }
         });
     }
@@ -42,7 +42,7 @@ class SubmissionFactory extends Factory
     {
         return [
             'form_id' => Form::factory(),
-            'site_id' => fn (array $attributes): int => Form::query()->findOrFail($attributes['form_id'])->site_id,
+            'site_id' => fn (array $attributes): int => Form::query()->findOrFail((int) $attributes['form_id'])->site_id,
             'payload' => [
                 'values' => [
                     'email' => $this->faker->safeEmail(),

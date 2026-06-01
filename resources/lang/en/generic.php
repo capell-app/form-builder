@@ -7,6 +7,7 @@ return [
         'no' => 'No',
         'yes' => 'Yes',
     ],
+    'empty_value' => '—',
     'form' => 'Form',
     'submission_status' => [
         'archived' => 'Archived',

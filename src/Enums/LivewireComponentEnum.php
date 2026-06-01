@@ -28,6 +28,14 @@ enum LivewireComponentEnum: string implements EnumAttributeInterface
     {
         $attributes = self::getAllCaseAttributes(Component::class);
 
-        return array_map(fn (?Component $attribute): ?string => $attribute->class ?? null, $attributes);
+        /** @var array<string, class-string|null> $components */
+        $components = array_map(
+            static fn (?Component $attribute): ?string => $attribute?->class !== null && class_exists($attribute->class)
+                ? $attribute->class
+                : null,
+            $attributes,
+        );
+
+        return $components;
     }
 }

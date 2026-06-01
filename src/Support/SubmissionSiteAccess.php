@@ -76,7 +76,7 @@ final class SubmissionSiteAccess
         ?int $siteId,
         array $abilities = self::VIEW_ABILITIES,
     ): bool {
-        if (! $actor instanceof Authenticatable || $siteId === null) {
+        if (! $actor instanceof Authenticatable || $siteId === null || $siteId < 1) {
             return false;
         }
 

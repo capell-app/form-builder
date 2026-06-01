@@ -76,7 +76,41 @@ it('stores triggered honeypot submissions as spam without dispatching submission
     );
 
     expect($submission->status)->toBe(SubmissionStatus::Spam)
-        ->and($submission->payload->values)->toBe([]);
+        ->and($submission->payload->values)->toBe([])
+        ->and($submission->meta?->spamScore)->toBe(100)
+        ->and($submission->meta?->spamReasons)->toContain('honeypot');
+
+    Event::assertNotDispatched(FormSubmitted::class);
+});
+
+it('stores scored spam submissions without dispatching submission events', function (): void {
+    Event::fake([FormSubmitted::class]);
+    config()->set('capell-form-builder.spam_scoring.max_links', 0);
+    config()->set('capell-form-builder.spam_scoring.blocked_keywords', ['rank-fast']);
+
+    $form = Form::factory()->create([
+        'schema' => [
+            ['key' => 'email', 'label' => 'Email', 'type' => 'email', 'required' => true, 'validation_rules' => ['email']],
+            ['key' => 'message', 'label' => 'Message', 'type' => 'textarea', 'required' => true],
+        ],
+    ]);
+
+    $submission = CreateSubmissionAction::run(
+        form: $form,
+        input: [
+            'email' => 'person@example.com',
+            'message' => 'rank-fast https://one.example https://two.example https://three.example https://four.example',
+        ],
+        meta: new SubmissionMetaData(userAgent: 'Pest'),
+    );
+
+    expect($submission->status)->toBe(SubmissionStatus::Spam)
+        ->and($submission->payload->values)->toBe([
+            'email' => 'person@example.com',
+            'message' => 'rank-fast https://one.example https://two.example https://three.example https://four.example',
+        ])
+        ->and($submission->meta?->spamScore)->toBeGreaterThanOrEqual(75)
+        ->and($submission->meta?->spamReasons)->toContain('too_many_links');
 
     Event::assertNotDispatched(FormSubmitted::class);
 });
@@ -119,4 +153,47 @@ it('stores valid submissions when notification queueing fails', function (): voi
 
     expect($submission->exists)->toBeTrue()
         ->and(Submission::query()->whereKey($submission->getKey())->exists())->toBeTrue();
+});
+
+it('does not validate or store fields hidden by conditional logic', function (): void {
+    $form = Form::factory()->create([
+        'schema' => [
+            [
+                'key' => 'interest',
+                'label' => 'Interest',
+                'type' => 'select',
+                'required' => true,
+                'options' => [
+                    'sales' => 'Sales',
+                    'support' => 'Support',
+                ],
+            ],
+            [
+                'key' => 'support_message',
+                'label' => 'Support message',
+                'type' => 'textarea',
+                'required' => true,
+                'visibility_conditions' => [
+                    [
+                        'field_key' => 'interest',
+                        'operator' => 'equals',
+                        'value' => 'support',
+                    ],
+                ],
+            ],
+        ],
+    ]);
+
+    $submission = CreateSubmissionAction::run(
+        form: $form,
+        input: [
+            'interest' => 'sales',
+            'support_message' => 'This should be ignored.',
+        ],
+        meta: new SubmissionMetaData,
+    );
+
+    expect($submission->payload->values)->toBe([
+        'interest' => 'sales',
+    ]);
 });

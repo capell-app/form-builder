@@ -155,9 +155,30 @@
                                     aria-invalid="{{ $errors->has($errorKey) ? 'true' : 'false' }}"
                                     @required($field->required)
                                 />
+                            @elseif ($field->type === FormFieldType::File)
+                                <input
+                                    type="file"
+                                    wire:model="data.{{ $field->key }}"
+                                    id="{{ $fieldId }}"
+                                    class="capell-form__control block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900"
+                                    @if ($field->acceptedFileTypes !== []) accept="{{ collect($field->acceptedFileTypes)->map(fn (string $type): string => str_starts_with($type, '.') ? $type : '.' . $type)->implode(',') }}" @endif
+                                    @if ($describedBy !== '') aria-describedby="{{ $describedBy }}" @endif
+                                    aria-invalid="{{ $errors->has($errorKey) ? 'true' : 'false' }}"
+                                    @required($field->required)
+                                />
+                            @elseif ($field->type === FormFieldType::Calculation)
+                                <input
+                                    type="number"
+                                    wire:model="data.{{ $field->key }}"
+                                    id="{{ $fieldId }}"
+                                    class="capell-form__control block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900"
+                                    readonly
+                                    @if ($describedBy !== '') aria-describedby="{{ $describedBy }}" @endif
+                                    aria-invalid="{{ $errors->has($errorKey) ? 'true' : 'false' }}"
+                                />
                             @else
                                 <input
-                                    type="{{ $field->type->value }}"
+                                    type="{{ in_array($field->type, [FormFieldType::Number, FormFieldType::Payment], true) ? 'number' : $field->type->value }}"
                                     wire:model="data.{{ $field->key }}"
                                     id="{{ $fieldId }}"
                                     class="capell-form__control block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900"
@@ -196,10 +217,16 @@
                     wire:loading.attr="disabled"
                     wire:target="submit"
                 >
-                    <span wire:loading.remove wire:target="submit">
+                    <span
+                        wire:loading.remove
+                        wire:target="submit"
+                    >
                         {{ __('capell-form-builder::form.submit') }}
                     </span>
-                    <span wire:loading wire:target="submit">
+                    <span
+                        wire:loading
+                        wire:target="submit"
+                    >
                         {{ __('capell-form-builder::form.submitting') }}
                     </span>
                 </button>

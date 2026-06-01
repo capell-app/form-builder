@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Capell\FormBuilder\Actions;
 
+use Capell\FormBuilder\Data\FormFieldData;
 use Capell\FormBuilder\Enums\FormFieldType;
 use Capell\FormBuilder\Models\Submission;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -19,6 +20,10 @@ class ResolveSubmissionReplyAddressAction
         $values = $submission->payload->values ?? [];
 
         foreach ($submission->form->schema ?? [] as $field) {
+            if (is_array($field)) {
+                $field = FormFieldData::from($field);
+            }
+
             if ($field->type !== FormFieldType::Email) {
                 continue;
             }

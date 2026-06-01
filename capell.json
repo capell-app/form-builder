@@ -6,7 +6,7 @@
     "kind": "package",
     "capellApiVersion": "^4.0",
     "version": "4.x-dev",
-    "description": "FormBuilder adds form definitions, encrypted submissions, frontend Livewire rendering, validation, and submission status handling to Capell.",
+    "description": "FormBuilder adds form definitions, encrypted submissions, frontend Livewire rendering, conditional logic, multi-step forms, calculations, file upload rules, spam scoring, payment fields, and submission workflows to Capell.",
     "product": {
         "group": "Capell FormBuilder",
         "tier": "premium",
@@ -20,7 +20,7 @@
             "capell-app/core",
             "capell-app/frontend"
         ],
-        "supports": [],
+        "supports": ["capell-app/payments"],
         "conflicts": []
     },
     "providers": {
@@ -34,9 +34,25 @@
     },
     "contributes": [
         {
+            "type": "admin-resource",
+            "class": "Capell\\FormBuilder\\Manifest\\SubmissionResourceContribution",
+            "resourceClass": "Capell\\FormBuilder\\Filament\\Resources\\Submissions\\SubmissionResource"
+        },
+        {
             "type": "frontend-component",
-            "class": "Capell\\FormBuilder\\Livewire\\FormElementComponent",
+            "class": "Capell\\FormBuilder\\Manifest\\FormElementComponentContribution",
+            "componentClass": "Capell\\FormBuilder\\Livewire\\FormElementComponent",
             "surface": "frontend"
+        },
+        {
+            "type": "model",
+            "class": "Capell\\FormBuilder\\Manifest\\FormModelContribution",
+            "modelClass": "Capell\\FormBuilder\\Models\\Form"
+        },
+        {
+            "type": "model",
+            "class": "Capell\\FormBuilder\\Manifest\\SubmissionModelContribution",
+            "modelClass": "Capell\\FormBuilder\\Models\\Submission"
         }
     ],
     "database": {
@@ -49,6 +65,20 @@
         "setup": null,
         "demo": null,
         "doctor": null
+    },
+    "actions": {
+        "archiveSubmission": "Capell\\FormBuilder\\Actions\\ArchiveSubmissionAction",
+        "buildFormSteps": "Capell\\FormBuilder\\Actions\\BuildFormStepsAction",
+        "buildFormValidationRules": "Capell\\FormBuilder\\Actions\\BuildFormValidationRulesAction",
+        "calculateFormFieldValues": "Capell\\FormBuilder\\Actions\\CalculateFormFieldValuesAction",
+        "calculateSubmissionSpamScore": "Capell\\FormBuilder\\Actions\\CalculateSubmissionSpamScoreAction",
+        "createSubmission": "Capell\\FormBuilder\\Actions\\CreateSubmissionAction",
+        "evaluateFormFieldVisibility": "Capell\\FormBuilder\\Actions\\EvaluateFormFieldVisibilityAction",
+        "markSubmissionRead": "Capell\\FormBuilder\\Actions\\MarkSubmissionReadAction",
+        "markSubmissionSpam": "Capell\\FormBuilder\\Actions\\MarkSubmissionSpamAction",
+        "replyToSubmission": "Capell\\FormBuilder\\Actions\\ReplyToSubmissionAction",
+        "resolveVisibleFormFields": "Capell\\FormBuilder\\Actions\\ResolveVisibleFormFieldsAction",
+        "sendSubmissionNotification": "Capell\\FormBuilder\\Actions\\SendSubmissionNotificationAction"
     },
     "settings": [],
     "permissions": [],
@@ -120,7 +150,7 @@
         "privateDocsRequested": true
     },
     "marketplace": {
-        "summary": "FormBuilder adds form definitions, encrypted submissions, frontend Livewire rendering, validation, and submission status handling to Capell.",
+        "summary": "FormBuilder adds form definitions, encrypted submissions, frontend Livewire rendering, conditional logic, multi-step forms, calculations, file upload rules, spam scoring, payment fields, and submission workflows to Capell.",
         "screenshots": [
             {
                 "path": "docs/assets/marketplace/extension-card.jpg",
@@ -131,6 +161,6 @@
         "categories": ["admin", "form-builder", "frontend"]
     },
     "contributionTraceability": {
-        "deferredContributions": ["admin-resource", "model"]
+        "deferredContributions": []
     }
 }

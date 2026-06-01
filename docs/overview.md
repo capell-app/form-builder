@@ -6,7 +6,7 @@ This page is the consolidated implementation overview for the FormBuilder packag
 
 ## What This Package Adds
 
-FormBuilder adds form definitions, encrypted submissions, frontend Livewire rendering, validation, and submission status handling to Capell.
+FormBuilder adds form definitions, encrypted submissions, frontend Livewire rendering, conditional logic, multi-step forms, calculations, file upload rules, spam scoring, payment fields, and submission workflows to Capell.
 
 - Form and submission models.
 - Frontend Livewire form component.

@@ -123,10 +123,10 @@ final class FormBuilderHealthCheck implements ChecksExtensionHealth
      */
     public function missingTables(): array
     {
-        return collect(self::REQUIRED_TABLES)
+        return array_values(collect(self::REQUIRED_TABLES)
             ->reject(static fn (string $tableName): bool => Schema::hasTable($tableName))
             ->values()
-            ->all();
+            ->all());
     }
 
     public function spamScoringEnabled(): bool
@@ -141,13 +141,13 @@ final class FormBuilderHealthCheck implements ChecksExtensionHealth
     {
         $casts = (new Submission)->getCasts();
 
-        return collect(self::ENCRYPTED_ATTRIBUTES)
+        return array_values(collect(self::ENCRYPTED_ATTRIBUTES)
             ->reject(static function (string $attribute) use ($casts): bool {
                 $cast = $casts[$attribute] ?? '';
 
                 return is_string($cast) && str_starts_with($cast, EncryptedDataCast::class);
             })
             ->values()
-            ->all();
+            ->all());
     }
 }

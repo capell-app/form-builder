@@ -4,4 +4,21 @@ All notable changes to `capell-app/form-builder` will be documented in this file
 
 ## Unreleased
 
-- Prepared package metadata and documentation for ongoing Capell 4.x package work.
+## 2026-06-03
+
+### Added
+
+- Real `FormBuilderHealthCheck` diagnostics: probes the `forms` and `submissions` storage tables, confirms spam scoring is enabled, and verifies submission `payload`/`meta` are cast through `EncryptedDataCast` (encrypted at rest). Replaces the previous contract-only stub behind the three declared health checks.
+
+### Changed
+
+- Rewrote the marketplace summary, listing description, and `composer.json` description to reflect shipped functionality (site-scoped forms, encrypted submissions, triage inbox, one-click email replies) instead of an over-claiming feature list.
+- Surfaced the existing admin index, submissions index, submission detail, and frontend output screenshots (light + dark) in the marketplace manifest.
+
+### Fixed
+
+- Spam submissions no longer resolve a reply-to address, so the admin Reply action and `Reply to` column are hidden for spam entries and `ReplyToSubmissionAction` refuses to email an attacker-supplied address.
+
+### Prepared
+
+- Package metadata and documentation for ongoing Capell 4.x package work.

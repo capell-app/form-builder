@@ -6,7 +6,7 @@
     "kind": "package",
     "capellApiVersion": "^4.0",
     "version": "4.x-dev",
-    "description": "FormBuilder adds form definitions, encrypted submissions, frontend Livewire rendering, conditional logic, multi-step forms, calculations, file upload rules, spam scoring, payment fields, and submission workflows to Capell.",
+    "description": "Build site-scoped forms in Capell and capture spam-filtered, encrypted submissions into a per-site triage inbox with one-click email replies.",
     "product": {
         "group": "Capell FormBuilder",
         "tier": "premium",
@@ -150,12 +150,53 @@
         "privateDocsRequested": true
     },
     "marketplace": {
-        "summary": "FormBuilder adds form definitions, encrypted submissions, frontend Livewire rendering, conditional logic, multi-step forms, calculations, file upload rules, spam scoring, payment fields, and submission workflows to Capell.",
+        "summary": "Build site-scoped forms in Capell and capture spam-filtered, encrypted submissions into a per-site triage inbox with one-click email replies.",
+        "description": "Form Builder gives each Capell site its own forms with conditional fields, calculated values, honeypot + heuristic spam scoring, and configurable file-upload rules. Every submission is encrypted at rest and lands in a site-scoped admin inbox where staff can read, archive, mark spam, and reply by email without leaving the panel. Frontend forms render through a cache-safe Livewire component with built-in throttling and accessible markup. Pairs with Email Studio and Public Actions to turn submissions into automated workflows.",
         "screenshots": [
             {
                 "path": "docs/assets/marketplace/extension-card.jpg",
                 "alt": "Form Builder extension preview image",
                 "caption": "Form Builder extension preview"
+            },
+            {
+                "path": "docs/screenshots/form-builder-admin-index.png",
+                "alt": "Form Builder admin index listing form definitions",
+                "caption": "Review form definitions and their status"
+            },
+            {
+                "path": "docs/screenshots/form-builder-admin-index-dark.png",
+                "alt": "Form Builder admin index listing form definitions in dark mode",
+                "caption": "Review form definitions and their status (dark mode)"
+            },
+            {
+                "path": "docs/screenshots/submissions-index.png",
+                "alt": "Submissions inbox showing unread, spam, and archived entries",
+                "caption": "Triage unread, spam, and archived submissions"
+            },
+            {
+                "path": "docs/screenshots/submissions-index-dark.png",
+                "alt": "Submissions inbox showing unread, spam, and archived entries in dark mode",
+                "caption": "Triage unread, spam, and archived submissions (dark mode)"
+            },
+            {
+                "path": "docs/screenshots/submission-detail-view.png",
+                "alt": "Submission detail view with decrypted payload and reply context",
+                "caption": "Read a submission and reply by email"
+            },
+            {
+                "path": "docs/screenshots/submission-detail-view-dark.png",
+                "alt": "Submission detail view with decrypted payload and reply context in dark mode",
+                "caption": "Read a submission and reply by email (dark mode)"
+            },
+            {
+                "path": "docs/screenshots/frontend-form-output.png",
+                "alt": "Public form rendered through the frontend Livewire component",
+                "caption": "Cache-safe frontend form rendering"
+            },
+            {
+                "path": "docs/screenshots/frontend-form-output-dark.png",
+                "alt": "Public form rendered through the frontend Livewire component in dark mode",
+                "caption": "Cache-safe frontend form rendering (dark mode)"
             }
         ],
         "categories": ["admin", "form-builder", "frontend"]

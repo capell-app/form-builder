@@ -23,6 +23,9 @@ use Illuminate\Support\Facades\Mail;
 
 use function Pest\Livewire\livewire;
 
+use Sinnbeck\DomAssertions\Asserts\AssertElement;
+use Sinnbeck\DomAssertions\Asserts\BaseAssert;
+
 it('renders and stores a submitted form', function (): void {
     resolve(RecordExtensionRenderContributionAction::class)->clear();
 
@@ -226,26 +229,25 @@ it('renders accessible public form states', function (): void {
     $emailFieldId = 'capell-form-accessible-lead-email';
 
     livewire(FormComponent::class, ['handle' => 'lead-form', 'instanceId' => 'accessible-lead'])
-        ->assertSeeHtml('wire:loading.attr="disabled"')
-        ->assertDontSeeHtml('capell-form-' . $form->getKey() . '-email')
-        ->assertSeeHtml('required')
+        ->assertElementExists('button', fn (AssertElement $button): BaseAssert => $button->has('wire:loading.attr', 'disabled'))
+        ->assertElementExists(fn (AssertElement $body): BaseAssert => $body->doesntContain('#capell-form-' . $form->getKey() . '-email'))
+        ->assertElementExists('input[required]')
         ->set('data.terms', false)
         ->call('submit')
         ->assertHasErrors([
             'data.email' => 'required',
             'data.terms' => 'accepted',
         ])
-        ->assertSeeHtml('aria-describedby="' . $emailFieldId . '-help ' . $emailFieldId . '-error"')
-        ->assertSeeHtml('aria-invalid="true"')
-        ->assertSeeHtml('role="alert"')
+        ->assertElementExists('input[aria-describedby="' . $emailFieldId . '-help ' . $emailFieldId . '-error"][aria-invalid="true"]')
+        ->assertElementExists('[role="alert"]')
         ->assertSee(__('capell-form-builder::form.errors_heading'))
-        ->assertSeeHtml('href="#' . $emailFieldId . '"')
+        ->assertElementExists('a[href="#' . $emailFieldId . '"]')
         ->set('data.email', 'ben@example.com')
         ->set('data.terms', true)
         ->call('submit')
         ->assertSet('submitted', true)
-        ->assertSeeHtml('role="status"')
-        ->assertSeeHtml('x-init="$nextTick(() => $el.focus())"');
+        ->assertElementExists('[role="status"]')
+        ->assertElementExists('[x-init]', fn (AssertElement $element): BaseAssert => $element->has('x-init', '$nextTick(() => $el.focus())'));
 });
 
 it('renders a form element component from widget data for the current frontend site', function (): void {
@@ -268,7 +270,7 @@ it('renders a form element component from widget data for the current frontend s
     livewire(FormElementComponent::class, ['widgetData' => ['form_handle' => 'contact', 'instance_id' => 'contact-block']])
         ->assertSee('Contact')
         ->assertSee('Email')
-        ->assertSeeHtml('capell-form-contact-block-email');
+        ->assertElementExists('#capell-form-contact-block-email');
 
     $contribution = collect(resolve(RecordExtensionRenderContributionAction::class)->recorded())
         ->first(fn (mixed $record): bool => $record->contributionClass === FormElementComponent::class);
@@ -292,10 +294,10 @@ it('uses unique child form keys for repeated form elements', function (): void {
     bindFormBuilderFrontendSite($form->site);
 
     livewire(FormElementComponent::class, ['widgetData' => ['form_handle' => 'contact', 'instance_id' => 'first-contact-block']])
-        ->assertSeeHtml('capell-form-first-contact-block-email');
+        ->assertElementExists('#capell-form-first-contact-block-email');
 
     livewire(FormElementComponent::class, ['widgetData' => ['form_handle' => 'contact', 'instance_id' => 'second-contact-block']])
-        ->assertSeeHtml('capell-form-second-contact-block-email');
+        ->assertElementExists('#capell-form-second-contact-block-email');
 });
 
 it('stores submissions and sends notification mail when configured', function (): void {

@@ -142,7 +142,7 @@ final class SubmissionsTable
                     ->modalDescription(fn (Submission $record): string => __('capell-form-builder::message.reply_recipient', [
                         'email' => ResolveSubmissionReplyAddressAction::run($record) ?? __('capell-form-builder::message.reply_recipient_missing'),
                     ]))
-                    ->form([
+                    ->schema([
                         TextInput::make('subject')
                             ->label(__('capell-form-builder::table.reply_subject'))
                             ->required()

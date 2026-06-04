@@ -35,6 +35,11 @@
     "contributes": [
         {
             "type": "admin-resource",
+            "class": "Capell\\FormBuilder\\Manifest\\FormResourceContribution",
+            "resourceClass": "Capell\\FormBuilder\\Filament\\Resources\\Forms\\FormResource"
+        },
+        {
+            "type": "admin-resource",
             "class": "Capell\\FormBuilder\\Manifest\\SubmissionResourceContribution",
             "resourceClass": "Capell\\FormBuilder\\Filament\\Resources\\Submissions\\SubmissionResource"
         },
@@ -167,6 +172,16 @@
                 "path": "docs/screenshots/form-builder-admin-index-dark.png",
                 "alt": "Form Builder admin index listing form definitions in dark mode",
                 "caption": "Review form definitions and their status (dark mode)"
+            },
+            {
+                "path": "docs/screenshots/create-edit-form-schema-screen.png",
+                "alt": "Create and edit form screen with field schema controls",
+                "caption": "Build form definitions with schema fields and settings"
+            },
+            {
+                "path": "docs/screenshots/create-edit-form-schema-screen-dark.png",
+                "alt": "Create and edit form screen with field schema controls in dark mode",
+                "caption": "Build form definitions with schema fields and settings (dark mode)"
             },
             {
                 "path": "docs/screenshots/submissions-index.png",

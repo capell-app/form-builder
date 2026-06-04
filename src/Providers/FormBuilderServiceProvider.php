@@ -16,11 +16,13 @@ use Capell\Core\Support\Packages\AbstractPackageServiceProvider;
 use Capell\Core\Support\Renderables\RenderableRegistry;
 use Capell\FormBuilder\Enums\LivewireComponentEnum;
 use Capell\FormBuilder\Enums\ResourceEnum;
+use Capell\FormBuilder\Filament\Resources\Forms\FormResource;
 use Capell\FormBuilder\Filament\Resources\Submissions\SubmissionResource;
 use Capell\FormBuilder\Livewire\FormComponent;
 use Capell\FormBuilder\Livewire\FormElementComponent;
 use Capell\FormBuilder\Models\Form;
 use Capell\FormBuilder\Models\Submission;
+use Capell\FormBuilder\Policies\FormPolicy;
 use Capell\FormBuilder\Policies\SubmissionPolicy;
 use Composer\InstalledVersions;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -62,6 +64,7 @@ class FormBuilderServiceProvider extends AbstractPackageServiceProvider
 
     public function packageBooted(): void
     {
+        Gate::policy(Form::class, FormPolicy::class);
         Gate::policy(Submission::class, SubmissionPolicy::class);
 
         if (! $this->isPackageInstalled()) {
@@ -153,6 +156,15 @@ class FormBuilderServiceProvider extends AbstractPackageServiceProvider
 
     private function registerMarketingStudioActions(): self
     {
+        CapellAdmin::registerMarketingStudioAction(new MarketingStudioActionData(
+            key: 'form-builder.forms',
+            label: fn (): string => __('capell-form-builder::navigation.forms'),
+            url: fn (): string => FormResource::getUrl(),
+            section: MarketingStudioSectionEnum::Forms,
+            icon: 'heroicon-o-clipboard-document-list',
+            sort: 9,
+        ));
+
         CapellAdmin::registerMarketingStudioAction(new MarketingStudioActionData(
             key: 'form-builder.submissions',
             label: fn (): string => __('capell-form-builder::navigation.submissions'),

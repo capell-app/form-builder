@@ -17,6 +17,7 @@ use Capell\Frontend\Actions\Performance\RecordExtensionRenderContributionAction;
 use Capell\Frontend\Facades\Frontend;
 use Capell\Frontend\Support\CapellFrontendContext;
 use Capell\Frontend\Support\State\FrontendState;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Mail;
@@ -374,6 +375,106 @@ it('stores submissions and sends notification mail when configured', function ()
         ->toContain('Can you help with a Capell migration?')
         ->toContain('Newsletter')
         ->toContain(__('capell-form-builder::generic.boolean.yes'));
+});
+
+it('stores file upload metadata through the Livewire form path', function (): void {
+    $form = Form::factory()->create([
+        'name' => 'Upload form',
+        'handle' => 'upload-form',
+        'schema' => [
+            [
+                'key' => 'brief',
+                'label' => 'Brief',
+                'type' => FormFieldType::File->value,
+                'required' => true,
+                'accepted_file_types' => ['pdf'],
+                'max_file_size_kilobytes' => 128,
+            ],
+        ],
+    ]);
+    bindFormBuilderFrontendSite($form->site);
+
+    livewire(FormComponent::class, ['handle' => 'upload-form'])
+        ->set('data.brief', UploadedFile::fake()->create('brief.pdf', 12, 'application/pdf'))
+        ->call('submit')
+        ->assertHasNoErrors()
+        ->assertSet('submitted', true);
+
+    $payload = formComponentSubmissionPayload(Submission::query()->firstOrFail());
+
+    expect($payload->values['brief']['original_name'] ?? null)->toBe('brief.pdf')
+        ->and($payload->values['brief']['mime_type'] ?? null)->toBeString()
+        ->and($payload->values['brief']['size'] ?? null)->toBeInt();
+});
+
+it('stores payment field values through the Livewire form path', function (): void {
+    $form = Form::factory()->create([
+        'name' => 'Payment form',
+        'handle' => 'payment-form',
+        'schema' => [
+            [
+                'key' => 'amount_cents',
+                'label' => 'Amount',
+                'type' => FormFieldType::Payment->value,
+                'required' => true,
+                'payment_amount_cents' => 2500,
+                'payment_currency' => 'GBP',
+            ],
+        ],
+    ]);
+    bindFormBuilderFrontendSite($form->site);
+
+    livewire(FormComponent::class, ['handle' => 'payment-form'])
+        ->set('data.amount_cents', 2500)
+        ->call('submit')
+        ->assertHasNoErrors()
+        ->assertSet('submitted', true);
+
+    expect(formComponentSubmissionPayload(Submission::query()->firstOrFail())->values)->toBe([
+        'amount_cents' => 2500,
+    ]);
+});
+
+it('calculates and stores calculation fields through the Livewire form path', function (): void {
+    $form = Form::factory()->create([
+        'name' => 'Quote form',
+        'handle' => 'quote-form',
+        'schema' => [
+            [
+                'key' => 'quantity',
+                'label' => 'Quantity',
+                'type' => FormFieldType::Number->value,
+                'required' => true,
+            ],
+            [
+                'key' => 'unit_price',
+                'label' => 'Unit price',
+                'type' => FormFieldType::Number->value,
+                'required' => true,
+            ],
+            [
+                'key' => 'total',
+                'label' => 'Total',
+                'type' => FormFieldType::Calculation->value,
+                'required' => true,
+                'calculation_expression' => 'quantity * unit_price',
+            ],
+        ],
+    ]);
+    bindFormBuilderFrontendSite($form->site);
+
+    livewire(FormComponent::class, ['handle' => 'quote-form'])
+        ->set('data.quantity', 3)
+        ->set('data.unit_price', 120)
+        ->call('submit')
+        ->assertHasNoErrors()
+        ->assertSet('submitted', true);
+
+    expect(formComponentSubmissionPayload(Submission::query()->firstOrFail())->values)->toBe([
+        'quantity' => 3,
+        'unit_price' => 120,
+        'total' => 360,
+    ]);
 });
 
 it('dispatches submitted payloads when submissions are not stored', function (): void {

@@ -190,6 +190,40 @@ it('allows users with reply permission to reply to a submission', function (): v
     );
 });
 
+it('hides and denies reply for spam submissions', function (): void {
+    Permission::findOrCreate('ViewAny:Submission');
+    Permission::findOrCreate('Reply:Submission');
+    $form = Form::factory()->create([
+        'schema' => [
+            [
+                'key' => 'email',
+                'label' => 'Email',
+                'type' => 'email',
+                'required' => true,
+            ],
+        ],
+    ]);
+    $submission = Submission::factory()->for($form)->create([
+        'payload' => [
+            'values' => [
+                'email' => 'attacker@example.com',
+            ],
+        ],
+        'status' => SubmissionStatus::Spam,
+    ]);
+    $user = test()->createUserWithPermission(['ViewAny:Submission', 'Reply:Submission']);
+    assignFormBuilderSiteRole($user, (int) $form->site_id, ['ViewAny:Submission', 'Reply:Submission']);
+
+    test()->actingAs($user);
+
+    expect($user->can('reply', $submission))->toBeFalse();
+
+    livewire(ListSubmissions::class)
+        ->assertSuccessful()
+        ->assertCanSeeTableRecords([$submission])
+        ->assertActionHidden(TestAction::make('reply')->table($submission));
+});
+
 it('does not expose reply for email-like values outside email fields', function (): void {
     Permission::findOrCreate('ViewAny:Submission');
     Permission::findOrCreate('Reply:Submission');

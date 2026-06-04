@@ -3,9 +3,11 @@
 declare(strict_types=1);
 
 use Capell\FormBuilder\Actions\CreateSubmissionAction;
+use Capell\FormBuilder\Actions\SendSubmissionNotificationAction;
 use Capell\FormBuilder\Data\SubmissionMetaData;
 use Capell\FormBuilder\Enums\SubmissionStatus;
 use Capell\FormBuilder\Events\FormSubmitted;
+use Capell\FormBuilder\Mail\FormSubmissionNotificationMail;
 use Capell\FormBuilder\Models\Form;
 use Capell\FormBuilder\Models\Submission;
 use Illuminate\Support\Facades\Event;
@@ -153,6 +155,29 @@ it('stores valid submissions when notification queueing fails', function (): voi
 
     expect($submission->exists)->toBeTrue()
         ->and(Submission::query()->whereKey($submission->getKey())->exists())->toBeTrue();
+});
+
+it('does not send notifications for spam submissions when called directly', function (): void {
+    Mail::fake();
+
+    $form = Form::factory()->create([
+        'settings' => [
+            'store_submissions' => true,
+            'notification_email' => 'hello@capell.app',
+        ],
+        'schema' => [
+            ['key' => 'email', 'label' => 'Email', 'type' => 'email', 'required' => true, 'validation_rules' => ['email']],
+        ],
+    ]);
+
+    $submission = Submission::factory()->for($form)->create([
+        'payload' => ['values' => ['email' => 'attacker@example.com']],
+        'status' => SubmissionStatus::Spam,
+    ]);
+
+    SendSubmissionNotificationAction::run($submission);
+
+    Mail::assertNotQueued(FormSubmissionNotificationMail::class);
 });
 
 it('does not validate or store fields hidden by conditional logic', function (): void {

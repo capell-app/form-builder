@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Capell\FormBuilder\Policies;
 
 use Capell\Admin\Policies\Concerns\ResolvesShieldPermission;
+use Capell\FormBuilder\Enums\SubmissionStatus;
 use Capell\FormBuilder\Models\Submission;
 use Capell\FormBuilder\Support\SubmissionSiteAccess;
 use Illuminate\Foundation\Auth\User;
@@ -41,6 +42,10 @@ final class SubmissionPolicy
 
     public function reply(User $user, Submission $submission): bool
     {
+        if ($submission->status === SubmissionStatus::Spam) {
+            return false;
+        }
+
         return SubmissionSiteAccess::actorCanAccessSite(
             $user,
             $submission->site_id,

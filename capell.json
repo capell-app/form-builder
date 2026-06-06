@@ -13,14 +13,19 @@
         "bundle": "form-builder"
     },
     "namespace": "Capell\\FormBuilder",
-    "surfaces": ["admin", "frontend"],
+    "surfaces": [
+        "admin",
+        "frontend"
+    ],
     "dependencies": {
         "requires": [
             "capell-app/admin",
             "capell-app/core",
             "capell-app/frontend"
         ],
-        "supports": ["capell-app/payments"],
+        "supports": [
+            "capell-app/payments"
+        ],
         "conflicts": []
     },
     "providers": {
@@ -63,7 +68,10 @@
     "database": {
         "migrations": true,
         "settings": false,
-        "requiredTables": ["forms", "submissions"]
+        "requiredTables": [
+            "forms",
+            "submissions"
+        ]
     },
     "commands": {
         "install": null,
@@ -105,7 +113,9 @@
     "performance": {
         "frontendRenderBudgetMs": 20,
         "adminQueryBudget": 40,
-        "cacheTags": ["form-builder"],
+        "cacheTags": [
+            "form-builder"
+        ],
         "cacheSafety": {
             "cacheable": false,
             "variesBy": [],
@@ -162,49 +172,13 @@
                 "path": "docs/assets/marketplace/extension-card.jpg",
                 "alt": "Form Builder extension preview image",
                 "caption": "Form Builder extension preview"
-            },
-            {
-                "path": "docs/screenshots/form-builder-admin-index.png",
-                "alt": "Form Builder admin index listing form definitions",
-                "caption": "Review form definitions and their status"
-            },
-            {
-                "path": "docs/screenshots/form-builder-admin-index-dark.png",
-                "alt": "Form Builder admin index listing form definitions in dark mode",
-                "caption": "Review form definitions and their status (dark mode)"
-            },
-            {
-                "path": "docs/screenshots/create-edit-form-schema-screen.png",
-                "alt": "Create and edit form screen with field schema controls",
-                "caption": "Build form definitions with schema fields and settings"
-            },
-            {
-                "path": "docs/screenshots/create-edit-form-schema-screen-dark.png",
-                "alt": "Create and edit form screen with field schema controls in dark mode",
-                "caption": "Build form definitions with schema fields and settings (dark mode)"
-            },
-            {
-                "path": "docs/screenshots/submissions-index.png",
-                "alt": "Submissions inbox showing unread, spam, and archived entries",
-                "caption": "Triage unread, spam, and archived submissions"
-            },
-            {
-                "path": "docs/screenshots/submissions-index-dark.png",
-                "alt": "Submissions inbox showing unread, spam, and archived entries in dark mode",
-                "caption": "Triage unread, spam, and archived submissions (dark mode)"
-            },
-            {
-                "path": "docs/screenshots/submission-detail-view.png",
-                "alt": "Submission detail view with decrypted payload and reply context",
-                "caption": "Read a submission and reply by email"
-            },
-            {
-                "path": "docs/screenshots/submission-detail-view-dark.png",
-                "alt": "Submission detail view with decrypted payload and reply context in dark mode",
-                "caption": "Read a submission and reply by email (dark mode)"
             }
         ],
-        "categories": ["admin", "form-builder", "frontend"]
+        "categories": [
+            "admin",
+            "form-builder",
+            "frontend"
+        ]
     },
     "contributionTraceability": {
         "deferredContributions": []

@@ -11,7 +11,7 @@ Form Builder lets a Capell site define forms (name, handle, JSON field `schema`,
 - **Models / tables:** `Form` → table `forms`; `Submission` → table `submissions`. Both `belongsTo Site`. Submission `payload`/`meta` cast through `EncryptedDataCast`.
 - **Dependencies:** requires `capell-app/admin`, `capell-app/core`, `capell-app/frontend`; supports `capell-app/payments`; no conflicts.
 - **Marketplace summary (verbatim):** "FormBuilder adds form definitions, encrypted submissions, frontend Livewire rendering, conditional logic, multi-step forms, calculations, file upload rules, spam scoring, payment fields, and submission workflows to Capell."
-- **Screenshots:** manifest `marketplace.screenshots` declares the extension-card preview plus the 10 shipped runtime PNGs (5 light + 5 dark), including the create/edit schema screen.
+- **Screenshots:** manifest `marketplace.screenshots` currently declares only the extension-card preview. The prior runtime PNGs were demoted because they showed Form Mappings rather than Form Builder schema, submissions, submission detail, or frontend output.
 
 ## 2. Improvements (existing functionality)
 
@@ -57,7 +57,7 @@ Form Builder lets a Capell site define forms (name, handle, JSON field `schema`,
 - **Improved 1-sentence summary:** "Build site-scoped forms in Capell and capture spam-filtered, encrypted submissions into a per-site triage inbox with one-click email replies."
 - **Improved listing description (3–4 sentences):** "Form Builder gives each Capell site its own forms with conditional fields, calculated values, honeypot + heuristic spam scoring, and configurable file-upload rules. Every submission is encrypted at rest and lands in a site-scoped admin inbox where staff can read, archive, mark spam, and reply by email without leaving the panel. Frontend forms render through a cache-safe Livewire component with built-in throttling and accessible markup. Pairs with Email Studio and Public Actions to turn submissions into automated workflows." _(Keep payment/multi-step out of the headline until §3 lands; gate those claims behind shipped functionality.)_
 
-**Screenshot / media gaps.** The manifest now surfaces the 10 existing `docs/screenshots/` images (light+dark for admin index, create/edit schema, submissions index, submission detail, and frontend output) plus the extension card. Add a short GIF of the frontend submit→inbox→reply loop, since the triage workflow is the real value.
+**Screenshot / media gaps.** The manifest now surfaces only the extension card. Recapture real Form Builder admin index, schema builder, submissions index/detail, and frontend output screens, then add a short GIF of the frontend submit-to-inbox-to-reply loop, since the triage workflow is the real value.
 
 **Pricing / tier / bundle.** `premium` / `paid` / `first-party` is defensible for encrypted submissions + site-scoped RBAC now that a conventional form-builder UI exists. Keep it in its own `form-builder` bundle. Strong cross-sell: hard-wire the `supports: capell-app/payments` relationship into a real paid-form upsell, and lean on the declared "Best Used With" (Public Actions, Email Studio, Campaign Studio) as an Extension Suite — submissions-as-triggers is the natural bundle story.
 
@@ -70,7 +70,7 @@ Form Builder lets a Capell site define forms (name, handle, JSON field `schema`,
 | Item                                                                 | Bucket | Effort | Impact   | Section ref |
 | -------------------------------------------------------------------- | ------ | ------ | -------- | ----------- |
 | Build admin Form CRUD UI (FormResource + schema editor)              | Done   | L      | Critical | §3          |
-| Fix marketplace screenshots manifest (surface the 10 real images)    | Done   | S      | High     | §4/§5       |
+| Recapture real Form Builder screenshots before promoting marketplace media | Next   | S      | High     | §4/§5       |
 | Stop over-claiming summary/description; rewrite to shipped reality   | Done   | S      | High     | §5          |
 | Exclude spam submissions from reply/notification + add reply gating  | Done   | S      | High     | §2/§4       |
 | Add tests for file, payment, calculation field paths via Livewire    | Done   | M      | High     | §4          |

@@ -137,18 +137,7 @@ describe('form-builder capell.json manifest', function (): void {
             }
         }
 
-        expect($screenshotPaths)->toContain(
-            'docs/screenshots/form-builder-admin-index.png',
-            'docs/screenshots/form-builder-admin-index-dark.png',
-            'docs/screenshots/create-edit-form-schema-screen.png',
-            'docs/screenshots/create-edit-form-schema-screen-dark.png',
-            'docs/screenshots/submissions-index.png',
-            'docs/screenshots/submissions-index-dark.png',
-            'docs/screenshots/submission-detail-view.png',
-            'docs/screenshots/submission-detail-view-dark.png',
-            'docs/screenshots/frontend-form-output.png',
-            'docs/screenshots/frontend-form-output-dark.png',
-        );
+        expect($screenshotPaths)->toBe(['docs/assets/marketplace/extension-card.jpg']);
 
         foreach ($screenshotPaths as $path) {
             expect(File::exists(__DIR__ . '/../../' . $path))->toBeTrue();

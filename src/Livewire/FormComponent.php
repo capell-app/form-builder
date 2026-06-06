@@ -12,6 +12,7 @@ use Capell\FormBuilder\Actions\ResolveVisibleFormFieldsAction;
 use Capell\FormBuilder\Data\FormFieldData;
 use Capell\FormBuilder\Data\FormSettingsData;
 use Capell\FormBuilder\Data\SubmissionMetaData;
+use Capell\FormBuilder\Enums\FormFieldType;
 use Capell\FormBuilder\Events\FormSubmitted;
 use Capell\FormBuilder\Models\Form;
 use Capell\Frontend\Actions\Performance\RecordExtensionRenderContributionAction;
@@ -140,7 +141,7 @@ final class FormComponent extends Component
 
     private function rateLimitKey(Form $form): string
     {
-        $email = is_scalar($this->data['email'] ?? null) ? Str::lower((string) $this->data['email']) : '';
+        $email = $this->rateLimitEmailDimension();
 
         return 'capell-form-builder:submit:' . hash('sha256', implode('|', [
             (string) $form->getKey(),
@@ -148,6 +149,20 @@ final class FormComponent extends Component
             $email,
             (string) request()->ip(),
         ]));
+    }
+
+    private function rateLimitEmailDimension(): string
+    {
+        $emailField = $this->allFields()
+            ->first(static fn (FormFieldData $field): bool => $field->type === FormFieldType::Email);
+
+        if (! $emailField instanceof FormFieldData) {
+            return '';
+        }
+
+        $email = $this->data[$emailField->key] ?? null;
+
+        return is_scalar($email) ? Str::lower((string) $email) : '';
     }
 
     private function configuredThrottleValue(string $key, int $default): int

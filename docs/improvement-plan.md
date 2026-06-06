@@ -83,4 +83,4 @@ Form Builder lets a Capell site define forms (name, handle, JSON field `schema`,
 | CAPTCHA/Turnstile spam provider option                               | Later  | M      | Med      | §3          |
 | Normalise FormSubmitted event payload across stored/unstored paths   | Later  | M      | Med      | §2          |
 | Shipped 2026-06-06: Correct requiredTables (`forms`) + at-rest-encryption DB test | Done   | S      | Med      | §4 — `capell.json` now declares `forms`/`submissions`; existing model coverage asserts ciphertext at rest and structured readback. |
-| Derive throttle email dimension from Email field key, not `'email'`  | Later  | S      | Low      | §2          |
+| Shipped 2026-06-06: Derive throttle email dimension from Email field key, not `'email'` | Done   | S      | Low      | §2 — `FormComponent` now reads the schema's Email field key when building the rate-limit hash. |

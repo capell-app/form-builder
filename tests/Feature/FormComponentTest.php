@@ -758,7 +758,7 @@ it('silently swallows honeypot submissions when submissions are not stored', fun
     expect(Submission::query()->count())->toBe(0);
 });
 
-it('throttles repeated public form submissions for the same form email and ip address', function (): void {
+it('throttles repeated public form submissions for the configured email field key and ip address', function (): void {
     config()->set('capell-form-builder.throttle.max_attempts', 2);
     config()->set('capell-form-builder.throttle.decay_seconds', 60);
 
@@ -767,7 +767,7 @@ it('throttles repeated public form submissions for the same form email and ip ad
         'handle' => 'lead-form',
         'schema' => [
             [
-                'key' => 'email',
+                'key' => 'contact_email',
                 'label' => 'Email',
                 'type' => FormFieldType::Email->value,
                 'required' => true,
@@ -778,14 +778,14 @@ it('throttles repeated public form submissions for the same form email and ip ad
 
     foreach (range(1, 2) as $attempt) {
         livewire(FormComponent::class, ['handle' => 'lead-form'])
-            ->set('data.email', 'ben@example.com')
+            ->set('data.contact_email', 'ben@example.com')
             ->call('submit')
             ->assertHasNoErrors()
             ->assertSet('submitted', true);
     }
 
     livewire(FormComponent::class, ['handle' => 'lead-form'])
-        ->set('data.email', 'ben@example.com')
+        ->set('data.contact_email', 'ben@example.com')
         ->call('submit')
         ->assertHasErrors(['data'])
         ->assertSee(__('capell-form-builder::message.too_many_submissions'));

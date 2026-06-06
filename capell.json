@@ -202,16 +202,6 @@
                 "path": "docs/screenshots/submission-detail-view-dark.png",
                 "alt": "Submission detail view with decrypted payload and reply context in dark mode",
                 "caption": "Read a submission and reply by email (dark mode)"
-            },
-            {
-                "path": "docs/screenshots/frontend-form-output.png",
-                "alt": "Public form rendered through the frontend Livewire component",
-                "caption": "Cache-safe frontend form rendering"
-            },
-            {
-                "path": "docs/screenshots/frontend-form-output-dark.png",
-                "alt": "Public form rendered through the frontend Livewire component in dark mode",
-                "caption": "Cache-safe frontend form rendering (dark mode)"
             }
         ],
         "categories": ["admin", "form-builder", "frontend"]

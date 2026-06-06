@@ -63,7 +63,7 @@
     "database": {
         "migrations": true,
         "settings": false,
-        "requiredTables": ["form-builder", "submissions"]
+        "requiredTables": ["forms", "submissions"]
     },
     "commands": {
         "install": null,

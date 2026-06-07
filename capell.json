@@ -6,21 +6,26 @@
     "kind": "package",
     "capellApiVersion": "^4.0",
     "version": "4.x-dev",
-    "description": "FormBuilder adds form definitions, encrypted submissions, frontend Livewire rendering, conditional logic, multi-step forms, calculations, file upload rules, spam scoring, payment fields, and submission workflows to Capell.",
+    "description": "Build site-scoped forms in Capell and capture spam-filtered, encrypted submissions into a per-site triage inbox with one-click email replies.",
     "product": {
         "group": "Capell FormBuilder",
         "tier": "premium",
         "bundle": "form-builder"
     },
     "namespace": "Capell\\FormBuilder",
-    "surfaces": ["admin", "frontend"],
+    "surfaces": [
+        "admin",
+        "frontend"
+    ],
     "dependencies": {
         "requires": [
             "capell-app/admin",
             "capell-app/core",
             "capell-app/frontend"
         ],
-        "supports": ["capell-app/payments"],
+        "supports": [
+            "capell-app/payments"
+        ],
         "conflicts": []
     },
     "providers": {
@@ -33,6 +38,11 @@
         "frontend": []
     },
     "contributes": [
+        {
+            "type": "admin-resource",
+            "class": "Capell\\FormBuilder\\Manifest\\FormResourceContribution",
+            "resourceClass": "Capell\\FormBuilder\\Filament\\Resources\\Forms\\FormResource"
+        },
         {
             "type": "admin-resource",
             "class": "Capell\\FormBuilder\\Manifest\\SubmissionResourceContribution",
@@ -58,7 +68,10 @@
     "database": {
         "migrations": true,
         "settings": false,
-        "requiredTables": ["form-builder", "submissions"]
+        "requiredTables": [
+            "forms",
+            "submissions"
+        ]
     },
     "commands": {
         "install": null,
@@ -100,7 +113,9 @@
     "performance": {
         "frontendRenderBudgetMs": 20,
         "adminQueryBudget": 40,
-        "cacheTags": ["form-builder"],
+        "cacheTags": [
+            "form-builder"
+        ],
         "cacheSafety": {
             "cacheable": false,
             "variesBy": [],
@@ -150,7 +165,8 @@
         "privateDocsRequested": true
     },
     "marketplace": {
-        "summary": "FormBuilder adds form definitions, encrypted submissions, frontend Livewire rendering, conditional logic, multi-step forms, calculations, file upload rules, spam scoring, payment fields, and submission workflows to Capell.",
+        "summary": "Build site-scoped forms in Capell and capture spam-filtered, encrypted submissions into a per-site triage inbox with one-click email replies.",
+        "description": "Form Builder gives each Capell site its own forms with conditional fields, calculated values, honeypot + heuristic spam scoring, and configurable file-upload rules. Every submission is encrypted at rest and lands in a site-scoped admin inbox where staff can read, archive, mark spam, and reply by email without leaving the panel. Frontend forms render through a cache-safe Livewire component with built-in throttling and accessible markup. Pairs with Email Studio and Public Actions to turn submissions into automated workflows.",
         "screenshots": [
             {
                 "path": "docs/assets/marketplace/extension-card.jpg",
@@ -158,7 +174,11 @@
                 "caption": "Form Builder extension preview"
             }
         ],
-        "categories": ["admin", "form-builder", "frontend"]
+        "categories": [
+            "admin",
+            "form-builder",
+            "frontend"
+        ]
     },
     "contributionTraceability": {
         "deferredContributions": []

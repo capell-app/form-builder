@@ -6,6 +6,7 @@ namespace Capell\FormBuilder\Actions;
 
 use Capell\FormBuilder\Data\FormFieldData;
 use Capell\FormBuilder\Enums\FormFieldType;
+use Capell\FormBuilder\Enums\SubmissionStatus;
 use Capell\FormBuilder\Models\Submission;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -15,6 +16,10 @@ class ResolveSubmissionReplyAddressAction
 
     public function handle(Submission $submission): ?string
     {
+        if ($submission->status === SubmissionStatus::Spam) {
+            return null;
+        }
+
         $submission->loadMissing('form');
 
         $values = $submission->payload->values ?? [];

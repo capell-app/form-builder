@@ -11,10 +11,12 @@ use Capell\FormBuilder\Actions\CalculateSubmissionSpamScoreAction;
 use Capell\FormBuilder\Actions\CreateSubmissionAction;
 use Capell\FormBuilder\Actions\EvaluateFormFieldVisibilityAction;
 use Capell\FormBuilder\Actions\ResolveVisibleFormFieldsAction;
+use Capell\FormBuilder\Filament\Resources\Forms\FormResource;
 use Capell\FormBuilder\Filament\Resources\Submissions\SubmissionResource;
 use Capell\FormBuilder\Livewire\FormElementComponent;
 use Capell\FormBuilder\Manifest\FormElementComponentContribution;
 use Capell\FormBuilder\Manifest\FormModelContribution;
+use Capell\FormBuilder\Manifest\FormResourceContribution;
 use Capell\FormBuilder\Manifest\SubmissionModelContribution;
 use Capell\FormBuilder\Manifest\SubmissionResourceContribution;
 use Capell\FormBuilder\Models\Form;
@@ -81,9 +83,14 @@ describe('form-builder capell.json manifest', function (): void {
 
         expect($manifest['contributes'])->toContain([
             'type' => 'admin-resource',
-            'class' => SubmissionResourceContribution::class,
-            'resourceClass' => SubmissionResource::class,
+            'class' => FormResourceContribution::class,
+            'resourceClass' => FormResource::class,
         ])
+            ->and($manifest['contributes'])->toContain([
+                'type' => 'admin-resource',
+                'class' => SubmissionResourceContribution::class,
+                'resourceClass' => SubmissionResource::class,
+            ])
             ->and($manifest['contributes'])->toContain([
                 'type' => 'frontend-component',
                 'class' => FormElementComponentContribution::class,
@@ -100,8 +107,40 @@ describe('form-builder capell.json manifest', function (): void {
                 'class' => SubmissionModelContribution::class,
                 'modelClass' => Submission::class,
             ])
+            ->and(class_implements(FormResourceContribution::class))->toContain(RegistersExtensionAdminResource::class)
             ->and(class_implements(SubmissionResourceContribution::class))->toContain(RegistersExtensionAdminResource::class)
             ->and(class_implements(FormElementComponentContribution::class))->toContain(RegistersExtensionFrontendComponent::class)
             ->and($manifest['contributionTraceability']['deferredContributions'])->not->toContain('admin-resource', 'model');
+    });
+
+    it('declares the shipped marketplace screenshot set', function (): void {
+        $manifest = json_decode(
+            File::get(__DIR__ . '/../../capell.json'),
+            associative: true,
+            flags: JSON_THROW_ON_ERROR,
+        );
+
+        $screenshots = $manifest['marketplace']['screenshots'] ?? [];
+        $screenshotPaths = [];
+
+        if (is_array($screenshots)) {
+            foreach ($screenshots as $screenshot) {
+                if (! is_array($screenshot)) {
+                    continue;
+                }
+
+                $path = $screenshot['path'] ?? null;
+
+                if (is_string($path)) {
+                    $screenshotPaths[] = $path;
+                }
+            }
+        }
+
+        expect($screenshotPaths)->toBe(['docs/assets/marketplace/extension-card.jpg']);
+
+        foreach ($screenshotPaths as $path) {
+            expect(File::exists(__DIR__ . '/../../' . $path))->toBeTrue();
+        }
     });
 });

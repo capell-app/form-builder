@@ -51,7 +51,7 @@ Lets editors collect responses from structured websites while keeping submission
 
 ## Screenshots
 
-![Form mappings admin index](screenshots/form-builder-admin-index.png)
+The existing screenshot captures are retained as runner evidence only. They currently show Form Mappings rather than Form Builder schema, submissions, detail, or frontend output, so marketplace media keeps only the extension card until recapture.
 
 ![Create form mapping screen](screenshots/create-edit-form-schema-screen.png)
 

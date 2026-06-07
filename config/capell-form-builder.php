@@ -16,4 +16,11 @@ return [
         'max_links' => 5,
         'blocked_keywords' => [],
     ],
+    'uploads' => [
+        'disk' => env('CAPELL_FORM_BUILDER_UPLOAD_DISK', 'local'),
+        'directory' => env('CAPELL_FORM_BUILDER_UPLOAD_DIRECTORY', 'form-builder/submissions'),
+    ],
+    'webhooks' => [
+        'timeout_seconds' => env('CAPELL_FORM_BUILDER_WEBHOOK_TIMEOUT_SECONDS', 10),
+    ],
 ];

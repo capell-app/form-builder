@@ -67,6 +67,15 @@ final class BuildSubmissionPayloadEntriesAction
             return $value ? __('capell-form-builder::generic.boolean.yes') : __('capell-form-builder::generic.boolean.no');
         }
 
+        if ($this->isStoredFileReference($value)) {
+            return (string) __('capell-form-builder::table.file_reference', [
+                'name' => (string) $value['original_name'],
+                'disk' => (string) $value['disk'],
+                'path' => (string) $value['path'],
+                'size' => number_format((int) $value['size']),
+            ]);
+        }
+
         if (is_array($value)) {
             return collect($value)
                 ->map(fn (mixed $item): string => $this->formatValue($item))
@@ -78,5 +87,14 @@ final class BuildSubmissionPayloadEntriesAction
         }
 
         return (string) $value;
+    }
+
+    private function isStoredFileReference(mixed $value): bool
+    {
+        return is_array($value)
+            && is_string($value['original_name'] ?? null)
+            && is_string($value['disk'] ?? null)
+            && is_string($value['path'] ?? null)
+            && is_numeric($value['size'] ?? null);
     }
 }

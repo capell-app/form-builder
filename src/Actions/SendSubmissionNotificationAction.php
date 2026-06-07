@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Capell\FormBuilder\Actions;
 
+use Capell\FormBuilder\Enums\SubmissionStatus;
 use Capell\FormBuilder\Mail\FormSubmissionNotificationMail;
 use Capell\FormBuilder\Models\Submission;
 use Illuminate\Support\Facades\Log;
@@ -17,6 +18,10 @@ class SendSubmissionNotificationAction
 
     public function handle(Submission $submission): void
     {
+        if ($submission->status === SubmissionStatus::Spam) {
+            return;
+        }
+
         $submission->loadMissing('form');
 
         $notificationEmail = $submission->form?->settings?->notificationEmail;

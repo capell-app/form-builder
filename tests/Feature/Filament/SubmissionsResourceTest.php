@@ -9,10 +9,12 @@ use Capell\FormBuilder\Filament\Resources\Submissions\SubmissionResource;
 use Capell\FormBuilder\Mail\SubmissionReplyMail;
 use Capell\FormBuilder\Models\Form;
 use Capell\FormBuilder\Models\Submission;
+use Capell\FormBuilder\Support\SubmissionSiteAccess;
 use Capell\Tests\Fixtures\Models\User;
 use Capell\Tests\Support\Concerns\CreatesAdminUser;
 use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 
@@ -25,6 +27,7 @@ uses(CreatesAdminUser::class);
 
 beforeEach(function (): void {
     Filament::setCurrentPanel(Filament::getPanel('admin'));
+    SubmissionSiteAccess::flushMemoizedPermissions();
 });
 
 it('can reply to a submission from the Filament table', function (): void {
@@ -188,6 +191,40 @@ it('allows users with reply permission to reply to a submission', function (): v
         SubmissionReplyMail::class,
         fn (SubmissionReplyMail $mail): bool => $mail->hasTo('customer@example.com'),
     );
+});
+
+it('hides and denies reply for spam submissions', function (): void {
+    Permission::findOrCreate('ViewAny:Submission');
+    Permission::findOrCreate('Reply:Submission');
+    $form = Form::factory()->create([
+        'schema' => [
+            [
+                'key' => 'email',
+                'label' => 'Email',
+                'type' => 'email',
+                'required' => true,
+            ],
+        ],
+    ]);
+    $submission = Submission::factory()->for($form)->create([
+        'payload' => [
+            'values' => [
+                'email' => 'attacker@example.com',
+            ],
+        ],
+        'status' => SubmissionStatus::Spam,
+    ]);
+    $user = test()->createUserWithPermission(['ViewAny:Submission', 'Reply:Submission']);
+    assignFormBuilderSiteRole($user, (int) $form->site_id, ['ViewAny:Submission', 'Reply:Submission']);
+
+    test()->actingAs($user);
+
+    expect($user->can('reply', $submission))->toBeFalse();
+
+    livewire(ListSubmissions::class)
+        ->assertSuccessful()
+        ->assertCanSeeTableRecords([$submission])
+        ->assertActionHidden(TestAction::make('reply')->table($submission));
 });
 
 it('does not expose reply for email-like values outside email fields', function (): void {
@@ -428,6 +465,28 @@ it('allows direct site-scoped submission permissions without a role assignment',
         ->assertDontSee($otherForm->name)
         ->assertCanSeeTableRecords([$submission])
         ->assertCanNotSeeTableRecords([$otherSubmission]);
+});
+
+it('memoizes site-scoped permission lookups per actor and ability set', function (): void {
+    Permission::findOrCreate('ViewAny:Submission');
+
+    $form = Form::factory()->create();
+    $user = test()->createUser();
+    assignFormBuilderSitePermission($user, (int) $form->site_id, 'ViewAny:Submission');
+    $permissionQueries = 0;
+
+    DB::listen(function (QueryExecuted $query) use (&$permissionQueries): void {
+        if (str_contains($query->sql, 'model_has_permissions')
+            || str_contains($query->sql, 'model_has_roles')) {
+            $permissionQueries++;
+        }
+    });
+
+    expect(SubmissionSiteAccess::actorCanAccessAnySite($user))->toBeTrue();
+    $queriesAfterFirstLookup = $permissionQueries;
+
+    expect(SubmissionSiteAccess::actorCanAccessAnySite($user))->toBeTrue()
+        ->and($permissionQueries)->toBe($queriesAfterFirstLookup);
 });
 
 /**

@@ -12,6 +12,7 @@ use Capell\FormBuilder\Events\FormSubmitted;
 use Capell\FormBuilder\Models\Form;
 use Capell\FormBuilder\Models\Submission;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -49,6 +50,8 @@ class CreateSubmissionAction
 
         event(new FormSubmitted($form, $submission));
         SendSubmissionNotificationAction::run($submission);
+        SendSubmissionAutoresponderAction::run($submission);
+        DispatchSubmissionWebhookAction::run($submission);
 
         return $submission;
     }
@@ -131,10 +134,34 @@ class CreateSubmissionAction
             return $value;
         }
 
+        $disk = $this->uploadDisk();
+        $path = $value->store($this->uploadDirectory(), ['disk' => $disk]);
+        $storage = Storage::disk($disk);
+
         return [
             'original_name' => $value->getClientOriginalName(),
-            'mime_type' => $value->getClientMimeType(),
-            'size' => $value->getSize(),
+            'mime_type' => $storage->mimeType($path) ?: $value->getMimeType(),
+            'size' => $storage->size($path),
+            'disk' => $disk,
+            'path' => $path,
         ];
+    }
+
+    private function uploadDisk(): string
+    {
+        $disk = config('capell-form-builder.uploads.disk', 'local');
+
+        return is_string($disk) && trim($disk) !== '' ? $disk : 'local';
+    }
+
+    private function uploadDirectory(): string
+    {
+        $directory = config('capell-form-builder.uploads.directory', 'form-builder/submissions');
+
+        if (! is_string($directory) || trim($directory) === '') {
+            return 'form-builder/submissions';
+        }
+
+        return trim($directory, '/');
     }
 }

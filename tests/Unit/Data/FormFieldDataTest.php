@@ -50,6 +50,9 @@ it('provides simple default form settings', function (): void {
     expect($settings->successMessage)->toBeNull()
         ->and($settings->storeSubmissions)->toBeTrue()
         ->and($settings->notificationEmail)->toBeNull()
+        ->and($settings->autoresponderSubject)->toBeNull()
+        ->and($settings->autoresponderBody)->toBeNull()
+        ->and($settings->successRedirectUrl)->toBeNull()
         ->and($settings->collectIpAddress)->toBeTrue()
         ->and($settings->collectUserAgent)->toBeTrue();
 });

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 return [
     'archive' => 'Archive',
+    'file_reference' => ':name (:disk/:path, :size bytes)',
     'form' => 'Form',
     'mark_read' => 'Mark read',
     'mark_spam' => 'Mark spam',

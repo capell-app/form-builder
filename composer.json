@@ -1,6 +1,6 @@
 {
     "name": "capell-app/form-builder",
-    "description": "FormBuilder package for Capell CMS",
+    "description": "Build site-scoped forms in Capell and capture spam-filtered, encrypted submissions into a per-site triage inbox with one-click email replies.",
     "keywords": [
         "capell",
         "form-builder",

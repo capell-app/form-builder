@@ -15,6 +15,10 @@ class FormSettingsData extends Data
         public ?string $successMessage = null,
         public bool $storeSubmissions = true,
         public ?string $notificationEmail = null,
+        public ?string $autoresponderSubject = null,
+        public ?string $autoresponderBody = null,
+        public ?string $successRedirectUrl = null,
+        public ?string $webhookUrl = null,
         public bool $collectIpAddress = true,
         public bool $collectUserAgent = true,
     ) {}

@@ -15,7 +15,8 @@
             "required": true,
             "notes": "Capture after installing capell-app/form-builder in the isolated demo harness and seeding the data required for this use case.",
             "useCase": "An administrator reviews form definitions and their publication/status state.",
-            "screenshotPath": "packages/form-builder/docs/screenshots/form-builder-admin-index.png"
+            "screenshotPath": "packages/form-builder/docs/screenshots/form-builder-admin-index.png",
+            "darkScreenshotPath": "packages/form-builder/docs/screenshots/form-builder-admin-index-dark.png"
         },
         {
             "id": "create-edit-form-schema-screen",
@@ -27,7 +28,8 @@
             "required": true,
             "notes": "Capture after installing capell-app/form-builder in the isolated demo harness and seeding the data required for this use case.",
             "useCase": "An editor builds or adjusts a form schema, field types, validation, and notification settings.",
-            "screenshotPath": "packages/form-builder/docs/screenshots/create-edit-form-schema-screen.png"
+            "screenshotPath": "packages/form-builder/docs/screenshots/create-edit-form-schema-screen.png",
+            "darkScreenshotPath": "packages/form-builder/docs/screenshots/create-edit-form-schema-screen-dark.png"
         },
         {
             "id": "submissions-index",
@@ -39,7 +41,8 @@
             "required": true,
             "notes": "Capture after installing capell-app/form-builder in the isolated demo harness and seeding the data required for this use case.",
             "useCase": "An administrator triages unread, spam, archived, and normal submissions.",
-            "screenshotPath": "packages/form-builder/docs/screenshots/submissions-index.png"
+            "screenshotPath": "packages/form-builder/docs/screenshots/submissions-index.png",
+            "darkScreenshotPath": "packages/form-builder/docs/screenshots/submissions-index-dark.png"
         },
         {
             "id": "frontend-form-output",
@@ -51,7 +54,8 @@
             "required": true,
             "notes": "Capture after installing capell-app/form-builder in the isolated demo harness and seeding the data required for this use case.",
             "useCase": "A visitor completes a seeded public form rendered through the frontend component.",
-            "screenshotPath": "packages/form-builder/docs/screenshots/frontend-form-output.png"
+            "screenshotPath": "packages/form-builder/docs/screenshots/frontend-form-output.png",
+            "darkScreenshotPath": "packages/form-builder/docs/screenshots/frontend-form-output-dark.png"
         },
         {
             "id": "submission-detail-view",
@@ -63,7 +67,8 @@
             "required": true,
             "notes": "Capture after installing capell-app/form-builder in the isolated demo harness and seeding the data required for this use case.",
             "useCase": "An administrator reads a submission payload and reply context without exposing encrypted raw storage.",
-            "screenshotPath": "packages/form-builder/docs/screenshots/submission-detail-view.png"
+            "screenshotPath": "packages/form-builder/docs/screenshots/submission-detail-view.png",
+            "darkScreenshotPath": "packages/form-builder/docs/screenshots/submission-detail-view-dark.png"
         }
     ]
 }

@@ -35,6 +35,32 @@
                     </p>
                 @endif
 
+                @if ($steps->count() > 1 && $currentStep)
+                    <div class="capell-form__steps space-y-2">
+                        <p
+                            class="capell-form__step-count text-xs font-semibold tracking-wide text-gray-500 uppercase"
+                        >
+                            {{ __('capell-form-builder::form.step_progress', ['current' => $currentStepIndex + 1, 'total' => $steps->count()]) }}
+                        </p>
+
+                        <ol
+                            class="capell-form__step-list flex flex-wrap gap-2"
+                            aria-label="{{ __('capell-form-builder::form.steps_label') }}"
+                        >
+                            @foreach ($steps as $stepIndex => $step)
+                                <li>
+                                    <span
+                                        class="capell-form__step {{ $step->key === $currentStep->key ? 'border-gray-950 bg-gray-950 text-white' : 'border-gray-200 bg-white text-gray-600' }} inline-flex min-h-8 items-center rounded-md border px-3 py-1 text-xs font-medium"
+                                        @if ($step->key === $currentStep->key) aria-current="step" @endif
+                                    >
+                                        {{ $step->label }}
+                                    </span>
+                                </li>
+                            @endforeach
+                        </ol>
+                    </div>
+                @endif
+
                 @if ($errors->any())
                     <div
                         class="capell-form__error-summary rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-900"
@@ -211,25 +237,53 @@
                     @endif
                 @endforeach
 
-                <button
-                    type="submit"
-                    class="capell-form__submit inline-flex min-h-10 items-center justify-center rounded-md bg-gray-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900 disabled:cursor-not-allowed disabled:opacity-60"
-                    wire:loading.attr="disabled"
-                    wire:target="submit"
+                <div
+                    class="capell-form__actions flex flex-wrap items-center gap-3"
                 >
-                    <span
-                        wire:loading.remove
-                        wire:target="submit"
-                    >
-                        {{ __('capell-form-builder::form.submit') }}
-                    </span>
-                    <span
-                        wire:loading
-                        wire:target="submit"
-                    >
-                        {{ __('capell-form-builder::form.submitting') }}
-                    </span>
-                </button>
+                    @if ($steps->count() > 1 && $currentStepIndex > 0)
+                        <button
+                            type="button"
+                            class="capell-form__previous inline-flex min-h-10 items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-900 transition hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900 disabled:cursor-not-allowed disabled:opacity-60"
+                            wire:click="previousStep"
+                            wire:loading.attr="disabled"
+                            wire:target="previousStep,nextStep,submit"
+                        >
+                            {{ __('capell-form-builder::form.previous_step') }}
+                        </button>
+                    @endif
+
+                    @if ($steps->count() > 1 && $currentStepIndex < $steps->count() - 1)
+                        <button
+                            type="button"
+                            class="capell-form__next inline-flex min-h-10 items-center justify-center rounded-md bg-gray-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900 disabled:cursor-not-allowed disabled:opacity-60"
+                            wire:click="nextStep"
+                            wire:loading.attr="disabled"
+                            wire:target="previousStep,nextStep,submit"
+                        >
+                            {{ __('capell-form-builder::form.next_step') }}
+                        </button>
+                    @else
+                        <button
+                            type="submit"
+                            class="capell-form__submit inline-flex min-h-10 items-center justify-center rounded-md bg-gray-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900 disabled:cursor-not-allowed disabled:opacity-60"
+                            wire:loading.attr="disabled"
+                            wire:target="previousStep,nextStep,submit"
+                        >
+                            <span
+                                wire:loading.remove
+                                wire:target="submit"
+                            >
+                                {{ __('capell-form-builder::form.submit') }}
+                            </span>
+                            <span
+                                wire:loading
+                                wire:target="submit"
+                            >
+                                {{ __('capell-form-builder::form.submitting') }}
+                            </span>
+                        </button>
+                    @endif
+                </div>
             </form>
         @endif
     @endif

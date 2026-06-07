@@ -27,6 +27,13 @@ final class SubmissionSiteAccess
 
     private const string SUBJECT = 'Submission';
 
+    private const string PERMITTED_SITE_IDS_CACHE_KEY = 'capell.form-builder.submission-site-access.permitted-site-ids';
+
+    public static function flushMemoizedPermissions(): void
+    {
+        request()->attributes->remove(self::PERMITTED_SITE_IDS_CACHE_KEY);
+    }
+
     /**
      * @param  list<string>  $abilities
      * @param  Builder<Model>  $query
@@ -126,10 +133,49 @@ final class SubmissionSiteAccess
             return collect();
         }
 
-        return self::rolePermissionSiteIds($actor, $permissionNames)
+        $cacheKey = self::permittedSiteIdsCacheKey($actor, $permissionNames);
+        $cache = self::permittedSiteIdsCache();
+
+        if (isset($cache[$cacheKey])) {
+            return $cache[$cacheKey]->values();
+        }
+
+        $siteIds = self::rolePermissionSiteIds($actor, $permissionNames)
             ->merge(self::directPermissionSiteIds($actor, $permissionNames))
             ->unique()
             ->values();
+
+        $cache[$cacheKey] = $siteIds;
+        request()->attributes->set(self::PERMITTED_SITE_IDS_CACHE_KEY, $cache);
+
+        return $siteIds->values();
+    }
+
+    /**
+     * @return array<string, Collection<int, positive-int>>
+     */
+    private static function permittedSiteIdsCache(): array
+    {
+        $cache = request()->attributes->get(self::PERMITTED_SITE_IDS_CACHE_KEY, []);
+
+        return is_array($cache) ? $cache : [];
+    }
+
+    /**
+     * @param  Collection<int, string>  $permissionNames
+     */
+    private static function permittedSiteIdsCacheKey(Authenticatable $actor, Collection $permissionNames): string
+    {
+        $tables = self::permissionTableNames();
+        ksort($tables);
+
+        return implode('|', [
+            self::modelType($actor),
+            (string) self::modelId($actor),
+            self::teamColumn(),
+            implode(',', $permissionNames->sort()->values()->all()),
+            md5(json_encode($tables, JSON_THROW_ON_ERROR)),
+        ]);
     }
 
     /**

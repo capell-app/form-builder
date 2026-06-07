@@ -4,6 +4,8 @@ All notable changes to `capell-app/form-builder` will be documented in this file
 
 ## Unreleased
 
+- Memoized site-scoped submission permission lookups per actor and ability set to reduce repeated admin list/table/filter queries.
+
 ## 2026-06-03
 
 ### Added

@@ -9,10 +9,12 @@ use Capell\FormBuilder\Filament\Resources\Submissions\SubmissionResource;
 use Capell\FormBuilder\Mail\SubmissionReplyMail;
 use Capell\FormBuilder\Models\Form;
 use Capell\FormBuilder\Models\Submission;
+use Capell\FormBuilder\Support\SubmissionSiteAccess;
 use Capell\Tests\Fixtures\Models\User;
 use Capell\Tests\Support\Concerns\CreatesAdminUser;
 use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 
@@ -25,6 +27,7 @@ uses(CreatesAdminUser::class);
 
 beforeEach(function (): void {
     Filament::setCurrentPanel(Filament::getPanel('admin'));
+    SubmissionSiteAccess::flushMemoizedPermissions();
 });
 
 it('can reply to a submission from the Filament table', function (): void {
@@ -462,6 +465,28 @@ it('allows direct site-scoped submission permissions without a role assignment',
         ->assertDontSee($otherForm->name)
         ->assertCanSeeTableRecords([$submission])
         ->assertCanNotSeeTableRecords([$otherSubmission]);
+});
+
+it('memoizes site-scoped permission lookups per actor and ability set', function (): void {
+    Permission::findOrCreate('ViewAny:Submission');
+
+    $form = Form::factory()->create();
+    $user = test()->createUser();
+    assignFormBuilderSitePermission($user, (int) $form->site_id, 'ViewAny:Submission');
+    $permissionQueries = 0;
+
+    DB::listen(function (QueryExecuted $query) use (&$permissionQueries): void {
+        if (str_contains($query->sql, 'model_has_permissions')
+            || str_contains($query->sql, 'model_has_roles')) {
+            $permissionQueries++;
+        }
+    });
+
+    expect(SubmissionSiteAccess::actorCanAccessAnySite($user))->toBeTrue();
+    $queriesAfterFirstLookup = $permissionQueries;
+
+    expect(SubmissionSiteAccess::actorCanAccessAnySite($user))->toBeTrue()
+        ->and($permissionQueries)->toBe($queriesAfterFirstLookup);
 });
 
 /**

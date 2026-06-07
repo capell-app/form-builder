@@ -14,6 +14,7 @@ use Capell\Core\Data\VendorAssetData;
 use Capell\Core\Facades\CapellCore;
 use Capell\Core\Support\Packages\AbstractPackageServiceProvider;
 use Capell\Core\Support\Renderables\RenderableRegistry;
+use Capell\FormBuilder\Console\Commands\ExportSubmissionsCommand;
 use Capell\FormBuilder\Enums\LivewireComponentEnum;
 use Capell\FormBuilder\Enums\ResourceEnum;
 use Capell\FormBuilder\Filament\Resources\Forms\FormResource;
@@ -45,6 +46,7 @@ class FormBuilderServiceProvider extends AbstractPackageServiceProvider
             ->hasConfigFile()
             ->hasViews(self::$name)
             ->hasTranslations()
+            ->hasCommand(ExportSubmissionsCommand::class)
             ->hasMigrations([
                 '2026_05_10_190849_01_create_form-builder_table',
                 '2026_05_10_190849_02_create_submissions_table',

@@ -39,6 +39,7 @@ return [
             'updated_at' => 'Updated',
             'validation_rules' => 'Validation rules',
             'visibility_conditions' => 'Visibility conditions',
+            'webhook_url' => 'Submission webhook URL',
         ],
         'placeholders' => [
             'accepted_file_types' => 'pdf, docx',

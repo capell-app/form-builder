@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 return [
     'form_submitted' => 'Form submitted.',
+    'export_form_not_found' => 'The selected form could not be found.',
+    'export_written' => 'Form submissions CSV written to :path.',
     'notification_footer' => 'Open the submission in Capell to review or reply.',
     'notification_heading' => 'New form submission',
     'notification_intro' => 'A new submission was received for :form.',

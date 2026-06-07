@@ -4,6 +4,7 @@ All notable changes to `capell-app/form-builder` will be documented in this file
 
 ## Unreleased
 
+- Added submission CSV export via `capell:form-builder:export-submissions` and per-form outbound webhook dispatch for successful stored submissions.
 - Persisted uploaded form files to a configured disk and stored server-verified disk/path references in encrypted submission payloads.
 - Added form success redirect settings and queued submitter autoresponder emails for successful stored submissions.
 - Added frontend multi-step form rendering with step progress, previous/continue controls, and per-step validation before final submission.

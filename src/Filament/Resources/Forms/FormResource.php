@@ -102,6 +102,10 @@ final class FormResource extends Resource
                         TextInput::make('settings.success_redirect_url')
                             ->label(__('capell-form-builder::form.admin.fields.success_redirect_url'))
                             ->maxLength(2048),
+                        TextInput::make('settings.webhook_url')
+                            ->label(__('capell-form-builder::form.admin.fields.webhook_url'))
+                            ->url()
+                            ->maxLength(2048),
                         Toggle::make('settings.collect_ip_address')
                             ->label(__('capell-form-builder::form.admin.fields.collect_ip_address'))
                             ->default(true),

@@ -92,6 +92,16 @@ final class FormResource extends Resource
                             ->label(__('capell-form-builder::form.admin.fields.notification_email'))
                             ->email()
                             ->maxLength(255),
+                        TextInput::make('settings.autoresponder_subject')
+                            ->label(__('capell-form-builder::form.admin.fields.autoresponder_subject'))
+                            ->maxLength(255),
+                        Textarea::make('settings.autoresponder_body')
+                            ->label(__('capell-form-builder::form.admin.fields.autoresponder_body'))
+                            ->rows(3)
+                            ->columnSpanFull(),
+                        TextInput::make('settings.success_redirect_url')
+                            ->label(__('capell-form-builder::form.admin.fields.success_redirect_url'))
+                            ->maxLength(2048),
                         Toggle::make('settings.collect_ip_address')
                             ->label(__('capell-form-builder::form.admin.fields.collect_ip_address'))
                             ->default(true),

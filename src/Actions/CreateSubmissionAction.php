@@ -49,6 +49,7 @@ class CreateSubmissionAction
 
         event(new FormSubmitted($form, $submission));
         SendSubmissionNotificationAction::run($submission);
+        SendSubmissionAutoresponderAction::run($submission);
 
         return $submission;
     }

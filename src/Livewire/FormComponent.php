@@ -142,6 +142,7 @@ final class FormComponent extends Component
 
         $this->submitted = true;
         $this->reset('data');
+        $this->redirectAfterSuccess($settings);
     }
 
     public function render(): View
@@ -426,6 +427,15 @@ final class FormComponent extends Component
         return $form?->settings instanceof FormSettingsData
             ? $form->settings
             : new FormSettingsData(successMessage: __('capell-form-builder::message.form_submitted'));
+    }
+
+    private function redirectAfterSuccess(FormSettingsData $settings): void
+    {
+        $redirectUrl = is_string($settings->successRedirectUrl) ? trim($settings->successRedirectUrl) : '';
+
+        if ($redirectUrl !== '') {
+            $this->redirect($redirectUrl);
+        }
     }
 
     /**

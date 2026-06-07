@@ -22,6 +22,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 
 use function Pest\Livewire\livewire;
 
@@ -488,6 +489,9 @@ it('redirects after successful public submission when configured', function (): 
 });
 
 it('stores file upload metadata through the Livewire form path', function (): void {
+    Storage::fake('form-builder-test');
+    config()->set('capell-form-builder.uploads.disk', 'form-builder-test');
+
     $form = Form::factory()->create([
         'name' => 'Upload form',
         'handle' => 'upload-form',
@@ -514,7 +518,11 @@ it('stores file upload metadata through the Livewire form path', function (): vo
 
     expect($payload->values['brief']['original_name'] ?? null)->toBe('brief.pdf')
         ->and($payload->values['brief']['mime_type'] ?? null)->toBeString()
-        ->and($payload->values['brief']['size'] ?? null)->toBeInt();
+        ->and($payload->values['brief']['size'] ?? null)->toBeInt()
+        ->and($payload->values['brief']['disk'] ?? null)->toBe('form-builder-test')
+        ->and($payload->values['brief']['path'] ?? null)->toBeString();
+
+    Storage::disk('form-builder-test')->assertExists($payload->values['brief']['path']);
 });
 
 it('stores payment field values through the Livewire form path', function (): void {

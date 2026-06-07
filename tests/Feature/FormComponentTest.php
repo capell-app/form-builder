@@ -251,6 +251,55 @@ it('renders accessible public form states', function (): void {
         ->assertElementExists('[x-init]', fn (AssertElement $element): BaseAssert => $element->has('x-init', '$nextTick(() => $el.focus())'));
 });
 
+it('renders multi-step forms with step navigation and validates before advancing', function (): void {
+    $form = Form::factory()->create([
+        'name' => 'Project enquiry',
+        'handle' => 'project-enquiry',
+        'schema' => [
+            [
+                'key' => 'email',
+                'label' => 'Email',
+                'type' => FormFieldType::Email->value,
+                'required' => true,
+                'step_key' => 'Contact',
+            ],
+            [
+                'key' => 'budget',
+                'label' => 'Budget',
+                'type' => FormFieldType::Number->value,
+                'required' => true,
+                'step_key' => 'Project',
+            ],
+        ],
+    ]);
+    bindFormBuilderFrontendSite($form->site);
+
+    livewire(FormComponent::class, ['handle' => 'project-enquiry', 'instanceId' => 'project-enquiry'])
+        ->assertSee(__('capell-form-builder::form.step_progress', ['current' => 1, 'total' => 2]))
+        ->assertSee('Contact')
+        ->assertSee('Email')
+        ->assertDontSee('Budget')
+        ->call('nextStep')
+        ->assertHasErrors(['data.email' => 'required'])
+        ->assertSet('currentStepKey', 'contact')
+        ->set('data.email', 'ben@example.com')
+        ->call('nextStep')
+        ->assertHasNoErrors()
+        ->assertSet('currentStepKey', 'project')
+        ->assertSee(__('capell-form-builder::form.step_progress', ['current' => 2, 'total' => 2]))
+        ->assertSee('Budget')
+        ->assertDontSee('Email')
+        ->set('data.budget', 5000)
+        ->call('submit')
+        ->assertHasNoErrors()
+        ->assertSet('submitted', true);
+
+    expect(formComponentSubmissionPayload(Submission::query()->firstOrFail())->values)->toBe([
+        'email' => 'ben@example.com',
+        'budget' => 5000,
+    ]);
+});
+
 it('renders a form element component from widget data for the current frontend site', function (): void {
     resolve(RecordExtensionRenderContributionAction::class)->clear();
 

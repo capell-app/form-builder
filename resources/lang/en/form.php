@@ -71,7 +71,11 @@ return [
     ],
     'default_step' => 'Form',
     'errors_heading' => 'Please check the highlighted fields.',
+    'next_step' => 'Continue',
+    'previous_step' => 'Back',
     'select_placeholder' => 'Select an option',
+    'step_progress' => 'Step :current of :total',
+    'steps_label' => 'Form steps',
     'submit' => 'Submit',
     'submitting' => 'Submitting...',
 ];

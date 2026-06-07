@@ -29,7 +29,7 @@ Form Builder lets a Capell site define forms (name, handle, JSON field `schema`,
 ## 3. Missing Features (gaps)
 
 - **Admin form builder UI now exists as a conventional Filament Form CRUD resource.** `FormResource` provides list/create/edit pages for core form details, field schema, and settings. It is not yet a drag-and-drop visual builder, but forms no longer require factory/seed/code creation. — ties to `form-builder`, `form-builder-admin`.
-- **Frontend multi-step rendering (table-stakes).** `BuildFormStepsAction` and `FormStepData` group fields by `stepKey`, but `resources/views/livewire/form.blade.php` renders one flat form with a single submit button and no step navigation/progress; `FormComponent` never calls `BuildFormStepsAction`. The `form-builder-multi-step` capability is computed but never surfaced. — ties to `form-builder-multi-step`.
+- **Done/Shipped: frontend multi-step rendering.** `FormComponent` now uses `BuildFormStepsAction`, tracks the current step, validates the active step before advancing, renders step progress/navigation, and only submits on the final step while preserving payload storage across all visible fields. Evidence: `FormComponentTest` covers step navigation, validation gating, and final stored payload. — ties to `form-builder-multi-step`.
 - **Actual payment processing (differentiator, currently false advertising).** `FormFieldData` has `paymentAmountCents`/`paymentCurrency`, validated as `integer|min:1`, and the host `capell-payments` config even has a `form_builder` block (`default_currency`, `success_path`, `checkout_url_ttl_minutes`). But this package contains **no** Stripe/checkout/webhook integration — the payment field renders as a plain number `<input>`. The `form-builder-payment-fields` capability and `supports: capell-app/payments` promise a checkout that isn't wired. — ties to `form-builder-payment-fields`.
 - **File download/retrieval for uploads (table-stakes for file fields).** See §2 — uploads aren't persisted, so `form-builder-file-upload-rules` only validates; there is no stored file to download from the submission detail view. — ties to `form-builder-file-upload-rules`.
 - **CAPTCHA / external spam provider (table-stakes alongside honeypot).** Spam defence is honeypot + heuristic keyword/link scoring only (`CalculateSubmissionSpamScoreAction`). Competitors (Gravity Forms, Fluent Forms, Formidable) offer reCAPTCHA/hCaptcha/Turnstile. — ties to `form-builder-spam-scoring`.
@@ -67,20 +67,20 @@ Form Builder lets a Capell site define forms (name, handle, JSON field `schema`,
 
 ## 6. Prioritized Roadmap
 
-| Item                                                                 | Bucket | Effort | Impact   | Section ref |
-| -------------------------------------------------------------------- | ------ | ------ | -------- | ----------- |
-| Build admin Form CRUD UI (FormResource + schema editor)              | Done   | L      | Critical | §3          |
-| Recapture real Form Builder screenshots before promoting marketplace media | Next   | S      | High     | §4/§5       |
-| Stop over-claiming summary/description; rewrite to shipped reality   | Done   | S      | High     | §5          |
-| Exclude spam submissions from reply/notification + add reply gating  | Done   | S      | High     | §2/§4       |
-| Add tests for file, payment, calculation field paths via Livewire    | Done   | M      | High     | §4          |
-| Persist uploaded files to a disk + downloadable submission reference | Next   | L      | High     | §2/§3       |
-| Render multi-step (wire BuildFormStepsAction into the Blade)         | Next   | M      | High     | §3          |
-| Done/Shipped: Memoise SubmissionSiteAccess permitted-site-ids per request | Done   | M      | Med      | §2/§4       |
-| Wire real payment checkout via capell-payments (or drop the claim)   | Next   | L      | High     | §3          |
-| Submitter autoresponder + success redirect option                    | Next   | M      | Med      | §3          |
-| CSV/XLSX export + outbound webhook on submit                         | Next   | M      | Med      | §3          |
-| CAPTCHA/Turnstile spam provider option                               | Later  | M      | Med      | §3          |
-| Normalise FormSubmitted event payload across stored/unstored paths   | Later  | M      | Med      | §2          |
-| Shipped 2026-06-06: Correct requiredTables (`forms`) + at-rest-encryption DB test | Done   | S      | Med      | §4 — `capell.json` now declares `forms`/`submissions`; existing model coverage asserts ciphertext at rest and structured readback. |
-| Shipped 2026-06-06: Derive throttle email dimension from Email field key, not `'email'` | Done   | S      | Low      | §2 — `FormComponent` now reads the schema's Email field key when building the rate-limit hash. |
+| Item                                                                                    | Bucket | Effort | Impact   | Section ref                                                                                                                        |
+| --------------------------------------------------------------------------------------- | ------ | ------ | -------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Build admin Form CRUD UI (FormResource + schema editor)                                 | Done   | L      | Critical | §3                                                                                                                                 |
+| Recapture real Form Builder screenshots before promoting marketplace media              | Next   | S      | High     | §4/§5                                                                                                                              |
+| Stop over-claiming summary/description; rewrite to shipped reality                      | Done   | S      | High     | §5                                                                                                                                 |
+| Exclude spam submissions from reply/notification + add reply gating                     | Done   | S      | High     | §2/§4                                                                                                                              |
+| Add tests for file, payment, calculation field paths via Livewire                       | Done   | M      | High     | §4                                                                                                                                 |
+| Persist uploaded files to a disk + downloadable submission reference                    | Next   | L      | High     | §2/§3                                                                                                                              |
+| Done/Shipped: Render multi-step (wire BuildFormStepsAction into the Blade)              | Done   | M      | High     | §3                                                                                                                                 |
+| Done/Shipped: Memoise SubmissionSiteAccess permitted-site-ids per request               | Done   | M      | Med      | §2/§4                                                                                                                              |
+| Wire real payment checkout via capell-payments (or drop the claim)                      | Next   | L      | High     | §3                                                                                                                                 |
+| Submitter autoresponder + success redirect option                                       | Next   | M      | Med      | §3                                                                                                                                 |
+| CSV/XLSX export + outbound webhook on submit                                            | Next   | M      | Med      | §3                                                                                                                                 |
+| CAPTCHA/Turnstile spam provider option                                                  | Later  | M      | Med      | §3                                                                                                                                 |
+| Normalise FormSubmitted event payload across stored/unstored paths                      | Later  | M      | Med      | §2                                                                                                                                 |
+| Shipped 2026-06-06: Correct requiredTables (`forms`) + at-rest-encryption DB test       | Done   | S      | Med      | §4 — `capell.json` now declares `forms`/`submissions`; existing model coverage asserts ciphertext at rest and structured readback. |
+| Shipped 2026-06-06: Derive throttle email dimension from Email field key, not `'email'` | Done   | S      | Low      | §2 — `FormComponent` now reads the schema's Email field key when building the rate-limit hash.                                     |

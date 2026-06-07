@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace Capell\FormBuilder\Livewire;
 
 use Capell\Core\Models\Site;
+use Capell\FormBuilder\Actions\BuildFormStepsAction;
 use Capell\FormBuilder\Actions\BuildFormValidationRulesAction;
 use Capell\FormBuilder\Actions\CalculateFormFieldValuesAction;
 use Capell\FormBuilder\Actions\CreateSubmissionAction;
 use Capell\FormBuilder\Actions\ResolveVisibleFormFieldsAction;
 use Capell\FormBuilder\Data\FormFieldData;
 use Capell\FormBuilder\Data\FormSettingsData;
+use Capell\FormBuilder\Data\FormStepData;
 use Capell\FormBuilder\Data\SubmissionMetaData;
 use Capell\FormBuilder\Enums\FormFieldType;
 use Capell\FormBuilder\Events\FormSubmitted;
@@ -44,6 +46,8 @@ final class FormComponent extends Component
 
     public bool $submitted = false;
 
+    public string $currentStepKey = '';
+
     private ?Form $resolvedForm = null;
 
     public function mount(int|string|null $handle = null, ?string $instanceId = null, ?string $formReference = null): void
@@ -59,6 +63,34 @@ final class FormComponent extends Component
         foreach ($this->allFields() as $field) {
             $this->data[$field->key] = $field->defaultValue;
         }
+
+        $this->currentStepKey = $this->firstStepKey();
+    }
+
+    public function nextStep(): void
+    {
+        $currentStep = $this->currentStep();
+
+        if (! $currentStep instanceof FormStepData) {
+            return;
+        }
+
+        $this->validate($this->rulesForFields($currentStep->fields, $this->data));
+
+        $nextStep = $this->stepAfter($currentStep->key);
+
+        if ($nextStep instanceof FormStepData) {
+            $this->currentStepKey = $nextStep->key;
+        }
+    }
+
+    public function previousStep(): void
+    {
+        $previousStep = $this->stepBefore($this->currentStepKey);
+
+        if ($previousStep instanceof FormStepData) {
+            $this->currentStepKey = $previousStep->key;
+        }
     }
 
     public function submit(): void
@@ -66,6 +98,12 @@ final class FormComponent extends Component
         $form = $this->form();
 
         if (! $form instanceof Form) {
+            return;
+        }
+
+        if (! $this->isFinalStep()) {
+            $this->nextStep();
+
             return;
         }
 
@@ -118,7 +156,10 @@ final class FormComponent extends Component
             'fields' => $this->fields(),
             'form' => $form,
             'formInstanceId' => $this->instanceId,
+            'currentStep' => $this->currentStep(),
+            'currentStepIndex' => $this->currentStepIndex(),
             'settings' => $this->settings(),
+            'steps' => $this->steps(),
         ]);
     }
 
@@ -277,13 +318,105 @@ final class FormComponent extends Component
      */
     private function fields(): Collection
     {
+        $currentStep = $this->currentStep();
+
+        if ($currentStep instanceof FormStepData) {
+            return $currentStep->fields;
+        }
+
+        return $this->visibleFields();
+    }
+
+    /**
+     * @return Collection<int, FormFieldData>
+     */
+    private function visibleFields(): Collection
+    {
+        $form = $this->form();
+
+        return $form instanceof Form
+            ? ResolveVisibleFormFieldsAction::run($form, $this->data)
+            : collect();
+    }
+
+    /**
+     * @return Collection<int, FormStepData>
+     */
+    private function steps(): Collection
+    {
         $form = $this->form();
 
         if (! $form instanceof Form) {
             return collect();
         }
 
-        return ResolveVisibleFormFieldsAction::run($form, $this->data);
+        $steps = BuildFormStepsAction::run($form, $this->data);
+
+        if ($steps->isNotEmpty() && ! $steps->contains(fn (FormStepData $step): bool => $step->key === $this->currentStepKey)) {
+            $firstStep = $steps->first();
+
+            if ($firstStep instanceof FormStepData) {
+                $this->currentStepKey = $firstStep->key;
+            }
+        }
+
+        return $steps;
+    }
+
+    private function currentStep(): ?FormStepData
+    {
+        $steps = $this->steps();
+        $step = $steps->first(fn (FormStepData $step): bool => $step->key === $this->currentStepKey);
+
+        return $step instanceof FormStepData
+            ? $step
+            : null;
+    }
+
+    private function firstStepKey(): string
+    {
+        $step = $this->steps()->first();
+
+        return $step instanceof FormStepData ? $step->key : '';
+    }
+
+    private function currentStepIndex(): int
+    {
+        $index = $this->steps()
+            ->values()
+            ->search(fn (FormStepData $step): bool => $step->key === $this->currentStepKey);
+
+        return is_int($index) ? $index : 0;
+    }
+
+    private function stepAfter(string $stepKey): ?FormStepData
+    {
+        return $this->steps()
+            ->values()
+            ->get($this->stepIndex($stepKey) + 1);
+    }
+
+    private function stepBefore(string $stepKey): ?FormStepData
+    {
+        return $this->steps()
+            ->values()
+            ->get($this->stepIndex($stepKey) - 1);
+    }
+
+    private function stepIndex(string $stepKey): int
+    {
+        $index = $this->steps()
+            ->values()
+            ->search(fn (FormStepData $step): bool => $step->key === $stepKey);
+
+        return is_int($index) ? $index : 0;
+    }
+
+    private function isFinalStep(): bool
+    {
+        $steps = $this->steps();
+
+        return $steps->count() <= 1 || $this->currentStepIndex() >= $steps->count() - 1;
     }
 
     private function settings(): FormSettingsData
@@ -313,13 +446,27 @@ final class FormComponent extends Component
     }
 
     /**
+     * @param  Collection<int, FormFieldData>  $fields
+     * @param  array<string, mixed>  $input
+     * @return array<string, array<int, string>>
+     */
+    private function rulesForFields(Collection $fields, array $input = []): array
+    {
+        $fieldKeys = $fields->pluck('key')->all();
+
+        return collect($this->rules($input))
+            ->filter(fn (array $rules, string $fieldKey): bool => in_array(Str::after($fieldKey, 'data.'), $fieldKeys, true))
+            ->all();
+    }
+
+    /**
      * @return array<string, mixed>
      */
     private function storedPayload(): array
     {
         $payload = [];
 
-        foreach ($this->fields() as $field) {
+        foreach ($this->visibleFields() as $field) {
             if (! $field->type->isStoredInPayload()) {
                 continue;
             }
@@ -334,7 +481,7 @@ final class FormComponent extends Component
 
     private function hasTriggeredHoneypot(): bool
     {
-        foreach ($this->fields() as $field) {
+        foreach ($this->visibleFields() as $field) {
             if (! $field->type->isSpamTrap()) {
                 continue;
             }

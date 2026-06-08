@@ -28,12 +28,9 @@ use Illuminate\Support\Facades\File;
 
 describe('form-builder capell.json manifest', function (): void {
     it('declares requires using full composer package names', function (): void {
-        $manifest = json_decode(
-            File::get(__DIR__ . '/../../capell.json'),
-            associative: true,
-        );
+        $manifest = formBuilderManifest();
 
-        $requires = $manifest['dependencies']['requires'] ?? [];
+        $requires = $manifest['dependencies']['requires'];
 
         foreach ($requires as $requirement) {
             expect($requirement)->toContain('/');
@@ -41,10 +38,7 @@ describe('form-builder capell.json manifest', function (): void {
     });
 
     it('requires the Capell packages it imports directly', function (): void {
-        $manifest = json_decode(
-            File::get(__DIR__ . '/../../capell.json'),
-            associative: true,
-        );
+        $manifest = formBuilderManifest();
 
         expect($manifest['dependencies']['requires'])->toContain('capell-app/core')
             ->and($manifest['dependencies']['requires'])->toContain('capell-app/admin')
@@ -52,11 +46,7 @@ describe('form-builder capell.json manifest', function (): void {
     });
 
     it('declares implemented advanced form features and optional payment support', function (): void {
-        $manifest = json_decode(
-            File::get(__DIR__ . '/../../capell.json'),
-            associative: true,
-            flags: JSON_THROW_ON_ERROR,
-        );
+        $manifest = formBuilderManifest();
 
         expect($manifest['dependencies']['supports'])->toContain('capell-app/payments')
             ->and($manifest['capabilities'])->toContain(
@@ -81,11 +71,7 @@ describe('form-builder capell.json manifest', function (): void {
     });
 
     it('declares implemented admin resource frontend component and models', function (): void {
-        $manifest = json_decode(
-            File::get(__DIR__ . '/../../capell.json'),
-            associative: true,
-            flags: JSON_THROW_ON_ERROR,
-        );
+        $manifest = formBuilderManifest();
 
         expect($manifest['contributes'])->toContain([
             'type' => 'admin-resource',
@@ -120,11 +106,7 @@ describe('form-builder capell.json manifest', function (): void {
     });
 
     it('declares the shipped marketplace screenshot set', function (): void {
-        $manifest = json_decode(
-            File::get(__DIR__ . '/../../capell.json'),
-            associative: true,
-            flags: JSON_THROW_ON_ERROR,
-        );
+        $manifest = formBuilderManifest();
 
         $screenshots = $manifest['marketplace']['screenshots'] ?? [];
         $screenshotPaths = [];
@@ -150,3 +132,129 @@ describe('form-builder capell.json manifest', function (): void {
         }
     });
 });
+
+/**
+ * @return array{
+ *     dependencies: array{requires: list<string>, supports: list<string>},
+ *     capabilities: list<string>,
+ *     actions: array<string, class-string>,
+ *     contributes: list<array<string, string>>,
+ *     contributionTraceability: array{deferredContributions: list<string>},
+ *     marketplace: array{screenshots: list<array{path?: string}>}
+ * }
+ */
+function formBuilderManifest(): array
+{
+    $manifest = json_decode(
+        File::get(__DIR__ . '/../../capell.json'),
+        associative: true,
+        flags: JSON_THROW_ON_ERROR,
+    );
+
+    throw_unless(is_array($manifest), RuntimeException::class, 'Expected form-builder manifest to decode as an array.');
+
+    $dependencies = is_array($manifest['dependencies'] ?? null) ? $manifest['dependencies'] : [];
+    $contributionTraceability = is_array($manifest['contributionTraceability'] ?? null) ? $manifest['contributionTraceability'] : [];
+    $marketplace = is_array($manifest['marketplace'] ?? null) ? $manifest['marketplace'] : [];
+
+    return [
+        'dependencies' => [
+            'requires' => formBuilderStringList($dependencies['requires'] ?? []),
+            'supports' => formBuilderStringList($dependencies['supports'] ?? []),
+        ],
+        'capabilities' => formBuilderStringList($manifest['capabilities'] ?? []),
+        'actions' => formBuilderClassMap($manifest['actions'] ?? []),
+        'contributes' => formBuilderStringMapList($manifest['contributes'] ?? []),
+        'contributionTraceability' => [
+            'deferredContributions' => formBuilderStringList($contributionTraceability['deferredContributions'] ?? []),
+        ],
+        'marketplace' => [
+            'screenshots' => formBuilderOptionalPathList($marketplace['screenshots'] ?? []),
+        ],
+    ];
+}
+
+/**
+ * @return list<string>
+ */
+function formBuilderStringList(mixed $values): array
+{
+    if (! is_array($values)) {
+        return [];
+    }
+
+    return array_values(array_filter($values, static fn (mixed $value): bool => is_string($value)));
+}
+
+/**
+ * @return array<string, class-string>
+ */
+function formBuilderClassMap(mixed $values): array
+{
+    if (! is_array($values)) {
+        return [];
+    }
+
+    $map = [];
+
+    foreach ($values as $key => $value) {
+        if (is_string($key) && is_string($value) && class_exists($value)) {
+            $map[$key] = $value;
+        }
+    }
+
+    return $map;
+}
+
+/**
+ * @return list<array<string, string>>
+ */
+function formBuilderStringMapList(mixed $values): array
+{
+    if (! is_array($values)) {
+        return [];
+    }
+
+    $maps = [];
+
+    foreach ($values as $value) {
+        if (! is_array($value)) {
+            continue;
+        }
+
+        $map = [];
+
+        foreach ($value as $key => $item) {
+            if (is_string($key) && is_string($item)) {
+                $map[$key] = $item;
+            }
+        }
+
+        $maps[] = $map;
+    }
+
+    return $maps;
+}
+
+/**
+ * @return list<array{path?: string}>
+ */
+function formBuilderOptionalPathList(mixed $values): array
+{
+    if (! is_array($values)) {
+        return [];
+    }
+
+    $paths = [];
+
+    foreach ($values as $value) {
+        if (! is_array($value)) {
+            continue;
+        }
+
+        $path = $value['path'] ?? null;
+        $paths[] = is_string($path) ? ['path' => $path] : [];
+    }
+
+    return $paths;
+}

@@ -158,7 +158,19 @@ final class SubmissionSiteAccess
     {
         $cache = request()->attributes->get(self::PERMITTED_SITE_IDS_CACHE_KEY, []);
 
-        return is_array($cache) ? $cache : [];
+        if (! is_array($cache)) {
+            return [];
+        }
+
+        $typedCache = [];
+
+        foreach ($cache as $key => $siteIds) {
+            if (is_string($key) && $siteIds instanceof Collection) {
+                $typedCache[$key] = $siteIds;
+            }
+        }
+
+        return $typedCache;
     }
 
     /**
@@ -171,7 +183,7 @@ final class SubmissionSiteAccess
 
         return implode('|', [
             self::modelType($actor),
-            (string) self::modelId($actor),
+            self::modelIdString($actor),
             self::teamColumn(),
             implode(',', $permissionNames->sort()->values()->all()),
             md5(json_encode($tables, JSON_THROW_ON_ERROR)),
@@ -271,9 +283,18 @@ final class SubmissionSiteAccess
         return $actor->getMorphClass();
     }
 
-    private static function modelId(Authenticatable $actor): mixed
+    private static function modelId(Authenticatable $actor): int|string|null
     {
-        return $actor->getKey();
+        $key = $actor->getKey();
+
+        return is_int($key) || is_string($key) ? $key : null;
+    }
+
+    private static function modelIdString(Authenticatable $actor): string
+    {
+        $key = self::modelId($actor);
+
+        return is_int($key) || is_string($key) ? (string) $key : '';
     }
 
     /**

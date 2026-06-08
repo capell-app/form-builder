@@ -7,12 +7,15 @@ namespace Capell\FormBuilder\Actions;
 use Capell\FormBuilder\Data\FormFieldData;
 use Capell\FormBuilder\Models\Form;
 use Capell\FormBuilder\Models\Submission;
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Lorisleiva\Actions\Concerns\AsAction;
 use RuntimeException;
 use Spatie\LaravelData\DataCollection;
 
+/**
+ * @method static string run(?Form $form = null)
+ */
 final class BuildSubmissionsCsvAction
 {
     use AsAction;
@@ -31,12 +34,16 @@ final class BuildSubmissionsCsvAction
 
     public function handle(?Form $form = null): string
     {
-        $submissions = Submission::query()
+        $query = Submission::query()
             ->with('form')
-            ->when($form instanceof Form, fn (Builder $query): Builder => $query->where('form_id', $form->getKey()))
             ->oldest('submitted_at')
-            ->orderBy('id')
-            ->get();
+            ->orderBy('id');
+
+        if ($form instanceof Form) {
+            $query->where('form_id', $form->getKey());
+        }
+
+        $submissions = $query->get();
 
         $fieldKeys = $this->fieldKeys($submissions);
         $rows = [];
@@ -46,12 +53,12 @@ final class BuildSubmissionsCsvAction
             $values = $submission->payload->values ?? [];
 
             $rows[] = [
-                (string) $submission->getKey(),
+                $this->modelKey($submission),
                 (string) $submission->form_id,
-                (string) ($submission->form?->name ?? ''),
+                $submission->form->name,
                 (string) $submission->site_id,
-                $submission->status?->value ?? '',
-                $submission->submitted_at?->toIso8601String() ?? '',
+                $submission->status->value,
+                $submission->submitted_at->toIso8601String(),
                 ...array_map(fn (string $fieldKey): string => $this->stringValue($values[$fieldKey] ?? null), $fieldKeys),
             ];
         }
@@ -121,6 +128,13 @@ final class BuildSubmissionsCsvAction
         $json = json_encode($value, JSON_THROW_ON_ERROR);
 
         return is_string($json) ? $json : '';
+    }
+
+    private function modelKey(Model $model): string
+    {
+        $key = $model->getKey();
+
+        return is_int($key) || is_string($key) ? (string) $key : '';
     }
 
     /**

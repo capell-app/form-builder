@@ -36,7 +36,7 @@ final class BuildSubmissionPayloadEntriesAction
      */
     private function fieldLabels(Submission $submission): array
     {
-        $schema = $submission->form?->schema;
+        $schema = $submission->form->schema;
 
         if ($schema === null) {
             return [];
@@ -67,12 +67,14 @@ final class BuildSubmissionPayloadEntriesAction
             return $value ? __('capell-form-builder::generic.boolean.yes') : __('capell-form-builder::generic.boolean.no');
         }
 
-        if ($this->isStoredFileReference($value)) {
+        $storedFileReference = $this->storedFileReference($value);
+
+        if ($storedFileReference !== null) {
             return (string) __('capell-form-builder::table.file_reference', [
-                'name' => (string) $value['original_name'],
-                'disk' => (string) $value['disk'],
-                'path' => (string) $value['path'],
-                'size' => number_format((int) $value['size']),
+                'name' => $storedFileReference['original_name'],
+                'disk' => $storedFileReference['disk'],
+                'path' => $storedFileReference['path'],
+                'size' => number_format((int) $storedFileReference['size']),
             ]);
         }
 
@@ -89,12 +91,36 @@ final class BuildSubmissionPayloadEntriesAction
         return (string) $value;
     }
 
-    private function isStoredFileReference(mixed $value): bool
+    /**
+     * @return array{original_name: string, disk: string, path: string, size: numeric}|null
+     */
+    private function storedFileReference(mixed $value): ?array
     {
-        return is_array($value)
-            && is_string($value['original_name'] ?? null)
-            && is_string($value['disk'] ?? null)
-            && is_string($value['path'] ?? null)
-            && is_numeric($value['size'] ?? null);
+        if (! is_array($value)) {
+            return null;
+        }
+
+        if (! is_string($value['original_name'] ?? null)) {
+            return null;
+        }
+
+        if (! is_string($value['disk'] ?? null)) {
+            return null;
+        }
+
+        if (! is_string($value['path'] ?? null)) {
+            return null;
+        }
+
+        if (! is_numeric($value['size'] ?? null)) {
+            return null;
+        }
+
+        return [
+            'original_name' => $value['original_name'],
+            'disk' => $value['disk'],
+            'path' => $value['path'],
+            'size' => $value['size'],
+        ];
     }
 }

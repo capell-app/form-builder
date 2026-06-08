@@ -99,8 +99,8 @@ it('stores triggered honeypot submissions as spam without dispatching submission
 
     expect($submission->status)->toBe(SubmissionStatus::Spam)
         ->and($submission->payload->values)->toBe([])
-        ->and($submission->meta?->spamScore)->toBe(100)
-        ->and($submission->meta?->spamReasons)->toContain('honeypot');
+        ->and($submission->meta->spamScore)->toBe(100)
+        ->and($submission->meta->spamReasons)->toContain('honeypot');
 
     Event::assertNotDispatched(FormSubmitted::class);
 });
@@ -131,8 +131,8 @@ it('stores scored spam submissions without dispatching submission events', funct
             'email' => 'person@example.com',
             'message' => 'rank-fast https://one.example https://two.example https://three.example https://four.example',
         ])
-        ->and($submission->meta?->spamScore)->toBeGreaterThanOrEqual(75)
-        ->and($submission->meta?->spamReasons)->toContain('too_many_links');
+        ->and($submission->meta->spamScore)->toBeGreaterThanOrEqual(75)
+        ->and($submission->meta->spamReasons)->toContain('too_many_links');
 
     Event::assertNotDispatched(FormSubmitted::class);
 });

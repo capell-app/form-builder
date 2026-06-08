@@ -11,6 +11,9 @@ use Capell\FormBuilder\Models\Form;
 use Illuminate\Support\Str;
 use Lorisleiva\Actions\Concerns\AsAction;
 
+/**
+ * @method static SubmissionSpamScoreData run(Form $form, array<string, mixed> $input, SubmissionMetaData $meta)
+ */
 final class CalculateSubmissionSpamScoreAction
 {
     use AsAction;

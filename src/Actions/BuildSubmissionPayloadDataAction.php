@@ -9,7 +9,11 @@ use Capell\FormBuilder\Models\Form;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Lorisleiva\Actions\Concerns\AsAction;
+use RuntimeException;
 
+/**
+ * @method static SubmissionPayloadData run(Form $form, array<string, mixed> $validated, bool $storeUploads = true)
+ */
 final class BuildSubmissionPayloadDataAction
 {
     use AsAction;
@@ -50,6 +54,8 @@ final class BuildSubmissionPayloadDataAction
 
         $disk = $this->uploadDisk();
         $path = $value->store($this->uploadDirectory(), ['disk' => $disk]);
+        throw_if($path === false, RuntimeException::class, 'Unable to store uploaded form file.');
+
         $storage = Storage::disk($disk);
 
         return [

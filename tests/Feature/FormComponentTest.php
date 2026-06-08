@@ -518,13 +518,15 @@ it('stores file upload metadata through the Livewire form path', function (): vo
 
     $payload = formComponentSubmissionPayload(Submission::query()->firstOrFail());
 
-    expect($payload->values['brief']['original_name'] ?? null)->toBe('brief.pdf')
-        ->and($payload->values['brief']['mime_type'] ?? null)->toBeString()
-        ->and($payload->values['brief']['size'] ?? null)->toBeInt()
-        ->and($payload->values['brief']['disk'] ?? null)->toBe('form-builder-test')
-        ->and($payload->values['brief']['path'] ?? null)->toBeString();
+    $fileReference = formComponentStoredFileReference($payload, 'brief');
 
-    Storage::disk('form-builder-test')->assertExists($payload->values['brief']['path']);
+    expect($fileReference['original_name'])->toBe('brief.pdf')
+        ->and($fileReference['mime_type'])->toBeString()
+        ->and($fileReference['size'])->toBeInt()
+        ->and($fileReference['disk'])->toBe('form-builder-test')
+        ->and($fileReference['path'])->toBeString();
+
+    Storage::disk('form-builder-test')->assertExists($fileReference['path']);
 });
 
 it('stores payment field values through the Livewire form path', function (): void {
@@ -979,4 +981,27 @@ function formComponentSubmissionMeta(Submission $submission): SubmissionMetaData
     throw_unless($meta instanceof SubmissionMetaData, RuntimeException::class, 'Expected form submission meta data to be cast.');
 
     return $meta;
+}
+
+/**
+ * @return array{original_name: string, mime_type: string, size: int, disk: string, path: string}
+ */
+function formComponentStoredFileReference(SubmissionPayloadData $payload, string $key): array
+{
+    $fileReference = $payload->values[$key] ?? null;
+
+    throw_unless(is_array($fileReference), RuntimeException::class, 'Expected stored file reference array.');
+    throw_unless(is_string($fileReference['original_name'] ?? null), RuntimeException::class, 'Expected stored file original name.');
+    throw_unless(is_string($fileReference['mime_type'] ?? null), RuntimeException::class, 'Expected stored file MIME type.');
+    throw_unless(is_int($fileReference['size'] ?? null), RuntimeException::class, 'Expected stored file size.');
+    throw_unless(is_string($fileReference['disk'] ?? null), RuntimeException::class, 'Expected stored file disk.');
+    throw_unless(is_string($fileReference['path'] ?? null), RuntimeException::class, 'Expected stored file path.');
+
+    return [
+        'original_name' => $fileReference['original_name'],
+        'mime_type' => $fileReference['mime_type'],
+        'size' => $fileReference['size'],
+        'disk' => $fileReference['disk'],
+        'path' => $fileReference['path'],
+    ];
 }

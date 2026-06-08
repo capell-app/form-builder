@@ -22,7 +22,8 @@ final class DispatchSubmissionWebhookAction
     public function handle(Submission $submission): void
     {
         $form = $submission->form;
-        $url = is_string($form?->settings?->webhookUrl) ? trim($form->settings->webhookUrl) : null;
+        $settings = $form->settings;
+        $url = is_string($settings?->webhookUrl) ? trim($settings->webhookUrl) : null;
 
         if ($url === null || $url === '') {
             return;
@@ -38,25 +39,25 @@ final class DispatchSubmissionWebhookAction
                 ->post($endpoint->url, [
                     'event' => 'form.submitted',
                     'form' => [
-                        'id' => $form?->getKey(),
-                        'handle' => $form?->handle,
-                        'name' => $form?->name,
-                        'site_id' => $form?->site_id,
+                        'id' => $form->getKey(),
+                        'handle' => $form->handle,
+                        'name' => $form->name,
+                        'site_id' => $form->site_id,
                     ],
                     'submission' => [
                         'id' => $submission->getKey(),
-                        'status' => $submission->status?->value,
-                        'submitted_at' => $submission->submitted_at?->toIso8601String(),
+                        'status' => $submission->status->value,
+                        'submitted_at' => $submission->submitted_at->toIso8601String(),
                         'payload' => $submission->payload->values ?? [],
                         'meta' => [
-                            'url' => $submission->meta?->url,
-                            'referer' => $submission->meta?->referer,
+                            'url' => $submission->meta->url,
+                            'referer' => $submission->meta->referer,
                         ],
                     ],
                 ])->throw();
         } catch (Throwable $throwable) {
             Log::warning('Form Builder submission webhook dispatch failed.', [
-                'form_id' => $form?->getKey(),
+                'form_id' => $form->getKey(),
                 'submission_id' => $submission->getKey(),
                 'exception' => $throwable::class,
                 'message' => $throwable->getMessage(),

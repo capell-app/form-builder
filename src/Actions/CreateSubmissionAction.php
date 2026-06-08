@@ -14,6 +14,9 @@ use Capell\FormBuilder\Models\Submission;
 use Illuminate\Support\Facades\Validator;
 use Lorisleiva\Actions\Concerns\AsAction;
 
+/**
+ * @method static Submission run(Form $form, array<string, mixed> $input, SubmissionMetaData $meta)
+ */
 class CreateSubmissionAction
 {
     use AsAction;

@@ -24,7 +24,7 @@ class SendSubmissionNotificationAction
 
         $submission->loadMissing('form');
 
-        $notificationEmail = $submission->form?->settings?->notificationEmail;
+        $notificationEmail = $submission->form->settings?->notificationEmail;
 
         if (! is_string($notificationEmail) || trim($notificationEmail) === '') {
             return;

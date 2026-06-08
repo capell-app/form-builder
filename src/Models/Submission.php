@@ -13,12 +13,17 @@ use Capell\FormBuilder\Enums\SubmissionStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 use Override;
 
 /**
  * @property int $form_id
- * @property SubmissionPayloadData|null $payload
- * @property SubmissionMetaData|null $meta
+ * @property int|null $site_id
+ * @property SubmissionPayloadData $payload
+ * @property SubmissionMetaData $meta
+ * @property SubmissionStatus $status
+ * @property Carbon $submitted_at
+ * @property Form $form
  */
 class Submission extends Model
 {

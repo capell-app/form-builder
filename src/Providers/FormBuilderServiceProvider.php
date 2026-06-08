@@ -15,6 +15,7 @@ use Capell\Core\Facades\CapellCore;
 use Capell\Core\Support\Packages\AbstractPackageServiceProvider;
 use Capell\Core\Support\Renderables\RenderableRegistry;
 use Capell\FormBuilder\Console\Commands\ExportSubmissionsCommand;
+use Capell\FormBuilder\Contracts\FormBuilderWebhookHostResolver;
 use Capell\FormBuilder\Enums\LivewireComponentEnum;
 use Capell\FormBuilder\Enums\ResourceEnum;
 use Capell\FormBuilder\Filament\Resources\Forms\FormResource;
@@ -25,6 +26,7 @@ use Capell\FormBuilder\Models\Form;
 use Capell\FormBuilder\Models\Submission;
 use Capell\FormBuilder\Policies\FormPolicy;
 use Capell\FormBuilder\Policies\SubmissionPolicy;
+use Capell\FormBuilder\Support\DnsFormBuilderWebhookHostResolver;
 use Composer\InstalledVersions;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Blade;
@@ -55,6 +57,8 @@ class FormBuilderServiceProvider extends AbstractPackageServiceProvider
 
     public function registeringPackage(): void
     {
+        $this->app->singleton(FormBuilderWebhookHostResolver::class, DnsFormBuilderWebhookHostResolver::class);
+
         $this->app->booted(function (): void {
             if (! $this->isPackageInstalled()) {
                 return;

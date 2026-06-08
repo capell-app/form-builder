@@ -22,5 +22,7 @@ return [
     ],
     'webhooks' => [
         'timeout_seconds' => env('CAPELL_FORM_BUILDER_WEBHOOK_TIMEOUT_SECONDS', 10),
+        'allow_insecure_urls' => false,
+        'allow_private_urls' => false,
     ],
 ];

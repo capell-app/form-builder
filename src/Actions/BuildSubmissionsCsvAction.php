@@ -34,7 +34,7 @@ final class BuildSubmissionsCsvAction
         $submissions = Submission::query()
             ->with('form')
             ->when($form instanceof Form, fn (Builder $query): Builder => $query->where('form_id', $form->getKey()))
-            ->orderBy('submitted_at')
+            ->oldest('submitted_at')
             ->orderBy('id')
             ->get();
 
@@ -51,7 +51,7 @@ final class BuildSubmissionsCsvAction
                 (string) ($submission->form?->name ?? ''),
                 (string) $submission->site_id,
                 $submission->status?->value ?? '',
-                optional($submission->submitted_at)->toIso8601String() ?? '',
+                $submission->submitted_at?->toIso8601String() ?? '',
                 ...array_map(fn (string $fieldKey): string => $this->stringValue($values[$fieldKey] ?? null), $fieldKeys),
             ];
         }
@@ -130,9 +130,7 @@ final class BuildSubmissionsCsvAction
     {
         $stream = fopen('php://temp', 'r+');
 
-        if ($stream === false) {
-            throw new RuntimeException('Unable to open temporary CSV stream.');
-        }
+        throw_if($stream === false, RuntimeException::class, 'Unable to open temporary CSV stream.');
 
         foreach ($rows as $row) {
             fputcsv($stream, $row);
@@ -143,9 +141,7 @@ final class BuildSubmissionsCsvAction
         $csv = stream_get_contents($stream);
         fclose($stream);
 
-        if ($csv === false) {
-            throw new RuntimeException('Unable to read temporary CSV stream.');
-        }
+        throw_if($csv === false, RuntimeException::class, 'Unable to read temporary CSV stream.');
 
         return $csv;
     }

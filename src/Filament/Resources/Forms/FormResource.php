@@ -36,6 +36,8 @@ use Override;
 
 final class FormResource extends Resource
 {
+    protected static ?string $slug = 'form-builder/forms';
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentList;
 
     protected static string|BackedEnum|null $activeNavigationIcon = Heroicon::ClipboardDocumentList;

@@ -36,7 +36,7 @@ final class ExportSubmissionsCommand extends Command
             return self::SUCCESS;
         }
 
-        File::ensureDirectoryExists((string) dirname($path));
+        File::ensureDirectoryExists(dirname($path));
         File::put($path, $csv);
 
         $this->components->info(__('capell-form-builder::message.export_written', [
@@ -57,7 +57,7 @@ final class ExportSubmissionsCommand extends Command
         $value = trim($option);
         $form = Form::query()
             ->when(is_numeric($value), fn (Builder $query): Builder => $query->whereKey((int) $value))
-            ->when(! is_numeric($value), fn (Builder $query): Builder => $query->where('handle', $value))
+            ->unless(is_numeric($value), fn (Builder $query): Builder => $query->where('handle', $value))
             ->first();
 
         if (! $form instanceof Form) {

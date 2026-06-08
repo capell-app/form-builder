@@ -353,12 +353,10 @@ final class FormComponent extends Component
 
         $steps = BuildFormStepsAction::run($form, $this->data);
 
-        if ($steps->isNotEmpty() && ! $steps->contains(fn (FormStepData $step): bool => $step->key === $this->currentStepKey)) {
+        if ($steps->isNotEmpty() && $steps->doesntContain(fn (FormStepData $step): bool => $step->key === $this->currentStepKey)) {
             $firstStep = $steps->first();
 
-            if ($firstStep instanceof FormStepData) {
-                $this->currentStepKey = $firstStep->key;
-            }
+            $this->currentStepKey = $firstStep->key;
         }
 
         return $steps;
@@ -416,8 +414,11 @@ final class FormComponent extends Component
     private function isFinalStep(): bool
     {
         $steps = $this->steps();
+        if ($steps->count() <= 1) {
+            return true;
+        }
 
-        return $steps->count() <= 1 || $this->currentStepIndex() >= $steps->count() - 1;
+        return $this->currentStepIndex() >= $steps->count() - 1;
     }
 
     private function settings(): FormSettingsData

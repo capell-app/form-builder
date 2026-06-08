@@ -32,7 +32,7 @@ class FormSubmitted
         if (! $this->metadata instanceof SubmissionMetaData) {
             $this->metadata = $submissionData instanceof FormSubmissionData
                 ? $submissionData->metadata
-                : ($submission instanceof Submission ? $submission->meta : new SubmissionMetaData);
+                : $this->submissionMetadata($submission);
         }
 
         if ($this->payload === null) {
@@ -42,6 +42,17 @@ class FormSubmitted
         }
 
         $this->submissionData = $submissionData ?? $this->submissionData($form, $submission, $this->metadata, $this->payload);
+    }
+
+    private function submissionMetadata(?Submission $submission): SubmissionMetaData
+    {
+        if (! $submission instanceof Submission) {
+            return new SubmissionMetaData;
+        }
+
+        return $submission->meta instanceof SubmissionMetaData
+            ? $submission->meta
+            : new SubmissionMetaData;
     }
 
     /**

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Capell\FormBuilder\Actions;
 
 use Capell\FormBuilder\Data\FormFieldData;
+use Capell\FormBuilder\Models\Form;
 use Capell\FormBuilder\Models\Submission;
 use Illuminate\Support\Collection;
 use Lorisleiva\Actions\Concerns\AsObject;
@@ -36,7 +37,13 @@ final class BuildSubmissionPayloadEntriesAction
      */
     private function fieldLabels(Submission $submission): array
     {
-        $schema = $submission->form->schema;
+        $form = $submission->getRelationValue('form');
+
+        if (! $form instanceof Form) {
+            return [];
+        }
+
+        $schema = $form->schema;
 
         if ($schema === null) {
             return [];

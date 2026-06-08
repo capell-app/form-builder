@@ -53,7 +53,15 @@ it('validates and stores a submission', function (): void {
         ->and($submission->payload->values)->toBe(['email' => 'ben@example.com'])
         ->and($submission->status)->toBe(SubmissionStatus::New);
 
-    Event::assertDispatched(FormSubmitted::class);
+    Event::assertDispatched(
+        FormSubmitted::class,
+        fn (FormSubmitted $event): bool => $event->submission?->is($submission)
+            && $event->payload === ['email' => 'ben@example.com']
+            && $event->submissionData->stored
+            && $event->submissionData->submissionId === $submission->getKey()
+            && $event->submissionData->payload->values === ['email' => 'ben@example.com']
+            && $event->submissionData->metadata->ipAddress === '127.0.0.1',
+    );
 });
 
 it('does not store honeypot values in payload', function (): void {

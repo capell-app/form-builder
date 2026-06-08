@@ -22,7 +22,9 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 
 use function Pest\Livewire\livewire;
 
@@ -543,12 +545,51 @@ it('stores payment field values through the Livewire form path', function (): vo
     bindFormBuilderFrontendSite($form->site);
 
     livewire(FormComponent::class, ['handle' => 'payment-form'])
+        ->assertSee(__('capell-form-builder::form.continue_to_payment'))
+        ->assertSee(__('capell-form-builder::form.payment_fixed_amount', ['amount' => '25.00', 'currency' => 'GBP']))
         ->set('data.amount_cents', 2500)
         ->call('submit')
         ->assertHasNoErrors()
         ->assertSet('submitted', true);
 
     expect(formComponentSubmissionPayload(Submission::query()->firstOrFail())->values)->toBe([
+        'amount_cents' => 2500,
+    ]);
+});
+
+it('redirects payment form submissions to a signed Payments checkout URL when Payments is installed', function (): void {
+    URL::forceRootUrl('https://example.test');
+    URL::forceScheme('https');
+
+    Route::get('capell/payments/forms/{submission}/checkout', static fn (): string => '')
+        ->middleware('signed')
+        ->name('capell-payments.form-builder.checkout');
+
+    $form = Form::factory()->create([
+        'name' => 'Payment form',
+        'handle' => 'payment-checkout-form',
+        'schema' => [
+            [
+                'key' => 'amount_cents',
+                'label' => 'Amount',
+                'type' => FormFieldType::Payment->value,
+                'required' => true,
+                'payment_amount_cents' => 2500,
+                'payment_currency' => 'GBP',
+            ],
+        ],
+    ]);
+    bindFormBuilderFrontendSite($form->site);
+
+    livewire(FormComponent::class, ['handle' => 'payment-checkout-form'])
+        ->call('submit')
+        ->assertHasNoErrors()
+        ->assertSet('submitted', true)
+        ->assertRedirect();
+
+    $submission = Submission::query()->firstOrFail();
+
+    expect(formComponentSubmissionPayload($submission)->values)->toBe([
         'amount_cents' => 2500,
     ]);
 });
@@ -622,7 +663,10 @@ it('dispatches submitted payloads when submissions are not stored', function ():
 
     Event::assertDispatched(
         FormSubmitted::class,
-        fn (FormSubmitted $event): bool => $event->payload === ['email' => 'ben@example.com'],
+        fn (FormSubmitted $event): bool => $event->submission === null
+            && $event->payload === ['email' => 'ben@example.com']
+            && ! $event->submissionData->stored
+            && $event->submissionData->payload->values === ['email' => 'ben@example.com'],
     );
 
     expect(Submission::query()->count())->toBe(0);

@@ -192,6 +192,24 @@
                                     aria-invalid="{{ $errors->has($errorKey) ? 'true' : 'false' }}"
                                     @required($field->required)
                                 />
+                            @elseif ($field->type === FormFieldType::Payment && is_int($field->paymentAmountCents) && $field->paymentAmountCents > 0)
+                                @php
+                                    $paymentCurrency = strtoupper($field->paymentCurrency ?: config('capell-payments.form_builder.default_currency', 'gbp'));
+                                    $paymentAmount = number_format($field->paymentAmountCents / 100, 2);
+                                @endphp
+
+                                <input
+                                    type="hidden"
+                                    wire:model="data.{{ $field->key }}"
+                                    id="{{ $fieldId }}"
+                                />
+
+                                <p
+                                    class="capell-form__payment-summary rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm font-medium text-gray-900"
+                                    @if ($describedBy !== '') aria-describedby="{{ $describedBy }}" @endif
+                                >
+                                    {{ __('capell-form-builder::form.payment_fixed_amount', ['amount' => $paymentAmount, 'currency' => $paymentCurrency]) }}
+                                </p>
                             @elseif ($field->type === FormFieldType::Calculation)
                                 <input
                                     type="number"
@@ -273,13 +291,13 @@
                                 wire:loading.remove
                                 wire:target="submit"
                             >
-                                {{ __('capell-form-builder::form.submit') }}
+                                {{ $hasPaymentField ? __('capell-form-builder::form.continue_to_payment') : __('capell-form-builder::form.submit') }}
                             </span>
                             <span
                                 wire:loading
                                 wire:target="submit"
                             >
-                                {{ __('capell-form-builder::form.submitting') }}
+                                {{ $hasPaymentField ? __('capell-form-builder::form.redirecting_to_payment') : __('capell-form-builder::form.submitting') }}
                             </span>
                         </button>
                     @endif

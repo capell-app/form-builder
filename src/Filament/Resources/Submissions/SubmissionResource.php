@@ -20,6 +20,8 @@ use Override;
 
 final class SubmissionResource extends Resource
 {
+    protected static ?string $slug = 'form-builder/submissions';
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedInbox;
 
     protected static string|BackedEnum|null $activeNavigationIcon = Heroicon::Inbox;

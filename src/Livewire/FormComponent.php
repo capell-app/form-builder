@@ -8,15 +8,17 @@ use Capell\Core\Models\Site;
 use Capell\FormBuilder\Actions\BuildFormStepsAction;
 use Capell\FormBuilder\Actions\BuildFormValidationRulesAction;
 use Capell\FormBuilder\Actions\CalculateFormFieldValuesAction;
+use Capell\FormBuilder\Actions\CreateFormPaymentCheckoutRedirectUrlAction;
 use Capell\FormBuilder\Actions\CreateSubmissionAction;
+use Capell\FormBuilder\Actions\DispatchUnstoredFormSubmissionAction;
 use Capell\FormBuilder\Actions\ResolveVisibleFormFieldsAction;
 use Capell\FormBuilder\Data\FormFieldData;
 use Capell\FormBuilder\Data\FormSettingsData;
 use Capell\FormBuilder\Data\FormStepData;
 use Capell\FormBuilder\Data\SubmissionMetaData;
 use Capell\FormBuilder\Enums\FormFieldType;
-use Capell\FormBuilder\Events\FormSubmitted;
 use Capell\FormBuilder\Models\Form;
+use Capell\FormBuilder\Models\Submission;
 use Capell\Frontend\Actions\Performance\RecordExtensionRenderContributionAction;
 use Capell\Frontend\Facades\Frontend;
 use Illuminate\Contracts\View\View;
@@ -61,7 +63,7 @@ final class FormComponent extends Component
         }
 
         foreach ($this->allFields() as $field) {
-            $this->data[$field->key] = $field->defaultValue;
+            $this->data[$field->key] = $this->defaultValueForField($field);
         }
 
         $this->currentStepKey = $this->firstStepKey();
@@ -111,33 +113,38 @@ final class FormComponent extends Component
         $settings = $this->settings();
         $this->assertSubmissionIsNotRateLimited($form);
 
-        if ($this->hasTriggeredHoneypot()) {
+        if (! $this->hasTriggeredHoneypot()) {
+            $this->data = CalculateFormFieldValuesAction::run($form, $this->data);
+            $this->validate($this->rules($this->data));
+        }
+
+        try {
             if ($settings->storeSubmissions) {
-                CreateSubmissionAction::run(
+                $submission = CreateSubmissionAction::run(
                     form: $form,
                     input: $this->data,
                     meta: $metadata,
                 );
+
+                $this->submitted = true;
+                $this->reset('data');
+
+                if ($this->redirectToPaymentCheckout($submission)) {
+                    return;
+                }
+
+                $this->redirectAfterSuccess($settings);
+
+                return;
             }
 
-            $this->submitted = true;
-            $this->reset('data');
-
-            return;
-        }
-
-        $this->data = CalculateFormFieldValuesAction::run($form, $this->data);
-
-        $this->validate($this->rules($this->data));
-
-        if ($settings->storeSubmissions) {
-            CreateSubmissionAction::run(
+            DispatchUnstoredFormSubmissionAction::run(
                 form: $form,
                 input: $this->data,
                 meta: $metadata,
             );
-        } else {
-            event(new FormSubmitted($form, metadata: $metadata, payload: $this->storedPayload()));
+        } catch (ValidationException $validationException) {
+            throw $this->normalizeActionValidationException($validationException);
         }
 
         $this->submitted = true;
@@ -159,6 +166,7 @@ final class FormComponent extends Component
             'formInstanceId' => $this->instanceId,
             'currentStep' => $this->currentStep(),
             'currentStepIndex' => $this->currentStepIndex(),
+            'hasPaymentField' => $this->hasPaymentField(),
             'settings' => $this->settings(),
             'steps' => $this->steps(),
         ]);
@@ -300,6 +308,15 @@ final class FormComponent extends Component
         return (string) Str::uuid();
     }
 
+    private function defaultValueForField(FormFieldData $field): mixed
+    {
+        if ($field->type === FormFieldType::Payment && is_int($field->paymentAmountCents) && $field->paymentAmountCents > 0) {
+            return $field->paymentAmountCents;
+        }
+
+        return $field->defaultValue;
+    }
+
     /**
      * @return Collection<int, FormFieldData>
      */
@@ -353,12 +370,10 @@ final class FormComponent extends Component
 
         $steps = BuildFormStepsAction::run($form, $this->data);
 
-        if ($steps->isNotEmpty() && ! $steps->contains(fn (FormStepData $step): bool => $step->key === $this->currentStepKey)) {
+        if ($steps->isNotEmpty() && $steps->doesntContain(fn (FormStepData $step): bool => $step->key === $this->currentStepKey)) {
             $firstStep = $steps->first();
 
-            if ($firstStep instanceof FormStepData) {
-                $this->currentStepKey = $firstStep->key;
-            }
+            $this->currentStepKey = $firstStep->key;
         }
 
         return $steps;
@@ -416,8 +431,11 @@ final class FormComponent extends Component
     private function isFinalStep(): bool
     {
         $steps = $this->steps();
+        if ($steps->count() <= 1) {
+            return true;
+        }
 
-        return $steps->count() <= 1 || $this->currentStepIndex() >= $steps->count() - 1;
+        return $this->currentStepIndex() >= $steps->count() - 1;
     }
 
     private function settings(): FormSettingsData
@@ -469,24 +487,23 @@ final class FormComponent extends Component
             ->all();
     }
 
-    /**
-     * @return array<string, mixed>
-     */
-    private function storedPayload(): array
+    private function metadata(): SubmissionMetaData
     {
-        $payload = [];
+        $request = request();
+        $settings = $this->settings();
 
-        foreach ($this->visibleFields() as $field) {
-            if (! $field->type->isStoredInPayload()) {
-                continue;
-            }
+        return new SubmissionMetaData(
+            ipAddress: $settings->collectIpAddress ? $request->ip() : null,
+            userAgent: $settings->collectUserAgent ? $request->userAgent() : null,
+            url: $request->fullUrl(),
+            referer: $request->headers->get('referer'),
+        );
+    }
 
-            if (array_key_exists($field->key, $this->data)) {
-                $payload[$field->key] = $this->data[$field->key];
-            }
-        }
-
-        return $payload;
+    private function hasPaymentField(): bool
+    {
+        return $this->allFields()
+            ->contains(static fn (FormFieldData $field): bool => $field->type === FormFieldType::Payment);
     }
 
     private function hasTriggeredHoneypot(): bool
@@ -504,17 +521,29 @@ final class FormComponent extends Component
         return false;
     }
 
-    private function metadata(): SubmissionMetaData
+    private function redirectToPaymentCheckout(Submission $submission): bool
     {
-        $request = request();
-        $settings = $this->settings();
+        $checkoutUrl = CreateFormPaymentCheckoutRedirectUrlAction::run($submission);
 
-        return new SubmissionMetaData(
-            ipAddress: $settings->collectIpAddress ? $request->ip() : null,
-            userAgent: $settings->collectUserAgent ? $request->userAgent() : null,
-            url: $request->fullUrl(),
-            referer: $request->headers->get('referer'),
-        );
+        if ($checkoutUrl === null) {
+            return false;
+        }
+
+        $this->redirect($checkoutUrl);
+
+        return true;
+    }
+
+    private function normalizeActionValidationException(ValidationException $exception): ValidationException
+    {
+        $messages = [];
+
+        foreach ($exception->errors() as $key => $fieldMessages) {
+            $fieldKey = (string) $key;
+            $messages[str_starts_with($fieldKey, 'data.') ? $fieldKey : 'data.' . $fieldKey] = $fieldMessages;
+        }
+
+        return ValidationException::withMessages($messages);
     }
 
     private function currentSite(): ?Site

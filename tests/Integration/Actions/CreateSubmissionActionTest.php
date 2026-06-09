@@ -5,16 +5,26 @@ declare(strict_types=1);
 use Capell\FormBuilder\Actions\BuildSubmissionsCsvAction;
 use Capell\FormBuilder\Actions\CreateSubmissionAction;
 use Capell\FormBuilder\Actions\SendSubmissionNotificationAction;
+use Capell\FormBuilder\Contracts\FormBuilderWebhookHostResolver;
 use Capell\FormBuilder\Data\SubmissionMetaData;
 use Capell\FormBuilder\Enums\SubmissionStatus;
 use Capell\FormBuilder\Events\FormSubmitted;
 use Capell\FormBuilder\Mail\FormSubmissionNotificationMail;
 use Capell\FormBuilder\Models\Form;
 use Capell\FormBuilder\Models\Submission;
+use Capell\FormBuilder\Tests\Fixtures\StaticFormBuilderWebhookHostResolver;
+use GuzzleHttp\Promise\PromiseInterface;
+use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
+
+beforeEach(function (): void {
+    app()->instance(FormBuilderWebhookHostResolver::class, new StaticFormBuilderWebhookHostResolver([
+        'hooks.example.test' => ['93.184.216.34'],
+    ]));
+});
 
 it('validates and stores a submission', function (): void {
     Event::fake([FormSubmitted::class]);
@@ -43,7 +53,15 @@ it('validates and stores a submission', function (): void {
         ->and($submission->payload->values)->toBe(['email' => 'ben@example.com'])
         ->and($submission->status)->toBe(SubmissionStatus::New);
 
-    Event::assertDispatched(FormSubmitted::class);
+    Event::assertDispatched(
+        FormSubmitted::class,
+        fn (FormSubmitted $event): bool => $event->submission?->is($submission)
+            && $event->payload === ['email' => 'ben@example.com']
+            && $event->submissionData->stored
+            && $event->submissionData->submissionId === $submission->getKey()
+            && $event->submissionData->payload->values === ['email' => 'ben@example.com']
+            && $event->submissionData->metadata->ipAddress === '127.0.0.1',
+    );
 });
 
 it('does not store honeypot values in payload', function (): void {
@@ -81,8 +99,8 @@ it('stores triggered honeypot submissions as spam without dispatching submission
 
     expect($submission->status)->toBe(SubmissionStatus::Spam)
         ->and($submission->payload->values)->toBe([])
-        ->and($submission->meta?->spamScore)->toBe(100)
-        ->and($submission->meta?->spamReasons)->toContain('honeypot');
+        ->and($submission->meta->spamScore)->toBe(100)
+        ->and($submission->meta->spamReasons)->toContain('honeypot');
 
     Event::assertNotDispatched(FormSubmitted::class);
 });
@@ -113,8 +131,8 @@ it('stores scored spam submissions without dispatching submission events', funct
             'email' => 'person@example.com',
             'message' => 'rank-fast https://one.example https://two.example https://three.example https://four.example',
         ])
-        ->and($submission->meta?->spamScore)->toBeGreaterThanOrEqual(75)
-        ->and($submission->meta?->spamReasons)->toContain('too_many_links');
+        ->and($submission->meta->spamScore)->toBeGreaterThanOrEqual(75)
+        ->and($submission->meta->spamReasons)->toContain('too_many_links');
 
     Event::assertNotDispatched(FormSubmitted::class);
 });
@@ -246,9 +264,14 @@ it('exports stored submissions to csv', function (): void {
 });
 
 it('dispatches configured submission webhooks after successful stored submissions', function (): void {
-    Http::fake([
-        'https://hooks.example.test/form' => Http::response(['ok' => true]),
-    ]);
+    /** @var array<string, mixed>|null $requestOptions */
+    $requestOptions = null;
+
+    Http::fake(function (Request $request, array $options) use (&$requestOptions): PromiseInterface {
+        $requestOptions = $options;
+
+        return Http::response(['ok' => true]);
+    });
 
     $form = Form::factory()->create([
         'settings' => [
@@ -268,8 +291,58 @@ it('dispatches configured submission webhooks after successful stored submission
 
     Http::assertSent(fn ($request): bool => $request->url() === 'https://hooks.example.test/form'
         && $request['event'] === 'form.submitted'
+        && $request->hasHeader('Host', 'hooks.example.test')
         && $request['form']['handle'] === $form->handle
         && $request['submission']['payload']['email'] === 'ben@example.com');
+
+    expect(data_get($requestOptions, 'allow_redirects'))->toBeFalse()
+        ->and(data_get($requestOptions, 'curl.' . CURLOPT_RESOLVE))->toBe(['hooks.example.test:443:93.184.216.34']);
+});
+
+it('blocks configured submission webhooks to private hosts', function (): void {
+    Http::fake();
+
+    $form = Form::factory()->create([
+        'settings' => [
+            'store_submissions' => true,
+            'webhook_url' => 'https://127.0.0.1/form',
+        ],
+        'schema' => [
+            ['key' => 'email', 'label' => 'Email', 'type' => 'email', 'required' => true, 'validation_rules' => ['email']],
+        ],
+    ]);
+
+    $submission = CreateSubmissionAction::run(
+        form: $form,
+        input: ['email' => 'ben@example.com'],
+        meta: new SubmissionMetaData(url: 'https://example.test/contact'),
+    );
+
+    expect($submission->exists)->toBeTrue();
+
+    Http::assertNothingSent();
+});
+
+it('blocks plaintext configured submission webhooks by default', function (): void {
+    Http::fake();
+
+    $form = Form::factory()->create([
+        'settings' => [
+            'store_submissions' => true,
+            'webhook_url' => 'http://hooks.example.test/form',
+        ],
+        'schema' => [
+            ['key' => 'email', 'label' => 'Email', 'type' => 'email', 'required' => true, 'validation_rules' => ['email']],
+        ],
+    ]);
+
+    CreateSubmissionAction::run(
+        form: $form,
+        input: ['email' => 'ben@example.com'],
+        meta: new SubmissionMetaData(url: 'https://example.test/contact'),
+    );
+
+    Http::assertNothingSent();
 });
 
 it('keeps stored submissions when configured webhooks fail', function (): void {

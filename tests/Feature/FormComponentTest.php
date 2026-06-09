@@ -22,7 +22,9 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 
 use function Pest\Livewire\livewire;
 
@@ -516,13 +518,15 @@ it('stores file upload metadata through the Livewire form path', function (): vo
 
     $payload = formComponentSubmissionPayload(Submission::query()->firstOrFail());
 
-    expect($payload->values['brief']['original_name'] ?? null)->toBe('brief.pdf')
-        ->and($payload->values['brief']['mime_type'] ?? null)->toBeString()
-        ->and($payload->values['brief']['size'] ?? null)->toBeInt()
-        ->and($payload->values['brief']['disk'] ?? null)->toBe('form-builder-test')
-        ->and($payload->values['brief']['path'] ?? null)->toBeString();
+    $fileReference = formComponentStoredFileReference($payload, 'brief');
 
-    Storage::disk('form-builder-test')->assertExists($payload->values['brief']['path']);
+    expect($fileReference['original_name'])->toBe('brief.pdf')
+        ->and($fileReference['mime_type'])->toBeString()
+        ->and($fileReference['size'])->toBeInt()
+        ->and($fileReference['disk'])->toBe('form-builder-test')
+        ->and($fileReference['path'])->toBeString();
+
+    Storage::disk('form-builder-test')->assertExists($fileReference['path']);
 });
 
 it('stores payment field values through the Livewire form path', function (): void {
@@ -543,12 +547,51 @@ it('stores payment field values through the Livewire form path', function (): vo
     bindFormBuilderFrontendSite($form->site);
 
     livewire(FormComponent::class, ['handle' => 'payment-form'])
+        ->assertSee(__('capell-form-builder::form.continue_to_payment'))
+        ->assertSee(__('capell-form-builder::form.payment_fixed_amount', ['amount' => '25.00', 'currency' => 'GBP']))
         ->set('data.amount_cents', 2500)
         ->call('submit')
         ->assertHasNoErrors()
         ->assertSet('submitted', true);
 
     expect(formComponentSubmissionPayload(Submission::query()->firstOrFail())->values)->toBe([
+        'amount_cents' => 2500,
+    ]);
+});
+
+it('redirects payment form submissions to a signed Payments checkout URL when Payments is installed', function (): void {
+    URL::forceRootUrl('https://example.test');
+    URL::forceScheme('https');
+
+    Route::get('capell/payments/forms/{submission}/checkout', static fn (): string => '')
+        ->middleware('signed')
+        ->name('capell-payments.form-builder.checkout');
+
+    $form = Form::factory()->create([
+        'name' => 'Payment form',
+        'handle' => 'payment-checkout-form',
+        'schema' => [
+            [
+                'key' => 'amount_cents',
+                'label' => 'Amount',
+                'type' => FormFieldType::Payment->value,
+                'required' => true,
+                'payment_amount_cents' => 2500,
+                'payment_currency' => 'GBP',
+            ],
+        ],
+    ]);
+    bindFormBuilderFrontendSite($form->site);
+
+    livewire(FormComponent::class, ['handle' => 'payment-checkout-form'])
+        ->call('submit')
+        ->assertHasNoErrors()
+        ->assertSet('submitted', true)
+        ->assertRedirect();
+
+    $submission = Submission::query()->firstOrFail();
+
+    expect(formComponentSubmissionPayload($submission)->values)->toBe([
         'amount_cents' => 2500,
     ]);
 });
@@ -622,7 +665,10 @@ it('dispatches submitted payloads when submissions are not stored', function ():
 
     Event::assertDispatched(
         FormSubmitted::class,
-        fn (FormSubmitted $event): bool => $event->payload === ['email' => 'ben@example.com'],
+        fn (FormSubmitted $event): bool => $event->submission === null
+            && $event->payload === ['email' => 'ben@example.com']
+            && ! $event->submissionData->stored
+            && $event->submissionData->payload->values === ['email' => 'ben@example.com'],
     );
 
     expect(Submission::query()->count())->toBe(0);
@@ -935,4 +981,27 @@ function formComponentSubmissionMeta(Submission $submission): SubmissionMetaData
     throw_unless($meta instanceof SubmissionMetaData, RuntimeException::class, 'Expected form submission meta data to be cast.');
 
     return $meta;
+}
+
+/**
+ * @return array{original_name: string, mime_type: string, size: int, disk: string, path: string}
+ */
+function formComponentStoredFileReference(SubmissionPayloadData $payload, string $key): array
+{
+    $fileReference = $payload->values[$key] ?? null;
+
+    throw_unless(is_array($fileReference), RuntimeException::class, 'Expected stored file reference array.');
+    throw_unless(is_string($fileReference['original_name'] ?? null), RuntimeException::class, 'Expected stored file original name.');
+    throw_unless(is_string($fileReference['mime_type'] ?? null), RuntimeException::class, 'Expected stored file MIME type.');
+    throw_unless(is_int($fileReference['size'] ?? null), RuntimeException::class, 'Expected stored file size.');
+    throw_unless(is_string($fileReference['disk'] ?? null), RuntimeException::class, 'Expected stored file disk.');
+    throw_unless(is_string($fileReference['path'] ?? null), RuntimeException::class, 'Expected stored file path.');
+
+    return [
+        'original_name' => $fileReference['original_name'],
+        'mime_type' => $fileReference['mime_type'],
+        'size' => $fileReference['size'],
+        'disk' => $fileReference['disk'],
+        'path' => $fileReference['path'],
+    ];
 }

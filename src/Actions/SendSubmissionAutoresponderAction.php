@@ -19,7 +19,7 @@ class SendSubmissionAutoresponderAction
     {
         $submission->loadMissing('form');
 
-        $settings = $submission->form?->settings;
+        $settings = $submission->form->settings;
         $subject = is_string($settings?->autoresponderSubject) ? trim($settings->autoresponderSubject) : '';
         $body = is_string($settings?->autoresponderBody) ? trim($settings->autoresponderBody) : '';
 

@@ -138,7 +138,7 @@ it('hides the reply action from users without reply permission', function (): vo
     Permission::findOrCreate('ViewAny:Submission');
     $form = Form::factory()->create();
     $submission = Submission::factory()->for($form)->create();
-    $user = test()->createUserWithPermission('ViewAny:Submission');
+    $user = formBuilderTestUser(test()->createUserWithPermission('ViewAny:Submission'));
     assignFormBuilderSiteRole($user, (int) $form->site_id, ['ViewAny:Submission']);
 
     test()->actingAs($user);
@@ -315,7 +315,7 @@ it('denies reply to site-scoped users with update permission only', function ():
             ],
         ],
     ]);
-    $user = test()->createUser();
+    $user = formBuilderTestUser(test()->createUser());
     assignFormBuilderSiteRole($user, (int) $form->site_id, ['ViewAny:Submission', 'Update:Submission']);
 
     test()->actingAs($user);
@@ -362,7 +362,7 @@ it('allows role-only site-scoped users to reply and triage submissions', functio
         ],
         'status' => SubmissionStatus::New,
     ]);
-    $user = test()->createUser();
+    $user = formBuilderTestUser(test()->createUser());
     assignFormBuilderSiteRole($user, (int) $form->site_id, ['ViewAny:Submission', 'Reply:Submission', 'Update:Submission']);
 
     test()->actingAs($user);
@@ -450,7 +450,7 @@ it('allows direct site-scoped submission permissions without a role assignment',
     $otherForm = Form::factory()->create(['name' => 'Other direct permission form']);
     $submission = Submission::factory()->for($form)->create();
     $otherSubmission = Submission::factory()->for($otherForm)->create();
-    $user = test()->createUser();
+    $user = formBuilderTestUser(test()->createUser());
     assignFormBuilderSitePermission($user, (int) $form->site_id, 'ViewAny:Submission');
 
     test()->actingAs($user);
@@ -471,7 +471,7 @@ it('memoizes site-scoped permission lookups per actor and ability set', function
     Permission::findOrCreate('ViewAny:Submission');
 
     $form = Form::factory()->create();
-    $user = test()->createUser();
+    $user = formBuilderTestUser(test()->createUser());
     assignFormBuilderSitePermission($user, (int) $form->site_id, 'ViewAny:Submission');
     $permissionQueries = 0;
 
@@ -518,4 +518,11 @@ function assignFormBuilderSitePermission(User $user, int $siteId, string $permis
         'model_id' => $user->getKey(),
         'team_id' => $siteId,
     ]);
+}
+
+function formBuilderTestUser(mixed $user): User
+{
+    throw_unless($user instanceof User, RuntimeException::class, 'Expected Capell test user fixture.');
+
+    return $user;
 }

@@ -13,19 +13,14 @@
         "bundle": "form-builder"
     },
     "namespace": "Capell\\FormBuilder",
-    "surfaces": [
-        "admin",
-        "frontend"
-    ],
+    "surfaces": ["admin", "frontend"],
     "dependencies": {
         "requires": [
             "capell-app/admin",
             "capell-app/core",
             "capell-app/frontend"
         ],
-        "supports": [
-            "capell-app/payments"
-        ],
+        "supports": ["capell-app/payments"],
         "conflicts": []
     },
     "providers": {
@@ -68,10 +63,7 @@
     "database": {
         "migrations": true,
         "settings": false,
-        "requiredTables": [
-            "forms",
-            "submissions"
-        ]
+        "requiredTables": ["forms", "submissions"]
     },
     "commands": {
         "install": null,
@@ -82,10 +74,13 @@
     "actions": {
         "archiveSubmission": "Capell\\FormBuilder\\Actions\\ArchiveSubmissionAction",
         "buildFormSteps": "Capell\\FormBuilder\\Actions\\BuildFormStepsAction",
+        "buildSubmissionPayloadData": "Capell\\FormBuilder\\Actions\\BuildSubmissionPayloadDataAction",
         "buildFormValidationRules": "Capell\\FormBuilder\\Actions\\BuildFormValidationRulesAction",
         "calculateFormFieldValues": "Capell\\FormBuilder\\Actions\\CalculateFormFieldValuesAction",
         "calculateSubmissionSpamScore": "Capell\\FormBuilder\\Actions\\CalculateSubmissionSpamScoreAction",
+        "createFormPaymentCheckoutRedirectUrl": "Capell\\FormBuilder\\Actions\\CreateFormPaymentCheckoutRedirectUrlAction",
         "createSubmission": "Capell\\FormBuilder\\Actions\\CreateSubmissionAction",
+        "dispatchUnstoredFormSubmission": "Capell\\FormBuilder\\Actions\\DispatchUnstoredFormSubmissionAction",
         "evaluateFormFieldVisibility": "Capell\\FormBuilder\\Actions\\EvaluateFormFieldVisibilityAction",
         "markSubmissionRead": "Capell\\FormBuilder\\Actions\\MarkSubmissionReadAction",
         "markSubmissionSpam": "Capell\\FormBuilder\\Actions\\MarkSubmissionSpamAction",
@@ -113,9 +108,7 @@
     "performance": {
         "frontendRenderBudgetMs": 20,
         "adminQueryBudget": 40,
-        "cacheTags": [
-            "form-builder"
-        ],
+        "cacheTags": ["form-builder"],
         "cacheSafety": {
             "cacheable": false,
             "variesBy": [],
@@ -174,11 +167,7 @@
                 "caption": "Form Builder extension preview"
             }
         ],
-        "categories": [
-            "admin",
-            "form-builder",
-            "frontend"
-        ]
+        "categories": ["admin", "form-builder", "frontend"]
     },
     "contributionTraceability": {
         "deferredContributions": []

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Capell\FormBuilder\Actions\BuildSubmissionsCsvAction;
 use Capell\FormBuilder\Actions\CreateSubmissionAction;
+use Capell\FormBuilder\Actions\RedactSubmissionWebhookErrorMessageAction;
 use Capell\FormBuilder\Actions\SendSubmissionNotificationAction;
 use Capell\FormBuilder\Contracts\FormBuilderWebhookHostResolver;
 use Capell\FormBuilder\Data\SubmissionMetaData;
@@ -368,4 +369,18 @@ it('keeps stored submissions when configured webhooks fail', function (): void {
 
     expect($submission->exists)->toBeTrue()
         ->and(Submission::query()->whereKey($submission->getKey())->exists())->toBeTrue();
+});
+
+it('redacts secret-like values from submission webhook error messages', function (): void {
+    $message = RedactSubmissionWebhookErrorMessageAction::run(
+        'Authorization: Bearer bearer-token-secret api_key=form-webhook-secret token=query-token-secret',
+        'https://hooks.example.test/form?api_key=form-webhook-secret&token=query-token-secret',
+    );
+
+    expect($message)->toContain('Authorization: Bearer [redacted]')
+        ->and($message)->toContain('api_key=[redacted]')
+        ->and($message)->toContain('token=[redacted]')
+        ->and($message)->not->toContain('bearer-token-secret')
+        ->and($message)->not->toContain('form-webhook-secret')
+        ->and($message)->not->toContain('query-token-secret');
 });

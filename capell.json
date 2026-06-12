@@ -119,7 +119,10 @@
         "sensitiveData": {
             "encryptedFields": [],
             "hashedTokenFields": [],
-            "redactedOutputClasses": [],
+            "redactedOutputClasses": [
+                "Capell\\FormBuilder\\Actions\\DispatchSubmissionWebhookAction",
+                "Capell\\FormBuilder\\Actions\\RedactSubmissionWebhookErrorMessageAction"
+            ],
             "plaintextJustifications": []
         },
         "publicOutput": {

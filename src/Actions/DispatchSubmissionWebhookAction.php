@@ -60,7 +60,7 @@ final class DispatchSubmissionWebhookAction
                 'form_id' => $form->getKey(),
                 'submission_id' => $submission->getKey(),
                 'exception' => $throwable::class,
-                'message' => $throwable->getMessage(),
+                'message' => RedactSubmissionWebhookErrorMessageAction::run($throwable, $url),
             ]);
         }
     }

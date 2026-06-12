@@ -186,7 +186,7 @@ final class SubmissionSiteAccess
             self::modelIdString($actor),
             self::teamColumn(),
             implode(',', $permissionNames->sort()->values()->all()),
-            md5(json_encode($tables, JSON_THROW_ON_ERROR)),
+            hash('sha256', json_encode($tables, JSON_THROW_ON_ERROR)),
         ]);
     }
 

@@ -120,7 +120,7 @@ class FormBuilderServiceProvider extends AbstractPackageServiceProvider
 
     private function registerModels(): self
     {
-        CapellCore::registerModels([
+        $this->surface()->models([
             Form::class,
             Submission::class,
         ]);

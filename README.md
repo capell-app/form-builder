@@ -1,156 +1,107 @@
 # Form Builder
 
-FormBuilder adds form definitions, encrypted submissions, frontend Livewire rendering, conditional logic, multi-step forms, calculations, file upload rules, spam scoring, payment fields, and submission workflows to Capell.
+<!-- prettier-ignore-start -->
 
-## At A Glance
+## What This Plugin Adds
 
-- Package: `capell-app/form-builder`
-- Namespace: `Capell\FormBuilder\`
-- Surfaces: Filament admin resource, frontend Livewire, database
-- Service providers: `packages/form-builder/src/Providers/FormBuilderServiceProvider.php`
-- Capell dependencies: `capell-app/admin`, `capell-app/core`, `capell-app/frontend`
+Form Builder is an **Available**, **Schema-owning** Capell package in the **Capell FormBuilder** product group. It ships as `capell-app/form-builder` and extends these surfaces: admin, frontend.
 
-## Why It Helps Your Capell Workflow
+Build site-scoped forms in Capell and capture spam-filtered, encrypted submissions into a per-site triage inbox with one-click email replies.
 
-- Lets editors build and publish forms while the package owns encrypted submissions, validation, notifications, and status handling.
-- Helps owners collect leads, enquiries, and operational requests without custom Livewire work for every form.
-- Gives developers a predictable form/submission model that can connect to Public Actions, Email Studio, and campaign workflows.
+After install, admins get package-owned management surfaces and public users may see package-owned frontend output or routes.
 
-## Best Used With
+Status details:
 
-- [Public Actions](../public-actions/README.md)
-- [Email Studio](../email-studio/README.md)
-- [Campaign Studio](../campaign-studio/README.md)
-
-## What It Adds
-
-FormBuilder adds form definitions, encrypted submissions, frontend Livewire rendering, conditional logic, multi-step forms, calculations, file upload rules, spam scoring, payment fields, and submission workflows to Capell.
-
-- Form and submission models.
-- Admin submissions resource under the reports navigation group.
-- Frontend Livewire form component.
-- Actions for validation, conditional visibility, multi-step grouping, calculations, spam scoring, submission creation, archiving, read state, and spam marking.
-- FormSubmitted event.
-- Configurable submission storage, request metadata collection, file upload rules, payment field metadata, notifications, and replies.
+- Status: Available
+- Tier: premium
+- Bundle: form-builder
+- Composer package: `capell-app/form-builder`
+- Namespace: `Capell\FormBuilder`
+- Theme key: not applicable
 
 ## Why It Matters
 
-**For developers:** Keeps form schema, settings, submission payload, and metadata in data objects and casts so form handling remains typed across layers.
+**For developers:** The package gives developers package-owned service providers, Actions, Data objects, models, Filament classes, and Blade views instead of pushing this behaviour into core or application code.
 
-**For teams:** Lets editors collect responses from structured websites while keeping submission review inside the Capell admin workflow.
-
-## Built With
-
-This package makes its Composer dependencies visible because they are part of the value proposition, not just plumbing. When an upstream package has a public repository, its linked preview card points readers back to the maintainers so their work gets proper credit.
-
-**Capell packages used here**
-
-- [Capell Admin](https://github.com/capell-app/admin)
-- [Capell Core](https://github.com/capell-app/core)
-- [Capell Frontend](https://github.com/capell-app/frontend)
-
-**Open-source packages used here**
-
-- No extra third-party Composer package beyond the Capell package stack is required here.
+**For teams:** Build site-scoped forms in Capell and capture spam-filtered, encrypted submissions into a per-site triage inbox with one-click email replies.
 
 ## Screens And Workflow
 
-Screenshots are generated from [docs/screenshots.json](docs/screenshots.json) during package deployment.
+Screenshot contract: `docs/screenshots.json`.
 
-- FormBuilder admin index.
-- Create/edit form schema screen.
-- Submissions index.
-- Frontend form output.
-- Submission detail view.
+- FormBuilder admin index (admin, required).
+- Create/edit form schema screen (admin, required).
+- Submissions index (admin, required).
+- Frontend form output (frontend, required).
+- Submission detail view (admin, required).
 
 ## Technical Shape
 
-- FormBuilderServiceProvider registers the package.
-- Config file: capell-form-builder.php.
-- Migrations create form-builder and submissions.
-- Models: Form and Submission.
-- Livewire component: FormComponent.
-- EncryptedDataCast protects stored submission data.
-
-## Code Map
-
-| Area      | Path                                  | Purpose                                                             |
-| --------- | ------------------------------------- | ------------------------------------------------------------------- |
-| Actions   | `packages/form-builder/src/Actions`   | Domain operations. Test these directly where possible.              |
-| Data      | `packages/form-builder/src/Data`      | Structured payloads, form state, view models, and integration data. |
-| Enums     | `packages/form-builder/src/Enums`     | Persisted states and Filament option values.                        |
-| Models    | `packages/form-builder/src/Models`    | Eloquent records owned by the package.                              |
-| Livewire  | `packages/form-builder/src/Livewire`  | Interactive frontend or admin components.                           |
-| Providers | `packages/form-builder/src/Providers` | Registration, extension hooks, routes, migrations, and resources.   |
-| Resources | `packages/form-builder/resources`     | Views, translations, assets, and package resources.                 |
-| Config    | `packages/form-builder/config`        | Package configuration and publishable config.                       |
-| Database  | `packages/form-builder/database`      | Migrations, seeders, and settings migrations.                       |
-| Tests     | `packages/form-builder/tests`         | Package-level Pest coverage.                                        |
-
-## Runtime Surface
-
-- Livewire: `FormComponent`.
-
-## Data And Persistence
-
-- form-builder belongs to sites and stores handle, schema, settings, and active state.
-- submissions belongs to form-builder and sites and stores payload, meta, status, and submitted_at.
-- Submission payload and metadata are represented by data objects.
-- Deletion and retention rules should be verified against the host application policy.
-
+- Service providers: `Capell\FormBuilder\Providers\FormBuilderServiceProvider`.
+- Config files: `packages/form-builder/config/capell-form-builder.php`.
+- Migrations: `packages/form-builder/database/migrations/2026_05_10_190849_01_create_form-builder_table.php`, `packages/form-builder/database/migrations/2026_05_10_190849_02_create_submissions_table.php`.
 - Models: `Form`, `Submission`.
-- Migrations: `2026_05_10_190849_01_create_form-builder_table.php`, `2026_05_10_190849_02_create_submissions_table.php`.
-- Config: `packages/form-builder/config/capell-form-builder.php`.
-- Data objects live in `src/Data/`; use them for payloads, form state, and view models.
-
-## Extension Points
-
+- Filament classes: `FormResource`, `CreateForm`, `EditForm`, `ListForms`, `ListSubmissions`, `SubmissionResource`, `SubmissionsTable`.
+- Livewire components: `FormComponent`, `FormElementComponent`.
+- Policies: `FormPolicy`, `SubmissionPolicy`.
 - Events: `FormSubmitted`.
-- Register Capell extension points, routes, migrations, settings, render hooks, and resources from service providers.
+- Actions: `ArchiveSubmissionAction`, `BuildFormStepsAction`, `BuildFormValidationRulesAction`, `BuildSubmissionPayloadDataAction`, `BuildSubmissionPayloadEntriesAction`, `BuildSubmissionsCsvAction`, `CalculateFormFieldValuesAction`, `CalculateSubmissionSpamScoreAction`, `CreateFormPaymentCheckoutRedirectUrlAction`, `CreateSubmissionAction`, `DispatchSubmissionWebhookAction`, `DispatchUnstoredFormSubmissionAction`, `and 9 more`.
+- Data objects: `FormFieldConditionData`, `FormFieldData`, `FormSettingsData`, `FormStepData`, `FormSubmissionData`, `ResolvedFormWebhookEndpointData`, `SubmissionMetaData`, `SubmissionPayloadData`, `SubmissionSpamScoreData`.
+- Console command classes: `ExportSubmissionsCommand`.
+- Manifest contributions: `admin-resource: Capell\FormBuilder\Manifest\FormResourceContribution`, `admin-resource: Capell\FormBuilder\Manifest\SubmissionResourceContribution`, `frontend-component: Capell\FormBuilder\Manifest\FormElementComponentContribution`, `model: Capell\FormBuilder\Manifest\FormModelContribution`, `model: Capell\FormBuilder\Manifest\SubmissionModelContribution`.
+- Health checks: `Capell\FormBuilder\Health\FormBuilderHealthCheck`.
+- Blade views: `packages/form-builder/resources/views/filament/submissions/payload.blade.php`, `packages/form-builder/resources/views/livewire/form-element.blade.php`, `packages/form-builder/resources/views/livewire/form.blade.php`, `packages/form-builder/resources/views/mail/submission-autoresponder.blade.php`, `packages/form-builder/resources/views/mail/submission-notification.blade.php`, `packages/form-builder/resources/views/mail/submission-reply.blade.php`.
+- Cache tags: `form-builder`.
+
+## Data Model
+
+- Required tables: `forms`, `submissions`.
+- Models: `Form`, `Submission`.
+- Migration files: `2026_05_10_190849_01_create_form-builder_table.php`, `2026_05_10_190849_02_create_submissions_table.php`.
+- Migration impact: run host migrations through the package install flow before opening package surfaces.
+- Deletion/retention behaviour: Docs gap unless the package has an explicit pruning command, retention setting, or tested cascade path.
 
 ## Install Impact
 
-- Adds form-builder and submissions tables.
-- Adds frontend Livewire form component.
-- Adds config keys for storing submissions, IP address collection, user agent collection, throttling, and spam scoring.
-- No routes are visible in this package.
-
-## Install And Setup
-
-- Install with `composer require capell-app/form-builder` in the host Capell application.
-- Run migrations through the host application package install flow.
-- In this repository, verify package changes with `vendor/bin/pest`; do not use `php artisan`.
-
-## Admin And Access
-
-- Admin resource: `SubmissionResource`.
-- Navigation: Form submissions under the reports group.
-- Access is governed by `SubmissionPolicy` and site-scoped submission queries.
+- Admin navigation: adds package-owned Filament classes when registered.
+- Permissions: none declared in `capell.json`.
+- Public routes: none detected in package route files.
+- Database changes: package migrations are declared.
+- Settings: no package settings declared.
+- Queues or schedules: none detected in standard package paths.
+- Cache tags: `form-builder`.
+- Commands: console command classes detected: `ExportSubmissionsCommand`.
 
 ## Common Pitfalls
 
-- Disable IP/user agent collection where privacy policy requires it.
-- Run migrations before rendering form components.
-- Validate field schema before accepting public submissions.
-- Tune spam scoring thresholds and blocked keywords for the site’s risk profile before using automatic spam triage in production.
+- Run migrations before opening package resources or public routes.
+- Keep public Blade and cached HTML free of authoring markers, model IDs, permissions, signed editor URLs, and lazy database queries.
+- Keep `composer.json`, `composer.local.json`, `capell.json`, docs, screenshots, and tests aligned when the package surface changes.
 
-## Docs
+## Troubleshooting
 
-- [docs index](docs/README.md)
-- [credits-and-acknowledgements.md](docs/credits-and-acknowledgements.md)
-- [overview.md](docs/overview.md)
+| Symptom | Likely cause | Check | Fix |
+| --- | --- | --- | --- |
+| Package surface is missing after install | Provider or manifest is not loaded | Confirm `capell.json`, package `composer.json`, and provider registration | Reinstall the package, refresh Composer autoload, and clear host caches |
+| Admin screen or command fails on missing table | Package migrations have not run | Check the tables listed in `Data Model` | Run host migrations and rerun the focused package test |
+| Public output leaks unexpected state | Render data, cache variation, or authoring boundary has regressed | Check public Blade, cache tags, and public-output safety tests | Move data loading out of Blade and rerun the package public-output tests |
 
-## Testing
+## Quick Start
 
-Run package tests from the repository root:
+1. Install the package: `composer require capell-app/form-builder`.
+2. Run the required setup: `php artisan migrate`.
+3. Open the related Capell admin surface and verify Form Builder appears.
 
-```bash
-vendor/bin/pest packages/form-builder/tests --configuration=phpunit.xml
-```
+## Next Steps
 
-## Maintenance Notes
+- [Package docs](docs/README.md)
+- [Overview](docs/overview.md)
+- [Screenshot contract](docs/screenshots.json)
+- [Marketplace assets](docs/assets/marketplace/)
+- [Capell content language plan](../../docs/CONTENT_LANGUAGE_PLAN.md)
+- [Capell documentation design system](../../docs/DESIGN_SYSTEM.md)
+- [Capell and package ERD notes](../../docs/erd/capell-and-package-erds.md)
+- Related packages: [Payments](../payments/README.md).
+- Focused tests: `vendor/bin/pest packages/form-builder/tests --configuration=phpunit.xml`.
 
-- Treat public routes as untrusted input and keep validation, permission checks, and side effects inside actions or dedicated services.
-- Put behaviour changes in `src/Actions/`; UI classes, commands, and controllers should call actions instead of owning domain logic.
-- Use package `Data` classes at boundaries instead of passing anonymous arrays between layers.
-- Use backed enums for persisted values and enum labels for Filament options.
+<!-- prettier-ignore-end -->

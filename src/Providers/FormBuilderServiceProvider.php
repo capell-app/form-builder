@@ -58,6 +58,7 @@ class FormBuilderServiceProvider extends AbstractPackageServiceProvider
     public function registeringPackage(): void
     {
         $this->app->singleton(FormBuilderWebhookHostResolver::class, DnsFormBuilderWebhookHostResolver::class);
+        $this->registerModels();
 
         $this->app->booted(function (): void {
             if (! $this->isPackageInstalled()) {
@@ -108,7 +109,6 @@ class FormBuilderServiceProvider extends AbstractPackageServiceProvider
     private function bootInstalledPackage(): self
     {
         return $this
-            ->registerModels()
             ->registerPackageAssets()
             ->registerBlazeComponents()
             ->registerRenderables()

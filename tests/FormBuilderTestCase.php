@@ -7,6 +7,8 @@ namespace Capell\FormBuilder\Tests;
 use Capell\Admin\Providers\AdminServiceProvider;
 use Capell\Admin\Providers\Filament\AdminPanelProvider;
 use Capell\Core\Facades\CapellCore;
+use Capell\FormBuilder\Models\Form;
+use Capell\FormBuilder\Models\Submission;
 use Capell\FormBuilder\Providers\FormBuilderServiceProvider;
 use Capell\Tests\AbstractTestCase;
 use Livewire\LivewireServiceProvider;
@@ -41,5 +43,9 @@ class FormBuilderTestCase extends AbstractTestCase
 
         CapellCore::forcePackageInstalled(AdminServiceProvider::$packageName);
         CapellCore::forcePackageInstalled(FormBuilderServiceProvider::$packageName);
+        CapellCore::registerModels([
+            Form::class,
+            Submission::class,
+        ]);
     }
 }

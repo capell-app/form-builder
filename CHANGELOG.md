@@ -9,6 +9,7 @@ All notable changes to `capell-app/form-builder` will be documented in this file
 - Added form success redirect settings and queued submitter autoresponder emails for successful stored submissions.
 - Added frontend multi-step form rendering with step progress, previous/continue controls, and per-step validation before final submission.
 - Memoized site-scoped submission permission lookups per actor and ability set to reduce repeated admin list/table/filter queries.
+- Added configurable external spam protection providers, including a Turnstile verifier that contributes failed provider checks to the existing spam score.
 
 ## 2026-06-03
 

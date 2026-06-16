@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+use Capell\FormBuilder\Support\SpamProtection\NullSpamProtectionProvider;
 
 return [
     'store_submissions' => true,
@@ -15,6 +16,16 @@ return [
         'spam_threshold' => 75,
         'max_links' => 5,
         'blocked_keywords' => [],
+    ],
+    'spam_protection' => [
+        'enabled' => false,
+        'provider' => NullSpamProtectionProvider::class,
+        'token_field' => 'cf-turnstile-response',
+        'timeout_seconds' => env('CAPELL_FORM_BUILDER_SPAM_PROTECTION_TIMEOUT_SECONDS', 5),
+        'turnstile' => [
+            'site_key' => env('CAPELL_FORM_BUILDER_TURNSTILE_SITE_KEY'),
+            'secret_key' => env('CAPELL_FORM_BUILDER_TURNSTILE_SECRET_KEY'),
+        ],
     ],
     'uploads' => [
         'disk' => env('CAPELL_FORM_BUILDER_UPLOAD_DISK', 'local'),

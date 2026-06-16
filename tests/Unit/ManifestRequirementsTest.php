@@ -55,6 +55,7 @@ describe('form-builder capell.json manifest', function (): void {
                 'form-builder-calculations',
                 'form-builder-file-upload-rules',
                 'form-builder-spam-scoring',
+                'form-builder-spam-provider',
                 'form-builder-payment-fields',
                 'form-builder-submission-workflows',
             )

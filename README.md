@@ -76,6 +76,7 @@ Screenshot contract: `docs/screenshots.json`.
 
 - Run migrations before opening package resources or public routes.
 - Keep public Blade and cached HTML free of authoring markers, model IDs, permissions, signed editor URLs, and lazy database queries.
+- Configure `capell-form-builder.spam_protection.provider` when enabling external CAPTCHA protection; Turnstile expects the frontend to submit the configured token field before Form Builder verifies it server-side.
 - Keep `composer.json`, `composer.local.json`, `capell.json`, docs, screenshots, and tests aligned when the package surface changes.
 
 ## Troubleshooting

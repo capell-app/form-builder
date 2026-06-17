@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Capell\FormBuilder\Actions;
 
+use Capell\FormBuilder\Contracts\SpamProtectionProvider;
 use Capell\FormBuilder\Data\FormFieldData;
 use Capell\FormBuilder\Data\SubmissionMetaData;
 use Capell\FormBuilder\Data\SubmissionSpamScoreData;
@@ -59,6 +60,12 @@ final class CalculateSubmissionSpamScoreAction
         if ($meta->userAgent === null || trim($meta->userAgent) === '') {
             $score += 10;
             $reasons[] = 'missing_user_agent';
+        }
+
+        if ($this->spamProviderFailed($form, $input, $meta)) {
+            $provider = app(SpamProtectionProvider::class);
+            $score += 100;
+            $reasons[] = 'spam_provider:' . $provider->key() . '_failed';
         }
 
         return new SubmissionSpamScoreData(
@@ -168,5 +175,17 @@ final class CalculateSubmissionSpamScoreAction
             ->countBy();
 
         return $values->contains(static fn (int $count): bool => $count >= 3);
+    }
+
+    /**
+     * @param  array<string, mixed>  $input
+     */
+    private function spamProviderFailed(Form $form, array $input, SubmissionMetaData $meta): bool
+    {
+        if (! (bool) config('capell-form-builder.spam_protection.enabled', false)) {
+            return false;
+        }
+
+        return ! app(SpamProtectionProvider::class)->verify($form, $input, $meta);
     }
 }

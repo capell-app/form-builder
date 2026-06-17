@@ -16,6 +16,7 @@ use Capell\Core\Support\Packages\AbstractPackageServiceProvider;
 use Capell\Core\Support\Renderables\RenderableRegistry;
 use Capell\FormBuilder\Console\Commands\ExportSubmissionsCommand;
 use Capell\FormBuilder\Contracts\FormBuilderWebhookHostResolver;
+use Capell\FormBuilder\Contracts\SpamProtectionProvider;
 use Capell\FormBuilder\Enums\LivewireComponentEnum;
 use Capell\FormBuilder\Enums\ResourceEnum;
 use Capell\FormBuilder\Filament\Resources\Forms\FormResource;
@@ -27,6 +28,7 @@ use Capell\FormBuilder\Models\Submission;
 use Capell\FormBuilder\Policies\FormPolicy;
 use Capell\FormBuilder\Policies\SubmissionPolicy;
 use Capell\FormBuilder\Support\DnsFormBuilderWebhookHostResolver;
+use Capell\FormBuilder\Support\SpamProtection\NullSpamProtectionProvider;
 use Composer\InstalledVersions;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Blade;
@@ -58,6 +60,19 @@ class FormBuilderServiceProvider extends AbstractPackageServiceProvider
     public function registeringPackage(): void
     {
         $this->app->singleton(FormBuilderWebhookHostResolver::class, DnsFormBuilderWebhookHostResolver::class);
+        $this->app->singleton(SpamProtectionProvider::class, function (): SpamProtectionProvider {
+            $provider = config('capell-form-builder.spam_protection.provider', NullSpamProtectionProvider::class);
+
+            if (! is_string($provider) || ! class_exists($provider)) {
+                return new NullSpamProtectionProvider;
+            }
+
+            $instance = $this->app->make($provider);
+
+            return $instance instanceof SpamProtectionProvider
+                ? $instance
+                : new NullSpamProtectionProvider;
+        });
         $this->registerModels();
 
         $this->app->booted(function (): void {

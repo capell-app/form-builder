@@ -136,7 +136,8 @@
             "requiresTimeouts": true,
             "requiresSecretRedaction": true,
             "clients": [
-                "Capell\\FormBuilder\\Actions\\DispatchSubmissionWebhookAction"
+                "Capell\\FormBuilder\\Actions\\DispatchSubmissionWebhookAction",
+                "Capell\\FormBuilder\\Support\\SpamProtection\\TurnstileSpamProtectionProvider"
             ]
         },
         "adminSurface": {

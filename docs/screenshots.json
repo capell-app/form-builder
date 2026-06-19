@@ -16,10 +16,7 @@
             "notes": "Capture after installing capell-app/form-builder in the isolated demo harness and seeding the data required for this use case.",
             "useCase": "An administrator reviews form definitions and their publication/status state.",
             "screenshotPath": "packages/form-builder/docs/screenshots/form-builder-admin-index.png",
-            "darkScreenshotPath": "packages/form-builder/docs/screenshots/form-builder-admin-index-dark.png",
-            "covers": [
-                "packages/form-builder/src/Filament/Resources/Submissions/Tables/SubmissionsTable.php"
-            ]
+            "darkScreenshotPath": "packages/form-builder/docs/screenshots/form-builder-admin-index-dark.png"
         },
         {
             "id": "create-edit-form-schema-screen",

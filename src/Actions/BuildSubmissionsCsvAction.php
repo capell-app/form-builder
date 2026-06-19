@@ -122,12 +122,34 @@ final class BuildSubmissionsCsvAction
         }
 
         if (is_scalar($value)) {
-            return (string) $value;
+            return $this->neutraliseFormulaInjection((string) $value);
         }
 
         $json = json_encode($value, JSON_THROW_ON_ERROR);
 
-        return is_string($json) ? $json : '';
+        return is_string($json) ? $this->neutraliseFormulaInjection($json) : '';
+    }
+
+    /**
+     * Prefix a single apostrophe to any cell whose first character could be
+     * interpreted as a formula by a spreadsheet application (Excel, Sheets,
+     * LibreOffice). Without this, opening an exported CSV that contains
+     * attacker-controlled submission values can execute formulas, leading to
+     * data exfiltration or command execution on the operator's machine.
+     */
+    private function neutraliseFormulaInjection(string $value): string
+    {
+        if ($value === '') {
+            return $value;
+        }
+
+        $firstCharacter = $value[0];
+
+        if (in_array($firstCharacter, ['=', '+', '-', '@', "\t", "\r"], true)) {
+            return "'" . $value;
+        }
+
+        return $value;
     }
 
     private function modelKey(Model $model): string

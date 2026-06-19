@@ -35,50 +35,6 @@ Screenshot contract: `screenshots.json`.
 - Frontend form output (frontend, required).
 - Submission detail view (admin, required).
 
-## Screenshot Evidence
-
-These captures are the package-owned visual contract for the admin pages, public pages, actions, workflows, and feature surfaces described above. Keep this section aligned with `docs/screenshots.json` whenever the package surface changes.
-
-### FormBuilder admin index
-
-![FormBuilder admin index](screenshots/form-builder-admin-index.png)
-
-- Surface: admin · Target: admin-surface.
-- Documents: An administrator reviews form definitions and their publication/status state.
-- Capture notes: Capture after installing capell-app/form-builder in the isolated demo harness and seeding the data required for this use case.
-
-### Create/edit form schema screen
-
-![Create/edit form schema screen](screenshots/create-edit-form-schema-screen.png)
-
-- Surface: admin · Target: admin-surface.
-- Documents: An editor builds or adjusts a form schema, field types, validation, and notification settings.
-- Capture notes: Capture after installing capell-app/form-builder in the isolated demo harness and seeding the data required for this use case.
-
-### Submissions index
-
-![Submissions index](screenshots/submissions-index.png)
-
-- Surface: admin · Target: admin-surface.
-- Documents: An administrator triages unread, spam, archived, and normal submissions.
-- Capture notes: Capture after installing capell-app/form-builder in the isolated demo harness and seeding the data required for this use case.
-
-### Frontend form output
-
-![Frontend form output](screenshots/frontend-form-output.png)
-
-- Surface: frontend · Target: frontend-url.
-- Documents: A visitor completes a seeded public form rendered through the frontend component.
-- Capture notes: Capture after installing capell-app/form-builder in the isolated demo harness and seeding the data required for this use case.
-
-### Submission detail view
-
-![Submission detail view](screenshots/submission-detail-view.png)
-
-- Surface: admin · Target: admin-surface.
-- Documents: An administrator reads a submission payload and reply context without exposing encrypted raw storage.
-- Capture notes: Capture after installing capell-app/form-builder in the isolated demo harness and seeding the data required for this use case.
-
 ## Technical Shape
 
 - Service providers: `Capell\FormBuilder\Providers\FormBuilderServiceProvider`.
@@ -120,7 +76,6 @@ These captures are the package-owned visual contract for the admin pages, public
 
 - Run migrations before opening package resources or public routes.
 - Keep public Blade and cached HTML free of authoring markers, model IDs, permissions, signed editor URLs, and lazy database queries.
-- Configure `capell-form-builder.spam_protection.provider` when enabling external CAPTCHA protection; Turnstile expects the frontend to submit the configured token field before Form Builder verifies it server-side.
 - Keep `composer.json`, `composer.local.json`, `capell.json`, docs, screenshots, and tests aligned when the package surface changes.
 
 ## Troubleshooting

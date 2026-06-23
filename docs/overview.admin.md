@@ -1,7 +1,3 @@
-# Form Builder
-
-<!-- prettier-ignore-start -->
-
 ## What it does for you
 
 Form Builder lets you build forms, put them on a page, and collect what people submit. You drag in fields, set which are required, embed the form, read every submission in one place, and get an email when someone fills it in.
@@ -29,10 +25,3 @@ Go to **Form Builder** in the admin to build forms and read submissions.
 - Drag fields to build your form, and mark the ones people must fill in.
 - See every **submission** in one place.
 - Get a **notification email** when someone fills it in.
-
----
-
-For how to use Form Builder, see the [admin guide](admin-guide.md).
-For developers: see the [README](../README.md).
-
-<!-- prettier-ignore-end -->

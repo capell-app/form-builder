@@ -37,7 +37,7 @@ use Livewire\Livewire;
 use Override;
 use Spatie\LaravelPackageTools\Package;
 
-class FormBuilderServiceProvider extends AbstractPackageServiceProvider
+final class FormBuilderServiceProvider extends AbstractPackageServiceProvider
 {
     public static string $name = 'capell-form-builder';
 
@@ -102,7 +102,7 @@ class FormBuilderServiceProvider extends AbstractPackageServiceProvider
     #[Override]
     protected function isPackageInstalled(): bool
     {
-        return CapellCore::getPackage(static::$packageName)->isInstalled();
+        return CapellCore::getPackage(self::$packageName)->isInstalled();
     }
 
     #[Override]
@@ -146,7 +146,7 @@ class FormBuilderServiceProvider extends AbstractPackageServiceProvider
     private function registerPackageAssets(): self
     {
         CapellCore::registerVendorAsset(
-            VendorAssetData::tailwindSource('resources/views/**/*.blade.php', static::$packageName),
+            VendorAssetData::tailwindSource('resources/views/**/*.blade.php', self::$packageName),
         );
 
         return $this;

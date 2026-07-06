@@ -1,3 +1,3 @@
-@component('mail::message')
+@component ('mail::message')
     {{ $messageBody }}
 @endcomponent

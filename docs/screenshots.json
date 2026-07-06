@@ -51,6 +51,8 @@
             "surface": "frontend",
             "targetType": "frontend-url",
             "target": null,
+            "url": "/screenshot-fixtures/form-builder/frontend-form-output",
+            "waitFor": ".frontend-form-output",
             "required": true,
             "notes": "Capture after installing capell-app/form-builder in the isolated demo harness and seeding the data required for this use case.",
             "useCase": "A visitor completes a seeded public form rendered through the frontend component.",

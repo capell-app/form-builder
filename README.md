@@ -2,7 +2,7 @@
 
 <!-- prettier-ignore-start -->
 
-## What This Plugin Adds
+## What This Extension Adds
 
 Form Builder is an **Available**, **Schema-owning** Capell package in the **Capell FormBuilder** product group. It ships as `capell-app/form-builder` and extends these surfaces: admin, frontend.
 

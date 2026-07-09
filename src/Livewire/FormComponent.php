@@ -5,13 +5,15 @@ declare(strict_types=1);
 namespace Capell\FormBuilder\Livewire;
 
 use Capell\Core\Models\Site;
-use Capell\FormBuilder\Actions\BuildFormStepsAction;
-use Capell\FormBuilder\Actions\BuildFormValidationRulesAction;
+use Capell\FormBuilder\Actions\BuildFormComponentValidationRulesAction;
 use Capell\FormBuilder\Actions\CalculateFormFieldValuesAction;
 use Capell\FormBuilder\Actions\CreateFormPaymentCheckoutRedirectUrlAction;
 use Capell\FormBuilder\Actions\CreateSubmissionAction;
 use Capell\FormBuilder\Actions\DispatchUnstoredFormSubmissionAction;
+use Capell\FormBuilder\Actions\GuardFormSubmissionRateLimitAction;
+use Capell\FormBuilder\Actions\ResolveFormComponentStepStateAction;
 use Capell\FormBuilder\Actions\ResolveVisibleFormFieldsAction;
+use Capell\FormBuilder\Data\FormComponentStepStateData;
 use Capell\FormBuilder\Data\FormFieldData;
 use Capell\FormBuilder\Data\FormSettingsData;
 use Capell\FormBuilder\Data\FormStepData;
@@ -25,7 +27,6 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Crypt;
-use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
@@ -71,15 +72,16 @@ final class FormComponent extends Component
 
     public function nextStep(): void
     {
+        $form = $this->form();
         $currentStep = $this->currentStep();
 
-        if (! $currentStep instanceof FormStepData) {
+        if (! $form instanceof Form || ! $currentStep instanceof FormStepData) {
             return;
         }
 
-        $this->validate($this->rulesForFields($currentStep->fields, $this->data));
+        $this->validate(BuildFormComponentValidationRulesAction::run($form, $this->data, $currentStep->fields));
 
-        $nextStep = $this->stepAfter($currentStep->key);
+        $nextStep = $this->stepState()->stepAfter($currentStep->key);
 
         if ($nextStep instanceof FormStepData) {
             $this->currentStepKey = $nextStep->key;
@@ -88,7 +90,7 @@ final class FormComponent extends Component
 
     public function previousStep(): void
     {
-        $previousStep = $this->stepBefore($this->currentStepKey);
+        $previousStep = $this->stepState()->stepBefore($this->currentStepKey);
 
         if ($previousStep instanceof FormStepData) {
             $this->currentStepKey = $previousStep->key;
@@ -111,11 +113,11 @@ final class FormComponent extends Component
 
         $metadata = $this->metadata();
         $settings = $this->settings();
-        $this->assertSubmissionIsNotRateLimited($form);
+        GuardFormSubmissionRateLimitAction::run($form, $this->allFields(), $this->data, request()->ip());
 
         if (! $this->hasTriggeredHoneypot()) {
             $this->data = CalculateFormFieldValuesAction::run($form, $this->data);
-            $this->validate($this->rules($this->data));
+            $this->validate(BuildFormComponentValidationRulesAction::run($form, $this->data));
         }
 
         try {
@@ -170,56 +172,6 @@ final class FormComponent extends Component
             'settings' => $this->settings(),
             'steps' => $this->steps(),
         ]);
-    }
-
-    /**
-     * @throws ValidationException
-     */
-    private function assertSubmissionIsNotRateLimited(Form $form): void
-    {
-        $key = $this->rateLimitKey($form);
-        $maxAttempts = $this->configuredThrottleValue('max_attempts', 12);
-
-        if (RateLimiter::tooManyAttempts($key, $maxAttempts)) {
-            throw ValidationException::withMessages([
-                'data' => __('capell-form-builder::message.too_many_submissions'),
-            ]);
-        }
-
-        RateLimiter::hit($key, $this->configuredThrottleValue('decay_seconds', 60));
-    }
-
-    private function rateLimitKey(Form $form): string
-    {
-        $email = $this->rateLimitEmailDimension();
-
-        return 'capell-form-builder:submit:' . hash('sha256', implode('|', [
-            (string) $form->getKey(),
-            (string) $form->site_id,
-            $email,
-            (string) request()->ip(),
-        ]));
-    }
-
-    private function rateLimitEmailDimension(): string
-    {
-        $emailField = $this->allFields()
-            ->first(static fn (FormFieldData $field): bool => $field->type === FormFieldType::Email);
-
-        if (! $emailField instanceof FormFieldData) {
-            return '';
-        }
-
-        $email = $this->data[$emailField->key] ?? null;
-
-        return is_scalar($email) ? Str::lower((string) $email) : '';
-    }
-
-    private function configuredThrottleValue(string $key, int $default): int
-    {
-        $value = config('capell-form-builder.throttle.' . $key);
-
-        return is_numeric($value) ? max(1, (int) $value) : $default;
     }
 
     private function resolveForm(int|string|null $handle = null): ?Form
@@ -362,80 +314,41 @@ final class FormComponent extends Component
      */
     private function steps(): Collection
     {
-        $form = $this->form();
-
-        if (! $form instanceof Form) {
-            return collect();
-        }
-
-        $steps = BuildFormStepsAction::run($form, $this->data);
-
-        if ($steps->isNotEmpty() && $steps->doesntContain(fn (FormStepData $step): bool => $step->key === $this->currentStepKey)) {
-            $firstStep = $steps->first();
-
-            $this->currentStepKey = $firstStep->key;
-        }
-
-        return $steps;
+        return $this->stepState()->steps;
     }
 
     private function currentStep(): ?FormStepData
     {
-        $steps = $this->steps();
-        $step = $steps->first(fn (FormStepData $step): bool => $step->key === $this->currentStepKey);
-
-        return $step instanceof FormStepData
-            ? $step
-            : null;
+        return $this->stepState()->currentStep;
     }
 
     private function firstStepKey(): string
     {
-        $step = $this->steps()->first();
-
-        return $step instanceof FormStepData ? $step->key : '';
+        return $this->stepState()->currentStepKey;
     }
 
     private function currentStepIndex(): int
     {
-        $index = $this->steps()
-            ->values()
-            ->search(fn (FormStepData $step): bool => $step->key === $this->currentStepKey);
-
-        return is_int($index) ? $index : 0;
-    }
-
-    private function stepAfter(string $stepKey): ?FormStepData
-    {
-        return $this->steps()
-            ->values()
-            ->get($this->stepIndex($stepKey) + 1);
-    }
-
-    private function stepBefore(string $stepKey): ?FormStepData
-    {
-        return $this->steps()
-            ->values()
-            ->get($this->stepIndex($stepKey) - 1);
-    }
-
-    private function stepIndex(string $stepKey): int
-    {
-        $index = $this->steps()
-            ->values()
-            ->search(fn (FormStepData $step): bool => $step->key === $stepKey);
-
-        return is_int($index) ? $index : 0;
+        return $this->stepState()->currentStepIndex;
     }
 
     private function isFinalStep(): bool
     {
-        $steps = $this->steps();
-        if ($steps->count() <= 1) {
-            return true;
+        return $this->stepState()->isFinalStep();
+    }
+
+    private function stepState(): FormComponentStepStateData
+    {
+        $form = $this->form();
+
+        if (! $form instanceof Form) {
+            return FormComponentStepStateData::empty();
         }
 
-        return $this->currentStepIndex() >= $steps->count() - 1;
+        $state = ResolveFormComponentStepStateAction::run($form, $this->data, $this->currentStepKey);
+        $this->currentStepKey = $state->currentStepKey;
+
+        return $state;
     }
 
     private function settings(): FormSettingsData
@@ -454,37 +367,6 @@ final class FormComponent extends Component
         if ($redirectUrl !== '') {
             $this->redirect($redirectUrl);
         }
-    }
-
-    /**
-     * @param  array<string, mixed>  $input
-     * @return array<string, array<int, string>>
-     */
-    private function rules(array $input = []): array
-    {
-        $form = $this->form();
-
-        if (! $form instanceof Form) {
-            return [];
-        }
-
-        return collect(BuildFormValidationRulesAction::run($form, $input))
-            ->mapWithKeys(fn (array $rules, string $fieldKey): array => ['data.' . $fieldKey => $rules])
-            ->all();
-    }
-
-    /**
-     * @param  Collection<int, FormFieldData>  $fields
-     * @param  array<string, mixed>  $input
-     * @return array<string, array<int, string>>
-     */
-    private function rulesForFields(Collection $fields, array $input = []): array
-    {
-        $fieldKeys = $fields->pluck('key')->all();
-
-        return collect($this->rules($input))
-            ->filter(fn (array $rules, string $fieldKey): bool => in_array(Str::after($fieldKey, 'data.'), $fieldKeys, true))
-            ->all();
     }
 
     private function metadata(): SubmissionMetaData

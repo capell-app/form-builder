@@ -11,6 +11,7 @@ use Capell\FormBuilder\Actions\CreateFormPaymentCheckoutRedirectUrlAction;
 use Capell\FormBuilder\Actions\CreateSubmissionAction;
 use Capell\FormBuilder\Actions\DispatchUnstoredFormSubmissionAction;
 use Capell\FormBuilder\Actions\GuardFormSubmissionRateLimitAction;
+use Capell\FormBuilder\Actions\ResolveFormComponentFormAction;
 use Capell\FormBuilder\Actions\ResolveFormComponentStepStateAction;
 use Capell\FormBuilder\Actions\ResolveVisibleFormFieldsAction;
 use Capell\FormBuilder\Data\FormComponentStepStateData;
@@ -24,9 +25,7 @@ use Capell\FormBuilder\Models\Submission;
 use Capell\Frontend\Actions\Performance\RecordExtensionRenderContributionAction;
 use Capell\Frontend\Facades\Frontend;
 use Illuminate\Contracts\View\View;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
@@ -57,10 +56,10 @@ final class FormComponent extends Component
     {
         $this->instanceId = $this->resolveInstanceId($instanceId);
         $this->formReference = is_string($formReference) ? $formReference : '';
-        $this->resolvedForm = $this->resolveForm($handle);
+        $this->resolvedForm = ResolveFormComponentFormAction::run($handle, $this->formReference, $this->currentSite());
 
         if ($this->resolvedForm instanceof Form) {
-            $this->formReference = $this->encryptFormReference($this->resolvedForm);
+            $this->formReference = ResolveFormComponentFormAction::referenceFor($this->resolvedForm);
         }
 
         foreach ($this->allFields() as $field) {
@@ -174,77 +173,9 @@ final class FormComponent extends Component
         ]);
     }
 
-    private function resolveForm(int|string|null $handle = null): ?Form
-    {
-        return $this->resolveFormFromReference() ?? $this->resolveFormForCurrentSite($handle);
-    }
-
-    private function resolveFormForCurrentSite(int|string|null $handle): ?Form
-    {
-        if ($handle === null || $handle === '') {
-            return null;
-        }
-
-        $site = $this->currentSite();
-        if (! $site instanceof Site) {
-            return null;
-        }
-
-        return Form::query()
-            ->active()
-            ->where('site_id', $site->getKey())
-            ->where(function (Builder $builder) use ($handle): void {
-                if (is_numeric($handle)) {
-                    $builder->whereKey((int) $handle);
-                }
-
-                $builder->orWhere('handle', (string) $handle);
-            })
-            ->first();
-    }
-
-    private function resolveFormFromReference(): ?Form
-    {
-        if ($this->formReference === '') {
-            return null;
-        }
-
-        try {
-            $reference = json_decode(Crypt::decryptString($this->formReference), true, flags: JSON_THROW_ON_ERROR);
-        } catch (Throwable) {
-            return null;
-        }
-
-        $formId = $reference['form_id'] ?? null;
-        $siteId = $reference['site_id'] ?? null;
-
-        if (! is_numeric($formId) || ! is_numeric($siteId)) {
-            return null;
-        }
-
-        $currentSite = $this->currentSite();
-        if ($currentSite instanceof Site && (int) $currentSite->getKey() !== (int) $siteId) {
-            return null;
-        }
-
-        return Form::query()
-            ->active()
-            ->whereKey((int) $formId)
-            ->where('site_id', (int) $siteId)
-            ->first();
-    }
-
-    private function encryptFormReference(Form $form): string
-    {
-        return Crypt::encryptString(json_encode([
-            'form_id' => $form->getKey(),
-            'site_id' => $form->site_id,
-        ], JSON_THROW_ON_ERROR));
-    }
-
     private function form(): ?Form
     {
-        return $this->resolvedForm ??= $this->resolveForm();
+        return $this->resolvedForm ??= ResolveFormComponentFormAction::run(null, $this->formReference, $this->currentSite());
     }
 
     private function resolveInstanceId(?string $instanceId): string

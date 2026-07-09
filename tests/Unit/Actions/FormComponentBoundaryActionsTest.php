@@ -2,8 +2,10 @@
 
 declare(strict_types=1);
 
+use Capell\Core\Models\Site;
 use Capell\FormBuilder\Actions\BuildFormComponentValidationRulesAction;
 use Capell\FormBuilder\Actions\GuardFormSubmissionRateLimitAction;
+use Capell\FormBuilder\Actions\ResolveFormComponentFormAction;
 use Capell\FormBuilder\Actions\ResolveFormComponentStepStateAction;
 use Capell\FormBuilder\Data\FormComponentStepStateData;
 use Capell\FormBuilder\Data\FormFieldData;
@@ -100,6 +102,37 @@ it('resolves form component step state and adjacent steps', function (): void {
         ->and($contactState->isFinalStep())->toBeFalse()
         ->and($projectState->stepBefore('project')?->key)->toBe('contact-details')
         ->and($projectState->isFinalStep())->toBeTrue();
+});
+
+it('resolves form component forms by current site handle id and reference', function (): void {
+    $site = Site::factory()->withTranslations()->create();
+    $otherSite = Site::factory()->withTranslations()->create();
+    $form = Form::factory()->for($site, 'site')->create([
+        'handle' => 'contact',
+    ]);
+    Form::factory()->for($otherSite, 'site')->create([
+        'handle' => 'contact',
+    ]);
+
+    $reference = ResolveFormComponentFormAction::referenceFor($form);
+
+    expect(ResolveFormComponentFormAction::run('contact', '', $site)?->is($form))->toBeTrue()
+        ->and(ResolveFormComponentFormAction::run((int) $form->getKey(), '', $site)?->is($form))->toBeTrue()
+        ->and(ResolveFormComponentFormAction::run(null, $reference, $site)?->is($form))->toBeTrue()
+        ->and(ResolveFormComponentFormAction::run('contact', '', $otherSite)?->is($form))->toBeFalse();
+});
+
+it('rejects invalid inactive and cross-site form component references', function (): void {
+    $site = Site::factory()->withTranslations()->create();
+    $otherSite = Site::factory()->withTranslations()->create();
+    $inactiveForm = Form::factory()->for($site, 'site')->create([
+        'is_active' => false,
+    ]);
+    $otherSiteForm = Form::factory()->for($otherSite, 'site')->create();
+
+    expect(ResolveFormComponentFormAction::run(null, 'not-valid', $site))->toBeNull()
+        ->and(ResolveFormComponentFormAction::run(null, ResolveFormComponentFormAction::referenceFor($inactiveForm), $site))->toBeNull()
+        ->and(ResolveFormComponentFormAction::run(null, ResolveFormComponentFormAction::referenceFor($otherSiteForm), $site))->toBeNull();
 });
 
 /**

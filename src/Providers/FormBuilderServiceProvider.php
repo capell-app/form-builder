@@ -53,6 +53,7 @@ final class FormBuilderServiceProvider extends AbstractPackageServiceProvider
             ->hasConfigFile()
             ->hasViews(self::$name)
             ->hasTranslations()
+            ->hasRoute('payments')
             ->hasCommand(ExportSubmissionsCommand::class)
             ->hasMigrations([
                 '2026_05_10_190849_01_create_form-builder_table',

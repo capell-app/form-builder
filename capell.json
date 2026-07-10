@@ -18,9 +18,10 @@
         "requires": [
             "capell-app/admin",
             "capell-app/core",
-            "capell-app/frontend"
+            "capell-app/frontend",
+            "capell-app/payments"
         ],
-        "supports": ["capell-app/payments"],
+        "supports": [],
         "conflicts": []
     },
     "providers": {
@@ -48,6 +49,11 @@
             "class": "Capell\\FormBuilder\\Manifest\\FormElementComponentContribution",
             "componentClass": "Capell\\FormBuilder\\Livewire\\FormElementComponent",
             "surface": "frontend"
+        },
+        {
+            "type": "route",
+            "class": "Capell\\FormBuilder\\Manifest\\FormBuilderPaymentRoutesContribution",
+            "routes": ["capell-payments.form-builder.checkout"]
         },
         {
             "type": "model",
@@ -79,6 +85,8 @@
         "calculateFormFieldValues": "Capell\\FormBuilder\\Actions\\CalculateFormFieldValuesAction",
         "calculateSubmissionSpamScore": "Capell\\FormBuilder\\Actions\\CalculateSubmissionSpamScoreAction",
         "createFormPaymentCheckoutRedirectUrl": "Capell\\FormBuilder\\Actions\\CreateFormPaymentCheckoutRedirectUrlAction",
+        "createFormPaymentCheckoutUrl": "Capell\\FormBuilder\\Actions\\CreateFormPaymentCheckoutUrlAction",
+        "createFormPaymentCheckout": "Capell\\FormBuilder\\Actions\\CreateFormPaymentCheckoutSessionAction",
         "createSubmission": "Capell\\FormBuilder\\Actions\\CreateSubmissionAction",
         "dispatchUnstoredFormSubmission": "Capell\\FormBuilder\\Actions\\DispatchUnstoredFormSubmissionAction",
         "evaluateFormFieldVisibility": "Capell\\FormBuilder\\Actions\\EvaluateFormFieldVisibilityAction",
@@ -109,10 +117,10 @@
     "security": {
         "riskTier": "sensitive",
         "publicSurface": {
-            "routeNames": [],
-            "auth": "none",
+            "routeNames": ["capell-payments.form-builder.checkout"],
+            "auth": "signed",
             "csrfExemptRoutes": [],
-            "signedRoutes": [],
+            "signedRoutes": ["capell-payments.form-builder.checkout"],
             "tokenizedRoutes": [],
             "webhookRoutes": [],
             "throttledRoutes": []

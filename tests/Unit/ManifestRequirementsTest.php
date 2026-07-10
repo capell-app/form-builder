@@ -115,6 +115,23 @@ describe('form-builder capell.json manifest', function (): void {
             ->and(class_implements(SubmissionResourceContribution::class))->toContain(RegistersExtensionAdminResource::class)
             ->and(class_implements(FormElementComponentContribution::class))->toContain(RegistersExtensionFrontendComponent::class)
             ->and(class_implements(FormBuilderPaymentRoutesContribution::class))->toContain(RegistersExtensionRoute::class)
+            ->and($manifest['permissions'])->toBe([
+                'ViewAny:Form',
+                'View:Form',
+                'Create:Form',
+                'Update:Form',
+                'Delete:Form',
+                'DeleteAny:Form',
+                'Restore:Form',
+                'RestoreAny:Form',
+                'ForceDelete:Form',
+                'ForceDeleteAny:Form',
+                'Reorder:Form',
+                'ViewAny:Submission',
+                'View:Submission',
+                'Reply:Submission',
+                'Update:Submission',
+             ])
             ->and($manifest['contributionTraceability']['deferredContributions'])->not->toContain('admin-resource', 'model');
     });
 

@@ -97,7 +97,23 @@
         "sendSubmissionNotification": "Capell\\FormBuilder\\Actions\\SendSubmissionNotificationAction"
     },
     "settings": [],
-    "permissions": [],
+    "permissions": [
+        "ViewAny:Form",
+        "View:Form",
+        "Create:Form",
+        "Update:Form",
+        "Delete:Form",
+        "DeleteAny:Form",
+        "Restore:Form",
+        "RestoreAny:Form",
+        "ForceDelete:Form",
+        "ForceDeleteAny:Form",
+        "Reorder:Form",
+        "ViewAny:Submission",
+        "View:Submission",
+        "Reply:Submission",
+        "Update:Submission"
+    ],
     "capabilities": [
         "form-builder",
         "form-builder-admin",

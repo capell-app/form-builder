@@ -14,6 +14,8 @@ use Capell\Core\Data\VendorAssetData;
 use Capell\Core\Facades\CapellCore;
 use Capell\Core\Support\Packages\AbstractPackageServiceProvider;
 use Capell\Core\Support\Renderables\RenderableRegistry;
+use Capell\FormBuilder\Actions\BuildFormSubmissionPrivacyExportAction;
+use Capell\FormBuilder\Actions\EraseFormSubmissionPrivacyDataAction;
 use Capell\FormBuilder\Console\Commands\ExportSubmissionsCommand;
 use Capell\FormBuilder\Contracts\FormBuilderWebhookHostResolver;
 use Capell\FormBuilder\Contracts\SpamProtectionProvider;
@@ -30,6 +32,7 @@ use Capell\FormBuilder\Policies\SubmissionPolicy;
 use Capell\FormBuilder\Support\DnsFormBuilderWebhookHostResolver;
 use Capell\FormBuilder\Support\SpamProtection\NullSpamProtectionProvider;
 use Composer\InstalledVersions;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
@@ -129,8 +132,33 @@ final class FormBuilderServiceProvider extends AbstractPackageServiceProvider
             ->registerRenderables()
             ->registerResources()
             ->registerMarketingStudioActions()
+            ->registerPrivacyCenterContributors()
             ->registerLivewireComponents()
             ->registerBladeComponents();
+    }
+
+    private function registerPrivacyCenterContributors(): self
+    {
+        $eraserRegistryClass = implode('\\', ['Capell', 'PrivacyCenter', 'Support', 'PrivacySubjectEraserRegistry']);
+        $exporterRegistryClass = implode('\\', ['Capell', 'PrivacyCenter', 'Support', 'PrivacySubjectExporterRegistry']);
+
+        if (class_exists($eraserRegistryClass) && $this->app->bound($eraserRegistryClass)) {
+            $registry = $this->app->make($eraserRegistryClass);
+
+            if (is_object($registry) && method_exists($registry, 'register')) {
+                $registry->register('form-builder', static fn (Model $subject): int => EraseFormSubmissionPrivacyDataAction::run($subject));
+            }
+        }
+
+        if (class_exists($exporterRegistryClass) && $this->app->bound($exporterRegistryClass)) {
+            $registry = $this->app->make($exporterRegistryClass);
+
+            if (is_object($registry) && method_exists($registry, 'register')) {
+                $registry->register('form-builder', static fn (Model $subject): array => BuildFormSubmissionPrivacyExportAction::run($subject));
+            }
+        }
+
+        return $this;
     }
 
     private function registerModels(): self

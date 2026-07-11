@@ -66,8 +66,8 @@
             "surface": "admin",
             "targetType": "admin-surface",
             "target": null,
-            "required": true,
-            "notes": "Capture after installing capell-app/form-builder in the isolated demo harness and seeding the data required for this use case.",
+            "required": false,
+            "notes": "Optional Beta evidence target. The current file duplicates the submissions index capture; replace it with an independently captured submission detail state before using it as release evidence.",
             "useCase": "An administrator reads a submission payload and reply context without exposing encrypted raw storage.",
             "screenshotPath": "packages/form-builder/docs/screenshots/submission-detail-view.png",
             "darkScreenshotPath": "packages/form-builder/docs/screenshots/submission-detail-view-dark.png"

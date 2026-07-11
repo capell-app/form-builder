@@ -131,7 +131,7 @@ describe('form-builder capell.json manifest', function (): void {
                 'View:Submission',
                 'Reply:Submission',
                 'Update:Submission',
-             ])
+            ])
             ->and($manifest['contributionTraceability']['deferredContributions'])->not->toContain('admin-resource', 'model');
     });
 
@@ -169,6 +169,7 @@ describe('form-builder capell.json manifest', function (): void {
  *     capabilities: list<string>,
  *     actions: array<string, class-string>,
  *     contributes: list<array<string, string|list<string>>>,
+ *     permissions: list<string>,
  *     contributionTraceability: array{deferredContributions: list<string>},
  *     marketplace: array{screenshots: list<array{path?: string}>}
  * }
@@ -195,6 +196,7 @@ function formBuilderManifest(): array
         'capabilities' => formBuilderStringList($manifest['capabilities'] ?? []),
         'actions' => formBuilderClassMap($manifest['actions'] ?? []),
         'contributes' => formBuilderStringMapList($manifest['contributes'] ?? []),
+        'permissions' => formBuilderStringList($manifest['permissions'] ?? []),
         'contributionTraceability' => [
             'deferredContributions' => formBuilderStringList($contributionTraceability['deferredContributions'] ?? []),
         ],

@@ -16,6 +16,7 @@ use Capell\Core\Support\Packages\AbstractPackageServiceProvider;
 use Capell\Core\Support\Renderables\RenderableRegistry;
 use Capell\FormBuilder\Actions\BuildFormSubmissionPrivacyExportAction;
 use Capell\FormBuilder\Actions\EraseFormSubmissionPrivacyDataAction;
+use Capell\FormBuilder\Actions\InstallThemeDemoFormsAction;
 use Capell\FormBuilder\Console\Commands\ExportSubmissionsCommand;
 use Capell\FormBuilder\Contracts\FormBuilderWebhookHostResolver;
 use Capell\FormBuilder\Contracts\SpamProtectionProvider;
@@ -35,6 +36,7 @@ use Composer\InstalledVersions;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Livewire;
 use Override;
@@ -135,7 +137,23 @@ final class FormBuilderServiceProvider extends AbstractPackageServiceProvider
             ->registerMarketingStudioActions()
             ->registerPrivacyCenterContributors()
             ->registerLivewireComponents()
-            ->registerBladeComponents();
+            ->registerBladeComponents()
+            ->registerThemeDemoForms();
+    }
+
+    private function registerThemeDemoForms(): self
+    {
+        Event::listen(
+            'capell.theme-demo.forms',
+            static function (int|string $siteId, string $formsPayload): void {
+                InstallThemeDemoFormsAction::run(
+                    siteId: $siteId,
+                    formsPayload: $formsPayload,
+                );
+            },
+        );
+
+        return $this;
     }
 
     private function registerPrivacyCenterContributors(): self
@@ -246,6 +264,9 @@ final class FormBuilderServiceProvider extends AbstractPackageServiceProvider
 
     private function registerLivewireComponents(): self
     {
+        Livewire::component(LivewireComponentEnum::PublicFormFields->value, FormComponent::class);
+        Livewire::component(LivewireComponentEnum::PublicForm->value, FormElementComponent::class);
+
         if ($this->isLivewireV3()) {
             foreach (LivewireComponentEnum::getComponents() as $name => $component) {
                 if ($component === null) {

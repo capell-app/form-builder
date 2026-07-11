@@ -332,6 +332,24 @@ it('renders a form element component from widget data for the current frontend s
     expect($contribution?->cacheable)->toBeFalse();
 });
 
+it('renders a safe fallback when a public form handle is unavailable', function (): void {
+    $site = Site::factory()->withTranslations()->create();
+    bindFormBuilderFrontendSite($site);
+
+    livewire('public-form', [
+        'handle' => 'missing-form',
+        'widgetData' => [
+            'instance_id' => 'missing-form',
+            'fallback_message' => 'Send the brief by email instead.',
+            'fallback_label' => 'Email the team',
+            'fallback_url' => 'mailto:hello@example.test',
+        ],
+    ])
+        ->assertSee('Send the brief by email instead.')
+        ->assertSee('Email the team')
+        ->assertSeeHtml('href="mailto:hello@example.test"');
+});
+
 it('uses unique child form keys for repeated form elements', function (): void {
     $form = Form::factory()->create([
         'name' => 'Contact',

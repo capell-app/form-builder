@@ -3,7 +3,9 @@
 declare(strict_types=1);
 
 return [
+    'contact_instead' => 'Contact us instead',
     'form_submitted' => 'Form submitted.',
+    'form_unavailable' => 'Online enquiries are temporarily unavailable.',
     'export_form_not_found' => 'The selected form could not be found.',
     'export_written' => 'Form submissions CSV written to :path.',
     'notification_footer' => 'Open the submission in Capell to review or reply.',

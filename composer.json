@@ -19,10 +19,10 @@
     ],
     "require": {
         "php": "^8.4",
-        "capell-app/admin": "^4.0 || 4.x-dev",
-        "capell-app/core": "^4.0 || 4.x-dev",
-        "capell-app/frontend": "^4.0 || 4.x-dev",
-        "capell-app/payments": "^4.0 || 4.x-dev"
+        "capell-app/admin": "^1.0 || 1.x-dev",
+        "capell-app/core": "^1.0 || 1.x-dev",
+        "capell-app/frontend": "^1.0 || 1.x-dev",
+        "capell-app/payments": "^1.0 || 1.x-dev"
     },
     "require-dev": {
         "pestphp/pest": "^3.0",
@@ -47,7 +47,7 @@
             ]
         },
         "branch-alias": {
-            "dev-main": "4.x-dev"
+            "dev-main": "1.x-dev"
         }
     },
     "config": {

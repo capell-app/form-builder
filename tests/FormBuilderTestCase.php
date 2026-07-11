@@ -10,6 +10,7 @@ use Capell\Core\Facades\CapellCore;
 use Capell\FormBuilder\Models\Form;
 use Capell\FormBuilder\Models\Submission;
 use Capell\FormBuilder\Providers\FormBuilderServiceProvider;
+use Capell\Payments\Providers\PaymentsServiceProvider;
 use Capell\Tests\AbstractTestCase;
 use Livewire\LivewireServiceProvider;
 use Override;
@@ -30,6 +31,7 @@ class FormBuilderTestCase extends AbstractTestCase
         return [
             ...parent::getPackageProviders($app),
             AdminServiceProvider::class,
+            PaymentsServiceProvider::class,
             FormBuilderServiceProvider::class,
             LivewireServiceProvider::class,
             AdminPanelProvider::class,
@@ -42,6 +44,7 @@ class FormBuilderTestCase extends AbstractTestCase
         parent::getEnvironmentSetUp($app);
 
         CapellCore::forcePackageInstalled(AdminServiceProvider::$packageName);
+        CapellCore::forcePackageInstalled(PaymentsServiceProvider::$packageName);
         CapellCore::forcePackageInstalled(FormBuilderServiceProvider::$packageName);
         CapellCore::registerModels([
             Form::class,

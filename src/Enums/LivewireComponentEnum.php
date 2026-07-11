@@ -21,6 +21,12 @@ enum LivewireComponentEnum: string implements EnumAttributeInterface
     #[Component(FormElementComponent::class)]
     case FormElement = 'capell-form-builder::element.form';
 
+    #[Component(FormComponent::class)]
+    case PublicFormFields = 'public-form-fields';
+
+    #[Component(FormElementComponent::class)]
+    case PublicForm = 'public-form';
+
     /**
      * @return array<string, class-string|null>
      */

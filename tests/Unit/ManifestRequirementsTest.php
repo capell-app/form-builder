@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 use Capell\Core\Contracts\Extensions\RegistersExtensionAdminResource;
 use Capell\Core\Contracts\Extensions\RegistersExtensionFrontendComponent;
+use Capell\Core\Contracts\Extensions\RegistersExtensionRoute;
 use Capell\FormBuilder\Actions\BuildFormStepsAction;
 use Capell\FormBuilder\Actions\BuildFormValidationRulesAction;
 use Capell\FormBuilder\Actions\BuildSubmissionPayloadDataAction;
 use Capell\FormBuilder\Actions\CalculateFormFieldValuesAction;
 use Capell\FormBuilder\Actions\CalculateSubmissionSpamScoreAction;
 use Capell\FormBuilder\Actions\CreateFormPaymentCheckoutRedirectUrlAction;
+use Capell\FormBuilder\Actions\CreateFormPaymentCheckoutSessionAction;
+use Capell\FormBuilder\Actions\CreateFormPaymentCheckoutUrlAction;
 use Capell\FormBuilder\Actions\CreateSubmissionAction;
 use Capell\FormBuilder\Actions\DispatchUnstoredFormSubmissionAction;
 use Capell\FormBuilder\Actions\EvaluateFormFieldVisibilityAction;
@@ -17,6 +20,7 @@ use Capell\FormBuilder\Actions\ResolveVisibleFormFieldsAction;
 use Capell\FormBuilder\Filament\Resources\Forms\FormResource;
 use Capell\FormBuilder\Filament\Resources\Submissions\SubmissionResource;
 use Capell\FormBuilder\Livewire\FormElementComponent;
+use Capell\FormBuilder\Manifest\FormBuilderPaymentRoutesContribution;
 use Capell\FormBuilder\Manifest\FormElementComponentContribution;
 use Capell\FormBuilder\Manifest\FormModelContribution;
 use Capell\FormBuilder\Manifest\FormResourceContribution;
@@ -42,29 +46,31 @@ describe('form-builder capell.json manifest', function (): void {
 
         expect($manifest['dependencies']['requires'])->toContain('capell-app/core')
             ->and($manifest['dependencies']['requires'])->toContain('capell-app/admin')
-            ->and($manifest['dependencies']['requires'])->toContain('capell-app/frontend');
+            ->and($manifest['dependencies']['requires'])->toContain('capell-app/frontend')
+            ->and($manifest['dependencies']['requires'])->toContain('capell-app/payments');
     });
 
-    it('declares implemented advanced form features and optional payment support', function (): void {
+    it('declares implemented advanced form features and payment integration', function (): void {
         $manifest = formBuilderManifest();
 
-        expect($manifest['dependencies']['supports'])->toContain('capell-app/payments')
-            ->and($manifest['capabilities'])->toContain(
-                'form-builder-conditional-logic',
-                'form-builder-multi-step',
-                'form-builder-calculations',
-                'form-builder-file-upload-rules',
-                'form-builder-spam-scoring',
-                'form-builder-spam-provider',
-                'form-builder-payment-fields',
-                'form-builder-submission-workflows',
-            )
+        expect($manifest['capabilities'])->toContain(
+            'form-builder-conditional-logic',
+            'form-builder-multi-step',
+            'form-builder-calculations',
+            'form-builder-file-upload-rules',
+            'form-builder-spam-scoring',
+            'form-builder-spam-provider',
+            'form-builder-payment-fields',
+            'form-builder-submission-workflows',
+        )
             ->and($manifest['actions'])->toHaveKey('buildFormSteps', BuildFormStepsAction::class)
             ->and($manifest['actions'])->toHaveKey('buildFormValidationRules', BuildFormValidationRulesAction::class)
             ->and($manifest['actions'])->toHaveKey('buildSubmissionPayloadData', BuildSubmissionPayloadDataAction::class)
             ->and($manifest['actions'])->toHaveKey('calculateFormFieldValues', CalculateFormFieldValuesAction::class)
             ->and($manifest['actions'])->toHaveKey('calculateSubmissionSpamScore', CalculateSubmissionSpamScoreAction::class)
             ->and($manifest['actions'])->toHaveKey('createFormPaymentCheckoutRedirectUrl', CreateFormPaymentCheckoutRedirectUrlAction::class)
+            ->and($manifest['actions'])->toHaveKey('createFormPaymentCheckoutUrl', CreateFormPaymentCheckoutUrlAction::class)
+            ->and($manifest['actions'])->toHaveKey('createFormPaymentCheckout', CreateFormPaymentCheckoutSessionAction::class)
             ->and($manifest['actions'])->toHaveKey('createSubmission', CreateSubmissionAction::class)
             ->and($manifest['actions'])->toHaveKey('dispatchUnstoredFormSubmission', DispatchUnstoredFormSubmissionAction::class)
             ->and($manifest['actions'])->toHaveKey('evaluateFormFieldVisibility', EvaluateFormFieldVisibilityAction::class)
@@ -91,6 +97,11 @@ describe('form-builder capell.json manifest', function (): void {
                 'surface' => 'frontend',
             ])
             ->and($manifest['contributes'])->toContain([
+                'type' => 'route',
+                'class' => FormBuilderPaymentRoutesContribution::class,
+                'routes' => ['capell-payments.form-builder.checkout'],
+            ])
+            ->and($manifest['contributes'])->toContain([
                 'type' => 'model',
                 'class' => FormModelContribution::class,
                 'modelClass' => Form::class,
@@ -103,6 +114,24 @@ describe('form-builder capell.json manifest', function (): void {
             ->and(class_implements(FormResourceContribution::class))->toContain(RegistersExtensionAdminResource::class)
             ->and(class_implements(SubmissionResourceContribution::class))->toContain(RegistersExtensionAdminResource::class)
             ->and(class_implements(FormElementComponentContribution::class))->toContain(RegistersExtensionFrontendComponent::class)
+            ->and(class_implements(FormBuilderPaymentRoutesContribution::class))->toContain(RegistersExtensionRoute::class)
+            ->and($manifest['permissions'])->toBe([
+                'ViewAny:Form',
+                'View:Form',
+                'Create:Form',
+                'Update:Form',
+                'Delete:Form',
+                'DeleteAny:Form',
+                'Restore:Form',
+                'RestoreAny:Form',
+                'ForceDelete:Form',
+                'ForceDeleteAny:Form',
+                'Reorder:Form',
+                'ViewAny:Submission',
+                'View:Submission',
+                'Reply:Submission',
+                'Update:Submission',
+            ])
             ->and($manifest['contributionTraceability']['deferredContributions'])->not->toContain('admin-resource', 'model');
     });
 
@@ -139,7 +168,8 @@ describe('form-builder capell.json manifest', function (): void {
  *     dependencies: array{requires: list<string>, supports: list<string>},
  *     capabilities: list<string>,
  *     actions: array<string, class-string>,
- *     contributes: list<array<string, string>>,
+ *     contributes: list<array<string, string|list<string>>>,
+ *     permissions: list<string>,
  *     contributionTraceability: array{deferredContributions: list<string>},
  *     marketplace: array{screenshots: list<array{path?: string}>}
  * }
@@ -166,6 +196,7 @@ function formBuilderManifest(): array
         'capabilities' => formBuilderStringList($manifest['capabilities'] ?? []),
         'actions' => formBuilderClassMap($manifest['actions'] ?? []),
         'contributes' => formBuilderStringMapList($manifest['contributes'] ?? []),
+        'permissions' => formBuilderStringList($manifest['permissions'] ?? []),
         'contributionTraceability' => [
             'deferredContributions' => formBuilderStringList($contributionTraceability['deferredContributions'] ?? []),
         ],
@@ -208,7 +239,7 @@ function formBuilderClassMap(mixed $values): array
 }
 
 /**
- * @return list<array<string, string>>
+ * @return list<array<string, string|list<string>>>
  */
 function formBuilderStringMapList(mixed $values): array
 {
@@ -228,6 +259,16 @@ function formBuilderStringMapList(mixed $values): array
         foreach ($value as $key => $item) {
             if (is_string($key) && is_string($item)) {
                 $map[$key] = $item;
+
+                continue;
+            }
+
+            if (is_string($key)) {
+                $stringItems = formBuilderStringList($item);
+
+                if ($stringItems !== []) {
+                    $map[$key] = $stringItems;
+                }
             }
         }
 

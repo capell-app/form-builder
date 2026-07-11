@@ -25,13 +25,7 @@ final class CreateFormPaymentCheckoutRedirectUrlAction
             return null;
         }
 
-        $actionClass = 'Capell\\Payments\\Actions\\CreateFormPaymentCheckoutUrlAction';
-
-        if (! class_exists($actionClass) || ! is_callable([$actionClass, 'run'])) {
-            return null;
-        }
-
-        $url = $actionClass::run($submission);
+        $url = CreateFormPaymentCheckoutUrlAction::run($submission);
 
         return is_string($url) && $url !== '' ? $url : null;
     }

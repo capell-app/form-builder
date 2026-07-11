@@ -6,6 +6,7 @@ namespace Capell\FormBuilder\Livewire;
 
 use Capell\Core\Contracts\Extensions\RegistersExtensionFrontendComponent;
 use Capell\Core\Models\Site;
+use Capell\Core\Support\Security\PublicUrlSanitizer;
 use Capell\FormBuilder\Models\Form;
 use Capell\Frontend\Actions\Performance\RecordExtensionRenderContributionAction;
 use Capell\Frontend\Facades\Frontend;
@@ -24,6 +25,12 @@ class FormElementComponent extends Component implements RegistersExtensionFronte
 
     public string $instanceId = '';
 
+    public string $fallbackMessage = '';
+
+    public string $fallbackLabel = '';
+
+    public ?string $fallbackUrl = null;
+
     public static function compatibleCapellApiVersion(): string
     {
         return '^4.0';
@@ -35,6 +42,9 @@ class FormElementComponent extends Component implements RegistersExtensionFronte
     public function mount(array $widgetData = [], int|string|null $handle = null): void
     {
         $this->instanceId = $this->resolveInstanceId($widgetData);
+        $this->fallbackMessage = $this->stringValue($widgetData, 'fallback_message');
+        $this->fallbackLabel = $this->stringValue($widgetData, 'fallback_label');
+        $this->fallbackUrl = PublicUrlSanitizer::sanitize($widgetData['fallback_url'] ?? null);
 
         $form = $this->resolveFormForCurrentSite($handle ?? $this->resolveHandle($widgetData));
 
@@ -135,5 +145,15 @@ class FormElementComponent extends Component implements RegistersExtensionFronte
         }
 
         return (string) Str::uuid();
+    }
+
+    /**
+     * @param  array<string, mixed>  $widgetData
+     */
+    private function stringValue(array $widgetData, string $key): string
+    {
+        $value = $widgetData[$key] ?? null;
+
+        return is_string($value) ? trim($value) : '';
     }
 }

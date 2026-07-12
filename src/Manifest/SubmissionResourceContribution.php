@@ -11,6 +11,6 @@ final class SubmissionResourceContribution implements ExtensionContribution, Reg
 {
     public static function compatibleCapellApiVersion(): string
     {
-        return '^0.0';
+        return '^4.0';
     }
 }

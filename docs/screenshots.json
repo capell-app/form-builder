@@ -1,0 +1,76 @@
+{
+    "package": "form-builder",
+    "composerName": "capell-app/form-builder",
+    "generatedFor": "deployment-screenshot-runner",
+    "requiresInstalledPackage": true,
+    "outputDirectory": "packages/form-builder/docs/screenshots",
+    "entries": [
+        {
+            "id": "form-builder-admin-index",
+            "title": "FormBuilder admin index.",
+            "package": "form-builder",
+            "surface": "admin",
+            "targetType": "admin-surface",
+            "target": null,
+            "required": true,
+            "notes": "Capture after installing capell-app/form-builder in the isolated demo harness and seeding the data required for this use case.",
+            "useCase": "An administrator reviews form definitions and their publication/status state.",
+            "screenshotPath": "packages/form-builder/docs/screenshots/form-builder-admin-index.png",
+            "darkScreenshotPath": "packages/form-builder/docs/screenshots/form-builder-admin-index-dark.png"
+        },
+        {
+            "id": "create-edit-form-schema-screen",
+            "title": "Create/edit form schema screen.",
+            "package": "form-builder",
+            "surface": "admin",
+            "targetType": "admin-surface",
+            "target": null,
+            "required": true,
+            "notes": "Capture after installing capell-app/form-builder in the isolated demo harness and seeding the data required for this use case.",
+            "useCase": "An editor builds or adjusts a form schema, field types, validation, and notification settings.",
+            "screenshotPath": "packages/form-builder/docs/screenshots/create-edit-form-schema-screen.png",
+            "darkScreenshotPath": "packages/form-builder/docs/screenshots/create-edit-form-schema-screen-dark.png"
+        },
+        {
+            "id": "submissions-index",
+            "title": "Submissions index.",
+            "package": "form-builder",
+            "surface": "admin",
+            "targetType": "admin-surface",
+            "target": null,
+            "required": true,
+            "notes": "Capture after installing capell-app/form-builder in the isolated demo harness and seeding the data required for this use case.",
+            "useCase": "An administrator triages unread, spam, archived, and normal submissions.",
+            "screenshotPath": "packages/form-builder/docs/screenshots/submissions-index.png",
+            "darkScreenshotPath": "packages/form-builder/docs/screenshots/submissions-index-dark.png"
+        },
+        {
+            "id": "frontend-form-output",
+            "title": "Frontend form output.",
+            "package": "form-builder",
+            "surface": "frontend",
+            "targetType": "frontend-url",
+            "target": null,
+            "url": "/screenshot-fixtures/form-builder/frontend-form-output",
+            "waitFor": ".frontend-form-output",
+            "required": true,
+            "notes": "Capture after installing capell-app/form-builder in the isolated demo harness and seeding the data required for this use case.",
+            "useCase": "A visitor completes a seeded public form rendered through the frontend component.",
+            "screenshotPath": "packages/form-builder/docs/screenshots/frontend-form-output.png",
+            "darkScreenshotPath": "packages/form-builder/docs/screenshots/frontend-form-output-dark.png"
+        },
+        {
+            "id": "submission-detail-view",
+            "title": "Submission detail view.",
+            "package": "form-builder",
+            "surface": "admin",
+            "targetType": "admin-surface",
+            "target": null,
+            "required": false,
+            "notes": "Optional Beta evidence target. The current file duplicates the submissions index capture; replace it with an independently captured submission detail state before using it as release evidence.",
+            "useCase": "An administrator reads a submission payload and reply context without exposing encrypted raw storage.",
+            "screenshotPath": "packages/form-builder/docs/screenshots/submission-detail-view.png",
+            "darkScreenshotPath": "packages/form-builder/docs/screenshots/submission-detail-view-dark.png"
+        }
+    ]
+}

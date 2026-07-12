@@ -1,0 +1,239 @@
+{
+    "manifest-version": 3,
+    "name": "capell-app/form-builder",
+    "slug": "form-builder",
+    "displayName": "Form Builder",
+    "kind": "package",
+    "capellApiVersion": "^0.0.1",
+    "version": "0.0.x-dev",
+    "description": "Build site-scoped forms in Capell and capture spam-filtered, encrypted submissions into a per-site triage inbox with one-click email replies.",
+    "product": {
+        "group": "Capell FormBuilder",
+        "tier": "premium",
+        "bundle": "form-builder"
+    },
+    "namespace": "Capell\\FormBuilder",
+    "surfaces": ["admin", "frontend"],
+    "dependencies": {
+        "requires": [
+            "capell-app/admin",
+            "capell-app/core",
+            "capell-app/frontend",
+            "capell-app/payments"
+        ],
+        "supports": [],
+        "conflicts": []
+    },
+    "providers": {
+        "metadata": [],
+        "install": [],
+        "runtime": [
+            "Capell\\FormBuilder\\Providers\\FormBuilderServiceProvider"
+        ],
+        "admin": [],
+        "frontend": []
+    },
+    "contributes": [
+        {
+            "type": "admin-resource",
+            "class": "Capell\\FormBuilder\\Manifest\\FormResourceContribution",
+            "resourceClass": "Capell\\FormBuilder\\Filament\\Resources\\Forms\\FormResource"
+        },
+        {
+            "type": "admin-resource",
+            "class": "Capell\\FormBuilder\\Manifest\\SubmissionResourceContribution",
+            "resourceClass": "Capell\\FormBuilder\\Filament\\Resources\\Submissions\\SubmissionResource"
+        },
+        {
+            "type": "frontend-component",
+            "class": "Capell\\FormBuilder\\Manifest\\FormElementComponentContribution",
+            "componentClass": "Capell\\FormBuilder\\Livewire\\FormElementComponent",
+            "surface": "frontend"
+        },
+        {
+            "type": "route",
+            "class": "Capell\\FormBuilder\\Manifest\\FormBuilderPaymentRoutesContribution",
+            "routes": ["capell-payments.form-builder.checkout"]
+        },
+        {
+            "type": "model",
+            "class": "Capell\\FormBuilder\\Manifest\\FormModelContribution",
+            "modelClass": "Capell\\FormBuilder\\Models\\Form"
+        },
+        {
+            "type": "model",
+            "class": "Capell\\FormBuilder\\Manifest\\SubmissionModelContribution",
+            "modelClass": "Capell\\FormBuilder\\Models\\Submission"
+        }
+    ],
+    "database": {
+        "migrations": true,
+        "settings": false,
+        "requiredTables": ["forms", "submissions"]
+    },
+    "commands": {
+        "install": null,
+        "setup": null,
+        "demo": null,
+        "doctor": null
+    },
+    "actions": {
+        "archiveSubmission": "Capell\\FormBuilder\\Actions\\ArchiveSubmissionAction",
+        "buildFormSteps": "Capell\\FormBuilder\\Actions\\BuildFormStepsAction",
+        "buildSubmissionPayloadData": "Capell\\FormBuilder\\Actions\\BuildSubmissionPayloadDataAction",
+        "buildFormValidationRules": "Capell\\FormBuilder\\Actions\\BuildFormValidationRulesAction",
+        "calculateFormFieldValues": "Capell\\FormBuilder\\Actions\\CalculateFormFieldValuesAction",
+        "calculateSubmissionSpamScore": "Capell\\FormBuilder\\Actions\\CalculateSubmissionSpamScoreAction",
+        "createFormPaymentCheckoutRedirectUrl": "Capell\\FormBuilder\\Actions\\CreateFormPaymentCheckoutRedirectUrlAction",
+        "createFormPaymentCheckoutUrl": "Capell\\FormBuilder\\Actions\\CreateFormPaymentCheckoutUrlAction",
+        "createFormPaymentCheckout": "Capell\\FormBuilder\\Actions\\CreateFormPaymentCheckoutSessionAction",
+        "createSubmission": "Capell\\FormBuilder\\Actions\\CreateSubmissionAction",
+        "dispatchUnstoredFormSubmission": "Capell\\FormBuilder\\Actions\\DispatchUnstoredFormSubmissionAction",
+        "evaluateFormFieldVisibility": "Capell\\FormBuilder\\Actions\\EvaluateFormFieldVisibilityAction",
+        "markSubmissionRead": "Capell\\FormBuilder\\Actions\\MarkSubmissionReadAction",
+        "markSubmissionSpam": "Capell\\FormBuilder\\Actions\\MarkSubmissionSpamAction",
+        "replyToSubmission": "Capell\\FormBuilder\\Actions\\ReplyToSubmissionAction",
+        "resolveVisibleFormFields": "Capell\\FormBuilder\\Actions\\ResolveVisibleFormFieldsAction",
+        "sendSubmissionNotification": "Capell\\FormBuilder\\Actions\\SendSubmissionNotificationAction"
+    },
+    "settings": [],
+    "permissions": [
+        "ViewAny:Form",
+        "View:Form",
+        "Create:Form",
+        "Update:Form",
+        "Delete:Form",
+        "DeleteAny:Form",
+        "Restore:Form",
+        "RestoreAny:Form",
+        "ForceDelete:Form",
+        "ForceDeleteAny:Form",
+        "Reorder:Form",
+        "ViewAny:Submission",
+        "View:Submission",
+        "Reply:Submission",
+        "Update:Submission"
+    ],
+    "capabilities": [
+        "form-builder",
+        "form-builder-admin",
+        "form-builder-frontend",
+        "public-form",
+        "form-builder-conditional-logic",
+        "form-builder-multi-step",
+        "form-builder-calculations",
+        "form-builder-file-upload-rules",
+        "form-builder-spam-scoring",
+        "form-builder-spam-provider",
+        "form-builder-payment-fields",
+        "form-builder-submission-workflows",
+        "requires-livewire",
+        "cache-blocking"
+    ],
+    "security": {
+        "riskTier": "sensitive",
+        "publicSurface": {
+            "routeNames": ["capell-payments.form-builder.checkout"],
+            "auth": "signed",
+            "csrfExemptRoutes": [],
+            "signedRoutes": ["capell-payments.form-builder.checkout"],
+            "tokenizedRoutes": [],
+            "webhookRoutes": [],
+            "throttledRoutes": []
+        },
+        "sensitiveData": {
+            "encryptedFields": [],
+            "hashedTokenFields": [],
+            "redactedOutputClasses": [
+                "Capell\\FormBuilder\\Actions\\DispatchSubmissionWebhookAction",
+                "Capell\\FormBuilder\\Actions\\RedactSubmissionWebhookErrorMessageAction"
+            ],
+            "plaintextJustifications": []
+        },
+        "publicOutput": {
+            "cacheSafe": true,
+            "forbidAuthoringSurface": true,
+            "forbidSecrets": true,
+            "forbidPublicBladeQueries": true
+        },
+        "externalHttpClients": {
+            "requiresTimeouts": true,
+            "requiresSecretRedaction": true,
+            "clients": [
+                "Capell\\FormBuilder\\Actions\\DispatchSubmissionWebhookAction",
+                "Capell\\FormBuilder\\Support\\SpamProtection\\TurnstileSpamProtectionProvider"
+            ]
+        },
+        "adminSurface": {
+            "authorization": "policies",
+            "permissions": []
+        }
+    },
+    "performance": {
+        "frontendRenderBudgetMs": 20,
+        "adminQueryBudget": 40,
+        "cacheTags": ["form-builder"],
+        "cacheSafety": {
+            "cacheable": false,
+            "variesBy": [],
+            "sensitiveOutput": false,
+            "invalidationSources": [
+                {
+                    "model": "Capell\\FormBuilder\\Models\\Form",
+                    "events": [
+                        "created",
+                        "updated",
+                        "deleted",
+                        "restored",
+                        "forceDeleted"
+                    ]
+                }
+            ],
+            "queueInvalidation": true
+        }
+    },
+    "healthChecks": [
+        {
+            "key": "form-builder.validation",
+            "label": "Public submissions are validated from typed field schema",
+            "class": "Capell\\FormBuilder\\Health\\FormBuilderHealthCheck",
+            "severity": "critical",
+            "surface": "frontend"
+        },
+        {
+            "key": "form-builder.spam-honeypot",
+            "label": "Triggered honeypot submissions are recorded as spam without dispatching workflows",
+            "class": "Capell\\FormBuilder\\Health\\FormBuilderHealthCheck",
+            "severity": "critical",
+            "surface": "frontend"
+        },
+        {
+            "key": "form-builder.encrypted-submissions",
+            "label": "Submission payload and metadata remain encrypted at rest",
+            "class": "Capell\\FormBuilder\\Health\\FormBuilderHealthCheck",
+            "severity": "warning",
+            "surface": "admin"
+        }
+    ],
+    "commercial": {
+        "proposedLicense": "paid",
+        "requestedCertification": "first-party",
+        "supportPolicy": "priority",
+        "privateDocsRequested": true
+    },
+    "marketplace": {
+        "summary": "Build site-scoped forms in Capell and capture spam-filtered, encrypted submissions into a per-site triage inbox with one-click email replies.",
+        "description": "Form Builder gives each Capell site its own forms with conditional fields, calculated values, honeypot + heuristic spam scoring, and configurable file-upload rules. Every submission is encrypted at rest and lands in a site-scoped admin inbox where staff can read, archive, mark spam, and reply by email without leaving the panel. Frontend forms render through a cache-safe Livewire component with built-in throttling and accessible markup. Pairs with Email Studio and Public Actions to turn submissions into automated workflows.",
+        "screenshots": [
+            {
+                "path": "docs/assets/marketplace/extension-card.jpg",
+                "alt": "Form Builder extension preview image",
+                "caption": "Form Builder extension preview"
+            }
+        ],
+        "categories": ["admin", "form-builder", "frontend"]
+    },
+    "contributionTraceability": {
+        "deferredContributions": []
+    }
+}

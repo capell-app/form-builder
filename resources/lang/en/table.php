@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 return [
+    'apply_legal_hold' => 'Apply legal hold',
+    'release_legal_hold' => 'Release legal hold',
     'archive' => 'Archive',
     'file_reference' => ':name (:disk/:path, :size bytes)',
     'form' => 'Form',

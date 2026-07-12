@@ -14,7 +14,7 @@ it('reports a compatible capell api version', function (): void {
 it('runs real diagnostics returning check results', function (): void {
     $results = FormBuilderHealthCheck::runDiagnostics();
 
-    expect($results)->toHaveCount(3)
+    expect($results)->toHaveCount(4)
         ->and($results->every(static fn (mixed $result): bool => $result instanceof DoctorCheckResultData))->toBeTrue();
 });
 
@@ -50,4 +50,11 @@ it('confirms submission payload and metadata are cast through the encrypted cast
 
     expect($check->unencryptedSubmissionAttributes())->toBe([])
         ->and($check->encryptedSubmissionsCheck()->passed)->toBeTrue();
+});
+
+it('reports disabled submission retention scheduling', function (): void {
+    Config::set('capell-form-builder.retention.schedule_enabled', false);
+
+    expect((new FormBuilderHealthCheck)->retentionLifecycleCheck()->passed)->toBeFalse()
+        ->and(FormBuilderHealthCheck::passed())->toBeFalse();
 });

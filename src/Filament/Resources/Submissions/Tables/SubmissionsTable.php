@@ -116,6 +116,16 @@ final class SubmissionsTable
                             ->iconColor('success')
                             ->send();
                     }),
+                Action::make('toggle_legal_hold')
+                    ->label(fn (Submission $record): string => $record->legal_hold
+                        ? __('capell-form-builder::table.release_legal_hold')
+                        : __('capell-form-builder::table.apply_legal_hold'))
+                    ->icon('heroicon-o-lock-closed')
+                    ->visible(fn (Submission $record): bool => Gate::allows('update', $record))
+                    ->action(function (Submission $record): void {
+                        Gate::authorize('update', $record);
+                        $record->forceFill(['legal_hold' => ! $record->legal_hold])->save();
+                    }),
                 Action::make('mark_spam')
                     ->label(__('capell-form-builder::table.mark_spam'))
                     ->icon('heroicon-o-no-symbol')

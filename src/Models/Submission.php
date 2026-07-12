@@ -38,6 +38,8 @@ class Submission extends Model
         'meta',
         'status',
         'submitted_at',
+        'legal_hold',
+        'retention_until',
     ];
 
     protected static string $factory = SubmissionFactory::class;
@@ -69,6 +71,8 @@ class Submission extends Model
             'meta' => EncryptedDataCast::class . ':' . SubmissionMetaData::class,
             'status' => SubmissionStatus::class,
             'submitted_at' => 'datetime',
+            'legal_hold' => 'boolean',
+            'retention_until' => 'datetime',
         ];
     }
 }

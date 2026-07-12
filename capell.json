@@ -75,7 +75,8 @@
         "install": null,
         "setup": null,
         "demo": null,
-        "doctor": null
+        "doctor": null,
+        "prune": "capell:form-builder:prune"
     },
     "actions": {
         "archiveSubmission": "Capell\\FormBuilder\\Actions\\ArchiveSubmissionAction",
@@ -210,6 +211,13 @@
         {
             "key": "form-builder.encrypted-submissions",
             "label": "Submission payload and metadata remain encrypted at rest",
+            "class": "Capell\\FormBuilder\\Health\\FormBuilderHealthCheck",
+            "severity": "warning",
+            "surface": "admin"
+        },
+        {
+            "key": "form-builder.submission-retention",
+            "label": "Expired submissions are pruned while legal holds remain protected",
             "class": "Capell\\FormBuilder\\Health\\FormBuilderHealthCheck",
             "severity": "warning",
             "surface": "admin"

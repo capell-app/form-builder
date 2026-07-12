@@ -5,6 +5,10 @@ use Capell\FormBuilder\Support\SpamProtection\NullSpamProtectionProvider;
 
 return [
     'store_submissions' => true,
+    'retention' => [
+        'days' => 365,
+        'schedule_enabled' => true,
+    ],
     'collect_ip_address' => true,
     'collect_user_agent' => true,
     'throttle' => [

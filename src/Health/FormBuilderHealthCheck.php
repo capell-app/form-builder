@@ -52,6 +52,7 @@ final class FormBuilderHealthCheck implements ChecksExtensionHealth
             $check->storageTablesCheck(),
             $check->spamScoringEnabledCheck(),
             $check->encryptedSubmissionsCheck(),
+            $check->retentionLifecycleCheck(),
         ]);
     }
 
@@ -59,6 +60,22 @@ final class FormBuilderHealthCheck implements ChecksExtensionHealth
     {
         return self::runDiagnostics()
             ->every(static fn (DoctorCheckResultData $result): bool => $result->passed);
+    }
+
+    public function retentionLifecycleCheck(): DoctorCheckResultData
+    {
+        $days = config('capell-form-builder.retention.days');
+        $configured = is_numeric($days) && (int) $days > 0
+            && config('capell-form-builder.retention.schedule_enabled', true) === true;
+
+        return new DoctorCheckResultData(
+            label: 'Form Builder submission retention',
+            passed: $configured,
+            message: $configured
+                ? sprintf('Expired submissions are scheduled for pruning after %d days, excluding legal holds.', (int) $days)
+                : 'Submission retention or its scheduled prune is disabled.',
+            remediation: $configured ? null : 'Configure a positive retention.days value and enable the retention schedule.',
+        );
     }
 
     /**

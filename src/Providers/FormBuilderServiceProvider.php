@@ -18,6 +18,7 @@ use Capell\FormBuilder\Actions\BuildFormSubmissionPrivacyExportAction;
 use Capell\FormBuilder\Actions\EraseFormSubmissionPrivacyDataAction;
 use Capell\FormBuilder\Actions\InstallThemeDemoFormsAction;
 use Capell\FormBuilder\Console\Commands\ExportSubmissionsCommand;
+use Capell\FormBuilder\Console\Commands\PruneExpiredFormSubmissionsCommand;
 use Capell\FormBuilder\Contracts\FormBuilderWebhookHostResolver;
 use Capell\FormBuilder\Contracts\SpamProtectionProvider;
 use Capell\FormBuilder\Enums\LivewireComponentEnum;
@@ -33,6 +34,7 @@ use Capell\FormBuilder\Policies\SubmissionPolicy;
 use Capell\FormBuilder\Support\DnsFormBuilderWebhookHostResolver;
 use Capell\FormBuilder\Support\SpamProtection\NullSpamProtectionProvider;
 use Composer\InstalledVersions;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Blade;
@@ -57,9 +59,11 @@ final class FormBuilderServiceProvider extends AbstractPackageServiceProvider
             ->hasTranslations()
             ->hasRoute('payments')
             ->hasCommand(ExportSubmissionsCommand::class)
+            ->hasCommand(PruneExpiredFormSubmissionsCommand::class)
             ->hasMigrations([
                 '2026_05_10_190849_01_create_form-builder_table',
                 '2026_05_10_190849_02_create_submissions_table',
+                '2026_07_12_000001_add_retention_to_submissions_table',
             ]);
     }
 
@@ -103,6 +107,12 @@ final class FormBuilderServiceProvider extends AbstractPackageServiceProvider
             'form' => Form::class,
             'form_submission' => Submission::class,
         ], merge: true);
+
+        if (config('capell-form-builder.retention.schedule_enabled', true) === true) {
+            $this->callAfterResolving(Schedule::class, static function (Schedule $schedule): void {
+                $schedule->command('capell:form-builder:prune')->daily()->withoutOverlapping();
+            });
+        }
     }
 
     #[Override]

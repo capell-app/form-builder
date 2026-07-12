@@ -4,7 +4,7 @@
     "slug": "form-builder",
     "displayName": "Form Builder",
     "kind": "package",
-    "capellApiVersion": "^0.0",
+    "capellApiVersion": "^4.0",
     "version": "0.0.x-dev",
     "description": "Build site-scoped forms in Capell and capture spam-filtered, encrypted submissions into a per-site triage inbox with one-click email replies.",
     "product": {
@@ -64,6 +64,13 @@
             "type": "model",
             "class": "Capell\\FormBuilder\\Manifest\\SubmissionModelContribution",
             "modelClass": "Capell\\FormBuilder\\Models\\Submission"
+        },
+        {
+            "type": "scheduled-job",
+            "class": "Capell\\FormBuilder\\Manifest\\FormBuilderPruneScheduleContribution",
+            "key": "form-builder-submission-prune",
+            "command": "capell:form-builder:prune",
+            "frequency": "daily"
         }
     ],
     "database": {

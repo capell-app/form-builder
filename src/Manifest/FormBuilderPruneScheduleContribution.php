@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Capell\FormBuilder\Manifest;
 
 use Capell\Core\Contracts\Extensions\ExtensionContribution;
+use Capell\Core\Contracts\Extensions\RunsScheduledExtensionJob;
 
-final class SubmissionModelContribution implements ExtensionContribution
+final class FormBuilderPruneScheduleContribution implements ExtensionContribution, RunsScheduledExtensionJob
 {
     public static function compatibleCapellApiVersion(): string
     {

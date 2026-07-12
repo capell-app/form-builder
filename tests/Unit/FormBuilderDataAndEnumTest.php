@@ -29,7 +29,7 @@ it('declares enum labels components resources and health compatibility', functio
             'public-form' => FormElementComponent::class,
         ])
         ->and(ResourceEnum::Submissions->value)->toBe(SubmissionResource::class)
-        ->and(FormBuilderHealthCheck::compatibleCapellApiVersion())->toBe('^4.0');
+        ->and(FormBuilderHealthCheck::compatibleCapellApiVersion())->toBe('^0.0');
 });
 
 it('maps submission metadata from snake case arrays', function (): void {

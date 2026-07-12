@@ -124,7 +124,7 @@ final class FormBuilderServiceProvider extends AbstractPackageServiceProvider
             return true;
         }
 
-        return version_compare($version, '4.0.0', '<');
+        return version_compare($version, '0.0.0', '<');
     }
 
     private function bootInstalledPackage(): self

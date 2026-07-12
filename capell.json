@@ -4,7 +4,7 @@
     "slug": "form-builder",
     "displayName": "Form Builder",
     "kind": "package",
-    "capellApiVersion": "^0.0.1",
+    "capellApiVersion": "^0.0",
     "version": "0.0.x-dev",
     "description": "Build site-scoped forms in Capell and capture spam-filtered, encrypted submissions into a per-site triage inbox with one-click email replies.",
     "product": {

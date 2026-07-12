@@ -28,4 +28,4 @@ All notable changes to `capell-app/form-builder` will be documented in this file
 
 ### Prepared
 
-- Package metadata and documentation for ongoing Capell 4.x package work.
+- Package metadata and documentation for ongoing Capell 0.0.x package work.

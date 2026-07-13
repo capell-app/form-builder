@@ -53,7 +53,10 @@ function declaresFormBuilderDependency(string $rootPath, string $relativePath): 
         return false;
     }
 
-    $requires = $composer['require'] ?? [];
+    $requires = [
+        ...(is_array($composer['require'] ?? null) ? $composer['require'] : []),
+        ...(is_array($composer['suggest'] ?? null) ? $composer['suggest'] : []),
+    ];
 
-    return is_array($requires) && array_key_exists('capell-app/form-builder', $requires);
+    return array_key_exists('capell-app/form-builder', $requires);
 }

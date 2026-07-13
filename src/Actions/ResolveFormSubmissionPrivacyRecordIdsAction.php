@@ -38,7 +38,10 @@ final class ResolveFormSubmissionPrivacyRecordIdsAction
                     }
 
                     if (Str::lower(trim($value)) === $email) {
-                        $submissionIds[] = (int) $submission->getKey();
+                        $submissionKey = $submission->getKey();
+                        if (is_numeric($submissionKey)) {
+                            $submissionIds[] = (int) $submissionKey;
+                        }
 
                         return;
                     }

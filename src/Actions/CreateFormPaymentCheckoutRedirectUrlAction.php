@@ -17,6 +17,10 @@ final class CreateFormPaymentCheckoutRedirectUrlAction
 
     public function handle(Submission $submission): ?string
     {
+        if (! IsFormPaymentIntegrationAvailableAction::run()) {
+            return null;
+        }
+
         if (! $this->hasPaymentField($submission)) {
             return null;
         }

@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
+use Capell\Core\Facades\CapellCore;
 use Capell\Core\Models\Site;
+use Capell\FormBuilder\Actions\CreateFormPaymentCheckoutRedirectUrlAction;
 use Capell\FormBuilder\Actions\CreateFormPaymentCheckoutSessionAction;
 use Capell\FormBuilder\Actions\CreateFormPaymentCheckoutUrlAction;
 use Capell\FormBuilder\Actions\ResolveFormPaymentCheckoutDataAction;
@@ -18,6 +20,7 @@ use Capell\Payments\Enums\PaymentProvider;
 use Capell\Payments\Enums\PaymentPurpose;
 use Capell\Payments\Models\CheckoutSession;
 use Capell\Payments\Tests\Fakes\FakePaymentGateway;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Validation\ValidationException;
 
@@ -46,8 +49,8 @@ it('creates form payment checkout sessions from portable Form Builder payment fi
         amountTotal: 3500,
         customerEmail: 'buyer@example.test',
         metadata: [
-            'form_id' => (string) $form->getKey(),
-            'submission_id' => (string) $submission->getKey(),
+            'form_id' => formPaymentCheckoutTestKey($form->getKey()),
+            'submission_id' => formPaymentCheckoutTestKey($submission->getKey()),
             'field_key' => 'donation',
         ],
         providerPayload: ['id' => 'cs_form_payment_123'],
@@ -64,16 +67,16 @@ it('creates form payment checkout sessions from portable Form Builder payment fi
     expect($checkoutSession)->toBeInstanceOf(CheckoutSession::class)
         ->and($checkoutSession->purpose)->toBe(PaymentPurpose::FormPayment)
         ->and($checkoutSession->source_type)->toBe('form_builder.form')
-        ->and($checkoutSession->source_id)->toBe((string) $form->getKey())
+        ->and($checkoutSession->source_id)->toBe(formPaymentCheckoutTestKey($form->getKey()))
         ->and($checkoutSession->payable_type)->toBe('form_builder.submission')
-        ->and($checkoutSession->payable_id)->toBe((string) $submission->getKey())
-        ->and($checkoutSession->reference_id)->toBe('form-submission-' . $submission->getKey())
+        ->and($checkoutSession->payable_id)->toBe(formPaymentCheckoutTestKey($submission->getKey()))
+        ->and($checkoutSession->reference_id)->toBe('form-submission-' . formPaymentCheckoutTestKey($submission->getKey()))
         ->and($checkoutSession->amount_total)->toBe(3500)
         ->and($gateway->lastRequest?->customerEmail)->toBe('buyer@example.test')
         ->and($gateway->lastRequest?->lineItems[0]->name)->toBe('Donation')
         ->and($gateway->lastRequest?->lineItems[0]->amount)->toBe(3500)
         ->and($gateway->lastRequest?->lineItems[0]->currency)->toBe('gbp')
-        ->and($gateway->lastRequest?->idempotencyKey)->toBe('form-payment-' . $submission->getKey() . '-donation');
+        ->and($gateway->lastRequest?->idempotencyKey)->toBe('form-payment-' . formPaymentCheckoutTestKey($submission->getKey()) . '-donation');
 });
 
 it('uses configured payment field amount before submitted amount', function (): void {
@@ -95,8 +98,8 @@ it('uses configured payment field amount before submitted amount', function (): 
 
     expect($paymentData->amountCents)->toBe(1200)
         ->and($paymentData->currency)->toBe('usd')
-        ->and($paymentData->successUrl)->toContain('/payments/form/success?submission=' . $submission->getKey())
-        ->and($paymentData->cancelUrl)->toContain('/payments/form/cancel?submission=' . $submission->getKey());
+        ->and($paymentData->successUrl)->toContain('/payments/form/success?submission=' . formPaymentCheckoutTestKey($submission->getKey()))
+        ->and($paymentData->cancelUrl)->toContain('/payments/form/cancel?submission=' . formPaymentCheckoutTestKey($submission->getKey()));
 });
 
 it('rejects form payment checkout creation when the payment amount is invalid', function (): void {
@@ -121,7 +124,7 @@ it('creates signed public checkout URLs for form payment submissions', function 
         ttlMinutes: 15,
     );
 
-    expect($url)->toContain('/capell/payments/forms/' . $submission->getKey() . '/checkout')
+    expect($url)->toContain('/capell/payments/forms/' . formPaymentCheckoutTestKey($submission->getKey()) . '/checkout')
         ->and($url)->toContain('success_url=')
         ->and($url)->toContain('cancel_url=')
         ->and($url)->toContain('signature=')
@@ -290,6 +293,30 @@ it('rejects unsigned public form payment checkout requests', function (): void {
         ->assertForbidden();
 });
 
+it('rejects stale signed checkout URLs when Payments is disabled', function (): void {
+    $submission = paymentsFormBuilderSubmission(paymentsFormBuilderForm(), [
+        'email' => 'buyer@example.test',
+        'donation' => 3500,
+    ]);
+
+    $checkoutUrl = CreateFormPaymentCheckoutUrlAction::run($submission);
+
+    CapellCore::forcePackageInstalled('capell-app/payments', false);
+
+    $this->get($checkoutUrl)->assertNotFound();
+});
+
+it('does not create payment checkout redirects when the Payments table is unavailable', function (): void {
+    $submission = paymentsFormBuilderSubmission(paymentsFormBuilderForm(), [
+        'email' => 'buyer@example.test',
+        'donation' => 3500,
+    ]);
+
+    Schema::drop('payment_checkout_sessions');
+
+    expect(CreateFormPaymentCheckoutRedirectUrlAction::run($submission))->toBeNull();
+});
+
 /**
  * @param  list<array<string, mixed>>|null  $paymentFields
  */
@@ -337,4 +364,13 @@ function paymentsFormBuilderSubmission(Form $form, array $values): Submission
         'status' => 'new',
         'submitted_at' => now(),
     ]);
+}
+
+function formPaymentCheckoutTestKey(mixed $key): string
+{
+    if (! is_int($key) && ! is_string($key)) {
+        throw new RuntimeException('Expected an integer or string model key.');
+    }
+
+    return (string) $key;
 }

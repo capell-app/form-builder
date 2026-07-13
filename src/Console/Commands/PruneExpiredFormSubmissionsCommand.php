@@ -20,6 +20,7 @@ final class PruneExpiredFormSubmissionsCommand extends Command
             is_numeric($days) ? max(1, (int) $days) : null,
             (bool) $this->option('dry-run'),
         );
+        $count = is_int($count) ? $count : 0;
         $this->info("Matched {$count} expired form submissions.");
 
         return self::SUCCESS;

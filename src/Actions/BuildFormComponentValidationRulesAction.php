@@ -10,7 +10,7 @@ use Illuminate\Support\Collection;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * @method static array<string, array<int, string>> run(Form $form, array<string, mixed> $input = [], ?Collection $fields = null)
+ * @method static array<string, array<int, string>> run(Form $form, array<string, mixed> $input = [], ?Collection<int, FormFieldData> $fields = null)
  */
 final class BuildFormComponentValidationRulesAction
 {

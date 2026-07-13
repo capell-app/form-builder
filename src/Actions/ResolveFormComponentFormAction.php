@@ -74,7 +74,8 @@ final class ResolveFormComponentFormAction
             return null;
         }
 
-        if ($site instanceof Site && (int) $site->getKey() !== (int) $siteId) {
+        $siteKey = $site?->getKey();
+        if ($site instanceof Site && (! is_numeric($siteKey) || (int) $siteKey !== (int) $siteId)) {
             return null;
         }
 

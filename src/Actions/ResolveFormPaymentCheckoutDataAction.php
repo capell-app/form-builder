@@ -13,7 +13,9 @@ use Capell\Payments\Actions\ValidateFormPaymentReturnUrlAction;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Validation\ValidationException;
+use LogicException;
 use Lorisleiva\Actions\Concerns\AsAction;
+use UnexpectedValueException;
 
 /**
  * @method static FormPaymentCheckoutData run(Submission $submission, ?string $successUrl = null, ?string $cancelUrl = null)
@@ -24,6 +26,10 @@ final class ResolveFormPaymentCheckoutDataAction
 
     public function handle(Submission $submission, ?string $successUrl = null, ?string $cancelUrl = null): FormPaymentCheckoutData
     {
+        if (! IsFormPaymentIntegrationAvailableAction::run()) {
+            throw new LogicException('The Payments integration is not available.');
+        }
+
         $submission->loadMissing('form');
 
         /** @var Form $form */
@@ -33,6 +39,8 @@ final class ResolveFormPaymentCheckoutDataAction
         $currency = $this->currency($field);
         $successUrl = ValidateFormPaymentReturnUrlAction::run($successUrl);
         $cancelUrl = ValidateFormPaymentReturnUrlAction::run($cancelUrl);
+        $successUrl = is_string($successUrl) ? $successUrl : null;
+        $cancelUrl = is_string($cancelUrl) ? $cancelUrl : null;
 
         return new FormPaymentCheckoutData(
             form: $form,
@@ -80,7 +88,8 @@ final class ResolveFormPaymentCheckoutDataAction
 
     private function currency(FormFieldData $field): string
     {
-        $currency = strtolower((string) ($field->paymentCurrency ?: config('capell-payments.form_builder.default_currency', 'gbp')));
+        $configuredCurrency = config('capell-payments.form_builder.default_currency', 'gbp');
+        $currency = strtolower($field->paymentCurrency ?: (is_string($configuredCurrency) ? $configuredCurrency : 'gbp'));
 
         return preg_match('/^[a-z]{3}$/', $currency) === 1 ? $currency : 'gbp';
     }
@@ -104,18 +113,35 @@ final class ResolveFormPaymentCheckoutDataAction
 
     private function payloadValue(Submission $submission, string $key): mixed
     {
-        $payload = $submission->payload?->values ?? [];
+        $payload = $submission->payload->values;
 
         return Arr::get($payload, $key);
     }
 
     private function defaultSuccessUrl(Submission $submission): string
     {
-        return URL::to(config('capell-payments.form_builder.success_path', '/payments/form/success') . '?submission=' . $submission->getKey());
+        return URL::to($this->configuredPath('success_path', '/payments/form/success') . '?submission=' . $this->submissionKey($submission));
     }
 
     private function defaultCancelUrl(Submission $submission): string
     {
-        return URL::to(config('capell-payments.form_builder.cancel_path', '/payments/form/cancel') . '?submission=' . $submission->getKey());
+        return URL::to($this->configuredPath('cancel_path', '/payments/form/cancel') . '?submission=' . $this->submissionKey($submission));
+    }
+
+    private function configuredPath(string $key, string $default): string
+    {
+        $path = config('capell-payments.form_builder.' . $key, $default);
+
+        return is_string($path) ? $path : $default;
+    }
+
+    private function submissionKey(Submission $submission): string
+    {
+        $key = $submission->getKey();
+        if (! is_int($key) && ! is_string($key)) {
+            throw new UnexpectedValueException('Submission keys must be integers or strings.');
+        }
+
+        return (string) $key;
     }
 }

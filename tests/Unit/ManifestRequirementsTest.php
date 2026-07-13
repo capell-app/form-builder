@@ -47,7 +47,7 @@ describe('form-builder capell.json manifest', function (): void {
         expect($manifest['dependencies']['requires'])->toContain('capell-app/core')
             ->and($manifest['dependencies']['requires'])->toContain('capell-app/admin')
             ->and($manifest['dependencies']['requires'])->toContain('capell-app/frontend')
-            ->and($manifest['dependencies']['requires'])->toContain('capell-app/payments');
+            ->and($manifest['dependencies']['supports'])->toContain('capell-app/payments');
     });
 
     it('declares implemented advanced form features and payment integration', function (): void {

@@ -19,6 +19,8 @@ final class EraseFormSubmissionPrivacyDataAction
     {
         $recordIds = ResolveFormSubmissionPrivacyRecordIdsAction::run($subject);
 
-        return Submission::query()->whereKey($recordIds->submissionIds)->delete();
+        $deleted = Submission::query()->whereKey($recordIds->submissionIds)->delete();
+
+        return is_int($deleted) ? $deleted : 0;
     }
 }

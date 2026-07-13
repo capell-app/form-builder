@@ -16,7 +16,8 @@ final class PruneExpiredFormSubmissionsAction
 
     public function handle(?int $retentionDays = null, bool $dryRun = false): int
     {
-        $days = max(1, $retentionDays ?? (int) config('capell-form-builder.retention.days', 365));
+        $configuredDays = config('capell-form-builder.retention.days', 365);
+        $days = max(1, $retentionDays ?? (is_numeric($configuredDays) ? (int) $configuredDays : 365));
         $query = Submission::query()
             ->where('legal_hold', false)
             ->where('submitted_at', '<', now()->subDays($days))

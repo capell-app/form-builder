@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 use Capell\Core\Models\Site;
 use Capell\FormBuilder\Actions\InstallThemeDemoFormsAction;
+use Capell\FormBuilder\Data\FormFieldData;
 use Capell\FormBuilder\Enums\FormFieldType;
 use Capell\FormBuilder\Models\Form;
+use Spatie\LaravelData\DataCollection;
 
 it('idempotently installs theme demo form blueprints for a site', function (): void {
     $site = Site::factory()->withTranslations()->create();
@@ -29,7 +31,9 @@ it('idempotently installs theme demo form blueprints for a site', function (): v
     InstallThemeDemoFormsAction::run($site->getKey(), $payload);
 
     $form = Form::query()->whereBelongsTo($site)->where('handle', 'studio-enquiry')->firstOrFail();
-    $field = $form->schema->first();
+    $schema = $form->schema;
+    $field = $schema instanceof DataCollection ? $schema->first() : ($schema[0] ?? null);
+    $field = is_array($field) ? FormFieldData::from($field) : $field;
 
     expect(Form::query()->whereBelongsTo($site)->count())->toBe(1)
         ->and($form->name)->toBe('Studio enquiry')

@@ -31,8 +31,8 @@ final class ResolveFormComponentStepStateAction
 
         if (! $currentStep instanceof FormStepData) {
             $firstStep = $steps->first();
-            $currentStepKey = $firstStep instanceof FormStepData ? $firstStep->key : '';
-            $currentStep = $firstStep instanceof FormStepData ? $firstStep : null;
+            $currentStepKey = $firstStep->key;
+            $currentStep = $firstStep;
         }
 
         $currentStepIndex = $steps
@@ -42,7 +42,7 @@ final class ResolveFormComponentStepStateAction
         return new FormComponentStepStateData(
             steps: $steps,
             currentStepKey: $currentStepKey,
-            currentStep: $currentStep instanceof FormStepData ? $currentStep : null,
+            currentStep: $currentStep,
             currentStepIndex: is_int($currentStepIndex) ? $currentStepIndex : 0,
         );
     }

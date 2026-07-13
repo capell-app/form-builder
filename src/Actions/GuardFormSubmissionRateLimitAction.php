@@ -14,7 +14,7 @@ use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * @method static void run(Form $form, Collection $fields, array<string, mixed> $input = [], ?string $ipAddress = null)
+ * @method static void run(Form $form, Collection<int, FormFieldData> $fields, array<string, mixed> $input = [], ?string $ipAddress = null)
  */
 final class GuardFormSubmissionRateLimitAction
 {
@@ -46,9 +46,11 @@ final class GuardFormSubmissionRateLimitAction
      */
     private function rateLimitKey(Form $form, Collection $fields, array $input, ?string $ipAddress): string
     {
+        $formKey = $form->getKey();
+
         return 'capell-form-builder:submit:' . hash('sha256', implode('|', [
-            (string) $form->getKey(),
-            (string) $form->site_id,
+            is_int($formKey) || is_string($formKey) ? (string) $formKey : '',
+            is_int($form->site_id) || is_string($form->site_id) ? (string) $form->site_id : '',
             $this->emailDimension($fields, $input),
             (string) $ipAddress,
         ]));

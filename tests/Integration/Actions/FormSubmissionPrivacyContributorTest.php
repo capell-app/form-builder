@@ -34,7 +34,7 @@ it('exports and erases matching form submissions through the privacy registries'
     $affectedRecords = app(PrivacySubjectEraserRegistry::class)->anonymize($subject);
 
     expect($export['form-builder']['submissions'])->toHaveCount(1)
-        ->and($export['form-builder']['submissions'][0]['payload']['values']['message'])->toBe('Private detail')
+        ->and(data_get($export, 'form-builder.submissions.0.payload.values.message'))->toBe('Private detail')
         ->and($affectedRecords)->toBe(1)
         ->and(Submission::query()->whereKey($matchingSubmission->getKey())->exists())->toBeFalse()
         ->and(Submission::query()->whereKey($otherSubmission->getKey())->exists())->toBeTrue();

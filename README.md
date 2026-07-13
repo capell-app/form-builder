@@ -4,7 +4,7 @@
 
 ## What This Plugin Adds
 
-Form Builder is an **Available**, **Schema-owning** Capell package in the **Capell FormBuilder** product group. It ships as `capell-app/form-builder` and extends these surfaces: admin, frontend.
+Form Builder is an **Available**, **Schema-owning** Capell package in the **Capell Engagement & CRM** product group. It ships as `capell-app/form-builder` and extends these surfaces: admin, frontend.
 
 Build site-scoped forms in Capell and capture spam-filtered, encrypted submissions into a per-site triage inbox with one-click email replies.
 
@@ -14,7 +14,7 @@ Status details:
 
 - Status: Available
 - Tier: premium
-- Bundle: form-builder
+- Bundle: engagement-crm
 - Composer package: `capell-app/form-builder`
 - Namespace: `Capell\FormBuilder`
 - Theme key: not applicable
@@ -29,11 +29,15 @@ Status details:
 
 Screenshot contract: `docs/screenshots.json`.
 
+![FormBuilder admin index](docs/screenshots/form-builder-admin-index.png)
+
+![Create/edit form schema screen](docs/screenshots/create-edit-form-schema-screen.png)
+
 - FormBuilder admin index (admin, required).
 - Create/edit form schema screen (admin, required).
 - Submissions index (admin, required).
 - Frontend form output (frontend, required).
-- Submission detail view (admin, required).
+- Submission detail view (admin, optional).
 
 ## Technical Shape
 
@@ -46,7 +50,7 @@ Screenshot contract: `docs/screenshots.json`.
 - Route files: `packages/form-builder/routes/payments.php`.
 - Policies: `FormPolicy`, `SubmissionPolicy`.
 - Events: `FormSubmitted`.
-- Actions: `ArchiveSubmissionAction`, `BuildFormComponentValidationRulesAction`, `BuildFormStepsAction`, `BuildFormSubmissionPrivacyExportAction`, `BuildFormValidationRulesAction`, `BuildSubmissionPayloadDataAction`, `BuildSubmissionPayloadEntriesAction`, `BuildSubmissionsCsvAction`, `CalculateFormFieldValuesAction`, `CalculateSubmissionSpamScoreAction`, `CreateFormPaymentCheckoutRedirectUrlAction`, `CreateFormPaymentCheckoutSessionAction`, `and 21 more`.
+- Actions: `ArchiveSubmissionAction`, `BuildFormComponentValidationRulesAction`, `BuildFormStepsAction`, `BuildFormSubmissionPrivacyExportAction`, `BuildFormValidationRulesAction`, `BuildSubmissionPayloadDataAction`, `BuildSubmissionPayloadEntriesAction`, `BuildSubmissionsCsvAction`, `CalculateFormFieldValuesAction`, `CalculateSubmissionSpamScoreAction`, `CreateFormPaymentCheckoutRedirectUrlAction`, `CreateFormPaymentCheckoutSessionAction`, `and 22 more`.
 - Data objects: `FormComponentStepStateData`, `FormFieldConditionData`, `FormFieldData`, `FormPaymentCheckoutData`, `FormSettingsData`, `FormStepData`, `FormSubmissionData`, `FormSubmissionPrivacyRecordIdsData`, `ResolvedFormWebhookEndpointData`, `SubmissionMetaData`, `SubmissionPayloadData`, `SubmissionSpamScoreData`.
 - Command signatures: `capell:form-builder:prune`.
 - Console command classes: `ExportSubmissionsCommand`, `PruneExpiredFormSubmissionsCommand`.

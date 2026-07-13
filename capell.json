@@ -18,10 +18,11 @@
         "requires": [
             "capell-app/admin",
             "capell-app/core",
-            "capell-app/frontend",
+            "capell-app/frontend"
+        ],
+        "supports": [
             "capell-app/payments"
         ],
-        "supports": [],
         "conflicts": []
     },
     "providers": {

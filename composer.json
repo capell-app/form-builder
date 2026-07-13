@@ -21,8 +21,10 @@
         "php": "^8.4",
         "capell-app/admin": "^4.0",
         "capell-app/core": "^4.0",
-        "capell-app/frontend": "^4.0",
-        "capell-app/payments": "^4.0"
+        "capell-app/frontend": "^4.0"
+    },
+    "suggest": {
+        "capell-app/payments": "Enables payment fields and checkout for form submissions."
     },
     "require-dev": {
         "pestphp/pest": "^3.0",

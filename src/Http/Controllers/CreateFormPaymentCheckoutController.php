@@ -14,7 +14,7 @@ final class CreateFormPaymentCheckoutController
 {
     public function __invoke(Request $request, Submission $submission): RedirectResponse
     {
-        abort_unless(IsFormPaymentIntegrationAvailableAction::run(), 404);
+        abort_unless(IsFormPaymentIntegrationAvailableAction::run() === true, 404);
 
         $checkoutSession = CreateFormPaymentCheckoutSessionAction::run(
             submission: $submission,

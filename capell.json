@@ -20,9 +20,7 @@
             "capell-app/core",
             "capell-app/frontend"
         ],
-        "supports": [
-            "capell-app/payments"
-        ],
+        "supports": ["capell-app/payments"],
         "conflicts": []
     },
     "providers": {

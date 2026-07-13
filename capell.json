@@ -243,6 +243,21 @@
                 "path": "docs/assets/marketplace/extension-card.jpg",
                 "alt": "Form Builder extension preview image",
                 "caption": "Form Builder extension preview"
+            },
+            {
+                "path": "docs/screenshots/create-edit-form-schema-screen.png",
+                "alt": "Form Builder schema editor with configurable fields and validation",
+                "caption": "Build real form schemas with field, validation, and notification settings."
+            },
+            {
+                "path": "docs/screenshots/submissions-index.png",
+                "alt": "Form Builder submissions inbox showing captured form responses",
+                "caption": "Triage captured submissions from the site-scoped admin inbox."
+            },
+            {
+                "path": "docs/screenshots/frontend-form-output.png",
+                "alt": "A published Form Builder form rendered on the public website",
+                "caption": "Publish accessible, cache-safe forms on the public frontend."
             }
         ],
         "categories": ["admin", "form-builder", "frontend"]

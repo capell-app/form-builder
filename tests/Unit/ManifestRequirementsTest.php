@@ -155,7 +155,12 @@ describe('form-builder capell.json manifest', function (): void {
             }
         }
 
-        expect($screenshotPaths)->toBe(['docs/assets/marketplace/extension-card.jpg']);
+        expect($screenshotPaths)->toBe([
+            'docs/assets/marketplace/extension-card.jpg',
+            'docs/screenshots/create-edit-form-schema-screen.png',
+            'docs/screenshots/submissions-index.png',
+            'docs/screenshots/frontend-form-output.png',
+        ]);
 
         foreach ($screenshotPaths as $path) {
             expect(File::exists(__DIR__ . '/../../' . $path))->toBeTrue();

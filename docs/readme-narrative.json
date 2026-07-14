@@ -1,0 +1,40 @@
+{
+    "whatThisPluginAdds": {
+        "text": "Form Builder adds site-scoped form schemas, conditional and multi-step fields, calculations, spam checks, optional payment handoff, and encrypted submission records.",
+        "evidence": [
+            "capell.json",
+            "src/Models/Form.php",
+            "src/Models/Submission.php",
+            "src/Providers/FormBuilderServiceProvider.php"
+        ]
+    },
+    "surfaceOutcome": {
+        "text": "Editors build forms and triage submissions in the admin, while visitors complete the published form through a Livewire frontend component.",
+        "evidence": [
+            "docs/overview.admin.md",
+            "docs/screenshots.json",
+            "src/Filament/Resources/Forms/FormResource.php",
+            "tests/Feature/FormComponentTest.php"
+        ]
+    },
+    "whyItMatters": {
+        "developers": {
+            "text": "Typed field data and Actions handle visibility, validation, calculations, spam scoring, rate limits, and persistence, with a contract for replacing the spam provider.",
+            "evidence": [
+                "src/Data/FormFieldData.php",
+                "src/Actions/BuildFormValidationRulesAction.php",
+                "src/Actions/CalculateSubmissionSpamScoreAction.php",
+                "src/Contracts/SpamProtectionProvider.php"
+            ]
+        },
+        "teams": {
+            "text": "Teams can publish structured forms, receive notifications, review or reply to submissions, and apply retention or legal-hold rules from one workflow.",
+            "evidence": [
+                "docs/admin-guide.md",
+                "src/Actions/CreateSubmissionAction.php",
+                "src/Actions/ReplyToSubmissionAction.php",
+                "tests/Integration/Actions/FormSubmissionRetentionTest.php"
+            ]
+        }
+    }
+}

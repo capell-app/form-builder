@@ -11,7 +11,8 @@ use Capell\Payments\Data\CreateCheckoutSessionData;
 use Capell\Payments\Enums\PaymentPurpose;
 use Capell\Payments\Models\CheckoutSession;
 use LogicException;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 use UnexpectedValueException;
 
 /**
@@ -19,7 +20,8 @@ use UnexpectedValueException;
  */
 final class CreateFormPaymentCheckoutSessionAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     public function handle(Submission $submission, ?string $successUrl = null, ?string $cancelUrl = null): CheckoutSession
     {

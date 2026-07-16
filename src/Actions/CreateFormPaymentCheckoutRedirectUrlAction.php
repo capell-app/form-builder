@@ -9,11 +9,13 @@ use Capell\FormBuilder\Enums\FormFieldType;
 use Capell\FormBuilder\Models\Form;
 use Capell\FormBuilder\Models\Submission;
 use Illuminate\Support\Facades\Route;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 final class CreateFormPaymentCheckoutRedirectUrlAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     public function handle(Submission $submission): ?string
     {

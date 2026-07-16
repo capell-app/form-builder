@@ -7,14 +7,16 @@ namespace Capell\FormBuilder\Actions;
 use Capell\FormBuilder\Data\FormFieldConditionData;
 use Capell\FormBuilder\Data\FormFieldData;
 use Capell\FormBuilder\Enums\FormFieldConditionOperator;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
  * @method static bool run(FormFieldData $field, array<string, mixed> $input)
  */
 final class EvaluateFormFieldVisibilityAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     /**
      * @param  array<string, mixed>  $input

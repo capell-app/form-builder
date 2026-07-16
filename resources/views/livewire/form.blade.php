@@ -258,7 +258,7 @@
                     @if ($steps->count() > 1 && $currentStepIndex > 0)
                         <button
                             type="button"
-                            class="capell-form__previous inline-flex min-h-10 items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-900 transition hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900 disabled:cursor-not-allowed disabled:opacity-60"
+                            class="capell-form__previous inline-flex min-h-11 items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-900 transition hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900 disabled:cursor-not-allowed disabled:opacity-60"
                             wire:click="previousStep"
                             wire:loading.attr="disabled"
                             wire:target="previousStep,nextStep,submit"
@@ -270,7 +270,7 @@
                     @if ($steps->count() > 1 && $currentStepIndex < $steps->count() - 1)
                         <button
                             type="button"
-                            class="capell-form__next inline-flex min-h-10 items-center justify-center rounded-md bg-gray-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900 disabled:cursor-not-allowed disabled:opacity-60"
+                            class="capell-form__next inline-flex min-h-11 items-center justify-center rounded-md bg-gray-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900 disabled:cursor-not-allowed disabled:opacity-60"
                             wire:click="nextStep"
                             wire:loading.attr="disabled"
                             wire:target="previousStep,nextStep,submit"
@@ -280,7 +280,7 @@
                     @else
                         <button
                             type="submit"
-                            class="capell-form__submit inline-flex min-h-10 items-center justify-center rounded-md bg-gray-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900 disabled:cursor-not-allowed disabled:opacity-60"
+                            class="capell-form__submit inline-flex min-h-11 items-center justify-center rounded-md bg-gray-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900 disabled:cursor-not-allowed disabled:opacity-60"
                             wire:loading.attr="disabled"
                             wire:target="previousStep,nextStep,submit"
                         >

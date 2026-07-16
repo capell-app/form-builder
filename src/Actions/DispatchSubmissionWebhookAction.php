@@ -10,12 +10,14 @@ use Capell\FormBuilder\Models\Submission;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 use Throwable;
 
 final class DispatchSubmissionWebhookAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     public function __construct(private readonly FormBuilderWebhookHostResolver $hostResolver) {}
 

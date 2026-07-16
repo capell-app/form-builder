@@ -7,14 +7,16 @@ namespace Capell\FormBuilder\Actions;
 use Capell\FormBuilder\Data\FormComponentStepStateData;
 use Capell\FormBuilder\Data\FormStepData;
 use Capell\FormBuilder\Models\Form;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
  * @method static FormComponentStepStateData run(Form $form, array<string, mixed> $input = [], string $currentStepKey = '')
  */
 final class ResolveFormComponentStepStateAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     /**
      * @param  array<string, mixed>  $input

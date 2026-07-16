@@ -9,11 +9,13 @@ use Capell\Payments\Actions\CreateCheckoutSessionAction;
 use Capell\Payments\Actions\ValidateFormPaymentReturnUrlAction;
 use Capell\Payments\Models\CheckoutSession;
 use Illuminate\Support\Facades\Schema;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 final class IsFormPaymentIntegrationAvailableAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     public function handle(): bool
     {

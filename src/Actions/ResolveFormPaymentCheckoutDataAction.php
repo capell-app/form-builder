@@ -14,7 +14,8 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Validation\ValidationException;
 use LogicException;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 use UnexpectedValueException;
 
 /**
@@ -22,7 +23,8 @@ use UnexpectedValueException;
  */
 final class ResolveFormPaymentCheckoutDataAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     public function handle(Submission $submission, ?string $successUrl = null, ?string $cancelUrl = null): FormPaymentCheckoutData
     {

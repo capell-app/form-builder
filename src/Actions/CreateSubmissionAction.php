@@ -12,14 +12,16 @@ use Capell\FormBuilder\Events\FormSubmitted;
 use Capell\FormBuilder\Models\Form;
 use Capell\FormBuilder\Models\Submission;
 use Illuminate\Support\Facades\Validator;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
  * @method static Submission run(Form $form, array<string, mixed> $input, SubmissionMetaData $meta)
  */
 class CreateSubmissionAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     /**
      * @param  array<string, mixed>  $input

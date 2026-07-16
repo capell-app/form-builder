@@ -31,6 +31,17 @@ use function Pest\Livewire\livewire;
 use Sinnbeck\DomAssertions\Asserts\AssertElement;
 use Sinnbeck\DomAssertions\Asserts\BaseAssert;
 
+it('keeps public form workflow buttons at the primary touch target size', function (): void {
+    $formView = file_get_contents(dirname(__DIR__, 2) . '/resources/views/livewire/form.blade.php');
+
+    if (! is_string($formView)) {
+        throw new RuntimeException('Unable to read the public Form Builder component.');
+    }
+
+    expect(substr_count($formView, 'inline-flex min-h-11 items-center'))->toBe(3)
+        ->and($formView)->not->toContain('inline-flex min-h-10 items-center');
+});
+
 it('renders and stores a submitted form', function (): void {
     resolve(RecordExtensionRenderContributionAction::class)->clear();
 

@@ -8,11 +8,13 @@ use Capell\FormBuilder\Models\Submission;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 final class PruneExpiredFormSubmissionsAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     public function handle(?int $retentionDays = null, bool $dryRun = false): int
     {

@@ -8,11 +8,13 @@ use Capell\FormBuilder\Enums\FormFieldType;
 use Capell\FormBuilder\Models\Form;
 use Illuminate\Support\Str;
 use JsonException;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 final class InstallThemeDemoFormsAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     /**
      * @throws JsonException

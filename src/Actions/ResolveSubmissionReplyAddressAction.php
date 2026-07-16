@@ -8,11 +8,13 @@ use Capell\FormBuilder\Data\FormFieldData;
 use Capell\FormBuilder\Enums\FormFieldType;
 use Capell\FormBuilder\Enums\SubmissionStatus;
 use Capell\FormBuilder\Models\Submission;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 class ResolveSubmissionReplyAddressAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     public function handle(Submission $submission): ?string
     {

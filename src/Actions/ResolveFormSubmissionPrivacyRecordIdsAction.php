@@ -9,14 +9,16 @@ use Capell\FormBuilder\Models\Submission;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
  * @method static FormSubmissionPrivacyRecordIdsData run(Model $subject)
  */
 final class ResolveFormSubmissionPrivacyRecordIdsAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     public function handle(Model $subject): FormSubmissionPrivacyRecordIdsData
     {

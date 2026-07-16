@@ -7,14 +7,16 @@ namespace Capell\FormBuilder\Actions;
 use Capell\FormBuilder\Models\Submission;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
  * @method static array<string, mixed> run(Model $subject)
  */
 final class BuildFormSubmissionPrivacyExportAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     /**
      * @return array<string, mixed>

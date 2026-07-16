@@ -7,14 +7,16 @@ namespace Capell\FormBuilder\Actions;
 use Capell\FormBuilder\Data\FormFieldData;
 use Capell\FormBuilder\Enums\FormFieldType;
 use Capell\FormBuilder\Models\Form;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
  * @method static array<string, array<int, string>> run(Form $form, array<string, mixed> $input = [])
  */
 class BuildFormValidationRulesAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     private const int DEFAULT_SHORT_TEXT_MAX_LENGTH = 255;
 

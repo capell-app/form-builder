@@ -12,11 +12,13 @@ use Capell\FormBuilder\Enums\SubmissionStatus;
 use Capell\FormBuilder\Events\FormSubmitted;
 use Capell\FormBuilder\Models\Form;
 use Illuminate\Support\Facades\Validator;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 final class DispatchUnstoredFormSubmissionAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     /**
      * @param  array<string, mixed>  $input

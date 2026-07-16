@@ -8,7 +8,8 @@ use Capell\FormBuilder\Data\SubmissionPayloadData;
 use Capell\FormBuilder\Models\Form;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 use RuntimeException;
 
 /**
@@ -16,7 +17,8 @@ use RuntimeException;
  */
 final class BuildSubmissionPayloadDataAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     /**
      * @param  array<string, mixed>  $validated

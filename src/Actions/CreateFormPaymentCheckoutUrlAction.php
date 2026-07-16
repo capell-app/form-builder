@@ -8,14 +8,16 @@ use Capell\FormBuilder\Models\Submission;
 use Capell\Payments\Actions\ValidateFormPaymentReturnUrlAction;
 use Illuminate\Support\Facades\URL;
 use LogicException;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
  * @method static string run(Submission $submission, ?string $successUrl = null, ?string $cancelUrl = null, ?int $ttlMinutes = null)
  */
 final class CreateFormPaymentCheckoutUrlAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     public function handle(
         Submission $submission,

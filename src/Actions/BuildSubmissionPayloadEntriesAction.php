@@ -8,11 +8,13 @@ use Capell\FormBuilder\Data\FormFieldData;
 use Capell\FormBuilder\Models\Form;
 use Capell\FormBuilder\Models\Submission;
 use Illuminate\Support\Collection;
+use Lorisleiva\Actions\Concerns\AsFake;
 use Lorisleiva\Actions\Concerns\AsObject;
 use Spatie\LaravelData\DataCollection;
 
 final class BuildSubmissionPayloadEntriesAction
 {
+    use AsFake;
     use AsObject;
 
     /**

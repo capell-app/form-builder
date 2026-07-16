@@ -9,11 +9,13 @@ use Capell\FormBuilder\Mail\SubmissionReplyMail;
 use Capell\FormBuilder\Models\Submission;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 class ReplyToSubmissionAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     public function handle(Submission $submission, string $subject, string $message): void
     {

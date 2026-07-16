@@ -6,11 +6,13 @@ namespace Capell\FormBuilder\Actions;
 
 use Capell\FormBuilder\Enums\SubmissionStatus;
 use Capell\FormBuilder\Models\Submission;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 class MarkSubmissionReadAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     public function handle(Submission $submission): Submission
     {

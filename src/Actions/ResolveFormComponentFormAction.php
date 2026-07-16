@@ -8,6 +8,7 @@ use Capell\Core\Models\Site;
 use Capell\FormBuilder\Models\Form;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Crypt;
+use Lorisleiva\Actions\Concerns\AsFake;
 use Lorisleiva\Actions\Concerns\AsObject;
 use Throwable;
 
@@ -16,6 +17,7 @@ use Throwable;
  */
 final class ResolveFormComponentFormAction
 {
+    use AsFake;
     use AsObject;
 
     public static function referenceFor(Form $form): string

@@ -9,14 +9,16 @@ use Capell\FormBuilder\Data\FormStepData;
 use Capell\FormBuilder\Models\Form;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
  * @method static Collection<int, FormStepData> run(Form $form, array<string, mixed> $input = [])
  */
 final class BuildFormStepsAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     /**
      * @param  array<string, mixed>  $input

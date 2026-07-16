@@ -9,12 +9,14 @@ use Capell\FormBuilder\Mail\FormSubmissionNotificationMail;
 use Capell\FormBuilder\Models\Submission;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 use Throwable;
 
 class SendSubmissionNotificationAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     public function handle(Submission $submission): void
     {

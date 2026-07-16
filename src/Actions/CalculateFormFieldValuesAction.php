@@ -7,14 +7,16 @@ namespace Capell\FormBuilder\Actions;
 use Capell\FormBuilder\Data\FormFieldData;
 use Capell\FormBuilder\Enums\FormFieldType;
 use Capell\FormBuilder\Models\Form;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
  * @method static array<string, mixed> run(Form $form, array<string, mixed> $input = [])
  */
 final class CalculateFormFieldValuesAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     /**
      * @param  array<string, mixed>  $input

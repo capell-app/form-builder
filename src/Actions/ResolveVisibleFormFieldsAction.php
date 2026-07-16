@@ -7,7 +7,8 @@ namespace Capell\FormBuilder\Actions;
 use Capell\FormBuilder\Data\FormFieldData;
 use Capell\FormBuilder\Models\Form;
 use Illuminate\Support\Collection;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 use Spatie\LaravelData\DataCollection;
 
 /**
@@ -15,7 +16,8 @@ use Spatie\LaravelData\DataCollection;
  */
 final class ResolveVisibleFormFieldsAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     /**
      * @param  array<string, mixed>  $input

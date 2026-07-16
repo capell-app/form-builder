@@ -11,14 +11,16 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
  * @method static void run(Form $form, Collection<int, FormFieldData> $fields, array<string, mixed> $input = [], ?string $ipAddress = null)
  */
 final class GuardFormSubmissionRateLimitAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     /**
      * @param  Collection<int, FormFieldData>  $fields

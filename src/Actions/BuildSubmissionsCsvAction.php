@@ -9,7 +9,8 @@ use Capell\FormBuilder\Models\Form;
 use Capell\FormBuilder\Models\Submission;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 use RuntimeException;
 use Spatie\LaravelData\DataCollection;
 
@@ -18,7 +19,8 @@ use Spatie\LaravelData\DataCollection;
  */
 final class BuildSubmissionsCsvAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     /**
      * @return array<int, string>

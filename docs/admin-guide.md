@@ -65,16 +65,16 @@ This guide is for editors who build forms and owners deciding where submissions 
 
 ### Who does what
 
-| Role       | First useful screen                                       |
-| ---------- | --------------------------------------------------------- |
-| Editor     | **Forms** and **Form submissions** in Marketing Studio    |
+| Role       | First useful screen                                                 |
+| ---------- | ------------------------------------------------------------------- |
+| Editor     | **Forms** and **Form submissions** in Marketing Studio              |
 | Site owner | Form settings: **Notification email**, storage, and spam protection |
 
 ## Troubleshooting for editors
 
-| What you see                      | What it means                                   | What to do                                                      |
-| --------------------------------- | ----------------------------------------------- | --------------------------------------------------------------- |
-| I'm not getting submission emails | No notification email is set, or it is in spam  | Set a **Notification email**, submit a public-form test, and check the recipient spam folder |
-| Lots of junk submissions          | Spam is getting through                         | Enable spam protection and **Mark spam** on the junk entries    |
-| People can't submit the form      | A required field or validation is blocking them | Check which fields are required and that their rules make sense |
-| The form isn't on the page        | Its element has no valid active form handle for this site | Check the form's **Active** state, site, and handle in the page or layout element |
+| What you see                      | What it means                                             | What to do                                                                                   |
+| --------------------------------- | --------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| I'm not getting submission emails | No notification email is set, or it is in spam            | Set a **Notification email**, submit a public-form test, and check the recipient spam folder |
+| Lots of junk submissions          | Spam is getting through                                   | Enable spam protection and **Mark spam** on the junk entries                                 |
+| People can't submit the form      | A required field or validation is blocking them           | Check which fields are required and that their rules make sense                              |
+| The form isn't on the page        | Its element has no valid active form handle for this site | Check the form's **Active** state, site, and handle in the page or layout element            |

@@ -33,7 +33,7 @@ final class CreateFormPaymentCheckoutRedirectUrlAction
 
         $url = CreateFormPaymentCheckoutUrlAction::run($submission);
 
-        return is_string($url) && $url !== '' ? $url : null;
+        return $url !== '' ? $url : null;
     }
 
     private function hasPaymentField(Submission $submission): bool

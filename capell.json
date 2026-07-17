@@ -141,7 +141,7 @@
         "riskTier": "sensitive",
         "publicSurface": {
             "routeNames": ["capell-payments.form-builder.checkout"],
-            "auth": "signed",
+            "auth": "public",
             "csrfExemptRoutes": [],
             "signedRoutes": ["capell-payments.form-builder.checkout"],
             "tokenizedRoutes": [],
@@ -172,8 +172,24 @@
             ]
         },
         "adminSurface": {
-            "authorization": "policies",
-            "permissions": []
+            "authorization": "permissions",
+            "permissions": [
+                "ViewAny:Form",
+                "View:Form",
+                "Create:Form",
+                "Update:Form",
+                "Delete:Form",
+                "DeleteAny:Form",
+                "Restore:Form",
+                "RestoreAny:Form",
+                "ForceDelete:Form",
+                "ForceDeleteAny:Form",
+                "Reorder:Form",
+                "ViewAny:Submission",
+                "View:Submission",
+                "Reply:Submission",
+                "Update:Submission"
+            ]
         }
     },
     "performance": {

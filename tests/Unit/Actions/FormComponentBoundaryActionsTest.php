@@ -13,6 +13,7 @@ use Capell\FormBuilder\Enums\FormFieldType;
 use Capell\FormBuilder\Models\Form;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
+use PHPUnit\Framework\Assert;
 use Spatie\LaravelData\DataCollection;
 
 it('builds Livewire data-prefixed validation rules for a form step', function (): void {
@@ -115,11 +116,20 @@ it('resolves form component forms by current site handle id and reference', func
     ]);
 
     $reference = ResolveFormComponentFormAction::referenceFor($form);
+    $formByHandle = ResolveFormComponentFormAction::run('contact', '', $site);
+    $formById = ResolveFormComponentFormAction::run((int) $form->getKey(), '', $site);
+    $formByReference = ResolveFormComponentFormAction::run(null, $reference, $site);
+    $otherSiteResolvedForm = ResolveFormComponentFormAction::run('contact', '', $otherSite);
 
-    expect(ResolveFormComponentFormAction::run('contact', '', $site)?->is($form))->toBeTrue()
-        ->and(ResolveFormComponentFormAction::run((int) $form->getKey(), '', $site)?->is($form))->toBeTrue()
-        ->and(ResolveFormComponentFormAction::run(null, $reference, $site)?->is($form))->toBeTrue()
-        ->and(ResolveFormComponentFormAction::run('contact', '', $otherSite)?->is($form))->toBeFalse();
+    Assert::assertInstanceOf(Form::class, $formByHandle);
+    Assert::assertInstanceOf(Form::class, $formById);
+    Assert::assertInstanceOf(Form::class, $formByReference);
+    Assert::assertInstanceOf(Form::class, $otherSiteResolvedForm);
+
+    expect($formByHandle->is($form))->toBeTrue()
+        ->and($formById->is($form))->toBeTrue()
+        ->and($formByReference->is($form))->toBeTrue()
+        ->and($otherSiteResolvedForm->is($form))->toBeFalse();
 });
 
 it('rejects invalid inactive and cross-site form component references', function (): void {

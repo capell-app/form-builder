@@ -8,7 +8,7 @@ Start at the [package README](../README.md) when deciding whether to install thi
 
 | Doc                                                             | Use it for                                                                         |
 | --------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| [Admin Guide](admin-guide.md)                                   | Build forms, manage submissions, and configure editor-facing workflows.           |
+| [Admin Guide](admin-guide.md)                                   | Build forms, manage submissions, and configure editor-facing workflows.            |
 | [Credits And Acknowledgements](credits-and-acknowledgements.md) | Upstream services, dependencies, and acknowledgements.                             |
 | [Overview](overview.md)                                         | Package boundary, runtime surfaces, install notes, and first troubleshooting path. |
 

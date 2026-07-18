@@ -15,8 +15,8 @@ use Capell\FormBuilder\Mail\FormSubmissionNotificationMail;
 use Capell\FormBuilder\Models\Form;
 use Capell\FormBuilder\Models\Submission;
 use Capell\Frontend\Actions\Performance\RecordExtensionRenderContributionAction;
+use Capell\Frontend\Contracts\FrontendContextReader;
 use Capell\Frontend\Facades\Frontend;
-use Capell\Frontend\Support\CapellFrontendContext;
 use Capell\Frontend\Support\State\FrontendState;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Crypt;
@@ -130,8 +130,8 @@ it('submits after hydration without a frontend site context', function (): void 
 
     $component = livewire(FormComponent::class, ['handle' => 'lead-form']);
 
-    app()->instance(CapellFrontendContext::class, new CapellFrontendContext(new FrontendState));
-    Frontend::clearResolvedInstance(CapellFrontendContext::class);
+    app()->instance(FrontendContextReader::class, new FrontendState);
+    Frontend::clearResolvedInstance(FrontendContextReader::class);
 
     $component
         ->set('data.email', 'ben@example.com')
@@ -990,8 +990,8 @@ function bindFormBuilderFrontendSite(Site $site): void
 {
     $state = (new FrontendState)->withSite($site);
 
-    app()->instance(CapellFrontendContext::class, new CapellFrontendContext($state));
-    Frontend::clearResolvedInstance(CapellFrontendContext::class);
+    app()->instance(FrontendContextReader::class, $state);
+    Frontend::clearResolvedInstance(FrontendContextReader::class);
 }
 
 function formComponentSubmissionPayload(Submission $submission): SubmissionPayloadData

@@ -69,6 +69,8 @@ final class FormBuilderServiceProvider extends AbstractPackageServiceProvider
 
     public function registeringPackage(): void
     {
+        parent::registeringPackage();
+
         $this->app->singleton(FormBuilderWebhookHostResolver::class, DnsFormBuilderWebhookHostResolver::class);
         $this->app->singleton(SpamProtectionProvider::class, function (): SpamProtectionProvider {
             $provider = config('capell-form-builder.spam_protection.provider', NullSpamProtectionProvider::class);
@@ -84,14 +86,6 @@ final class FormBuilderServiceProvider extends AbstractPackageServiceProvider
                 : new NullSpamProtectionProvider;
         });
         $this->registerModels();
-
-        $this->app->booted(function (): void {
-            if (! $this->isPackageInstalled()) {
-                return;
-            }
-
-            $this->bootInstalledPackage();
-        });
     }
 
     public function packageBooted(): void
@@ -137,7 +131,8 @@ final class FormBuilderServiceProvider extends AbstractPackageServiceProvider
         return version_compare($version, '0.0.0', '<');
     }
 
-    private function bootInstalledPackage(): self
+    #[Override]
+    protected function bootInstalledPackage(): self
     {
         return $this
             ->registerPackageAssets()
@@ -146,7 +141,7 @@ final class FormBuilderServiceProvider extends AbstractPackageServiceProvider
             ->registerResources()
             ->registerMarketingStudioActions()
             ->registerPrivacyCenterContributors()
-            ->registerLivewireComponents()
+            ->registerPackageLivewireComponents()
             ->registerBladeComponents()
             ->registerThemeDemoForms();
     }
@@ -272,7 +267,7 @@ final class FormBuilderServiceProvider extends AbstractPackageServiceProvider
         return $this;
     }
 
-    private function registerLivewireComponents(): self
+    private function registerPackageLivewireComponents(): self
     {
         Livewire::component(LivewireComponentEnum::PublicFormFields->value, FormComponent::class);
         Livewire::component(LivewireComponentEnum::PublicForm->value, FormElementComponent::class);

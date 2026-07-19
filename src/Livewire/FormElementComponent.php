@@ -23,6 +23,8 @@ class FormElementComponent extends Component implements RegistersExtensionFronte
 
     public string $formReference = '';
 
+    public string $formHandle = '';
+
     public string $instanceId = '';
 
     public string $fallbackMessage = '';
@@ -46,7 +48,19 @@ class FormElementComponent extends Component implements RegistersExtensionFronte
         $this->fallbackLabel = $this->stringValue($widgetData, 'fallback_label');
         $this->fallbackUrl = PublicUrlSanitizer::sanitize($widgetData['fallback_url'] ?? null);
 
-        $form = $this->resolveFormForCurrentSite($handle ?? $this->resolveHandle($widgetData));
+        $resolvedHandle = $handle ?? $this->resolveHandle($widgetData);
+        $this->formHandle = is_int($resolvedHandle) || is_string($resolvedHandle)
+            ? trim((string) $resolvedHandle)
+            : '';
+    }
+
+    public function loadForm(): void
+    {
+        if ($this->formReference !== '' || $this->formHandle === '') {
+            return;
+        }
+
+        $form = $this->resolveFormForCurrentSite($this->formHandle);
 
         if ($form instanceof Form) {
             $this->formReference = $this->encryptFormReference($form);

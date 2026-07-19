@@ -21,14 +21,14 @@ final class DispatchSubmissionWebhookAction
 
     public function __construct(private readonly FormBuilderWebhookHostResolver $hostResolver) {}
 
-    public function handle(Submission $submission): void
+    public function handle(Submission $submission): bool
     {
         $form = $submission->form;
         $settings = $form->settings;
         $url = is_string($settings?->webhookUrl) ? trim($settings->webhookUrl) : null;
 
         if ($url === null || $url === '') {
-            return;
+            return true;
         }
 
         try {
@@ -57,6 +57,8 @@ final class DispatchSubmissionWebhookAction
                         ],
                     ],
                 ])->throw();
+
+            return true;
         } catch (Throwable $throwable) {
             Log::warning('Form Builder submission webhook dispatch failed.', [
                 'form_id' => $form->getKey(),
@@ -64,6 +66,8 @@ final class DispatchSubmissionWebhookAction
                 'exception' => $throwable::class,
                 'message' => RedactSubmissionWebhookErrorMessageAction::run($throwable, $url),
             ]);
+
+            return false;
         }
     }
 

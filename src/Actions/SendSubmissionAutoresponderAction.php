@@ -45,7 +45,6 @@ class SendSubmissionAutoresponderAction
                 'submission_id' => $submission->getKey(),
                 'form_id' => $submission->form_id,
                 'exception' => $throwable::class,
-                'message' => $throwable->getMessage(),
             ]);
         }
     }

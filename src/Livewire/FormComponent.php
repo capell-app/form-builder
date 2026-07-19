@@ -13,6 +13,7 @@ use Capell\FormBuilder\Actions\DispatchUnstoredFormSubmissionAction;
 use Capell\FormBuilder\Actions\GuardFormSubmissionRateLimitAction;
 use Capell\FormBuilder\Actions\ResolveFormComponentFormAction;
 use Capell\FormBuilder\Actions\ResolveFormComponentStepStateAction;
+use Capell\FormBuilder\Actions\ResolveFormInitialValuesAction;
 use Capell\FormBuilder\Actions\ResolveVisibleFormFieldsAction;
 use Capell\FormBuilder\Data\FormComponentStepStateData;
 use Capell\FormBuilder\Data\FormFieldData;
@@ -52,8 +53,15 @@ final class FormComponent extends Component
 
     private ?Form $resolvedForm = null;
 
-    public function mount(int|string|null $handle = null, ?string $instanceId = null, ?string $formReference = null): void
-    {
+    /**
+     * @param  array<string, mixed>  $initialValues
+     */
+    public function mount(
+        int|string|null $handle = null,
+        ?string $instanceId = null,
+        ?string $formReference = null,
+        array $initialValues = [],
+    ): void {
         $this->instanceId = $this->resolveInstanceId($instanceId);
         $this->formReference = is_string($formReference) ? $formReference : '';
         $this->resolvedForm = ResolveFormComponentFormAction::run($handle, $this->formReference, $this->currentSite());
@@ -64,6 +72,13 @@ final class FormComponent extends Component
 
         foreach ($this->allFields() as $field) {
             $this->data[$field->key] = $this->defaultValueForField($field);
+        }
+
+        if ($this->resolvedForm instanceof Form) {
+            $this->data = [
+                ...$this->data,
+                ...ResolveFormInitialValuesAction::run($this->resolvedForm, $initialValues),
+            ];
         }
 
         $this->currentStepKey = $this->firstStepKey();

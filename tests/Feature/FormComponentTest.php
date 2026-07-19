@@ -79,6 +79,38 @@ it('renders and stores a submitted form', function (): void {
     expect($contribution?->cacheable)->toBeFalse();
 });
 
+it('prefills declared hidden fields without overriding visible fields', function (): void {
+    $form = Form::factory()->create([
+        'name' => 'Guided handoff',
+        'handle' => 'guided-handoff',
+        'schema' => [
+            [
+                'key' => 'conversation_path',
+                'label' => 'Conversation path',
+                'type' => FormFieldType::Hidden->value,
+            ],
+            [
+                'key' => 'email',
+                'label' => 'Email',
+                'type' => FormFieldType::Email->value,
+            ],
+        ],
+    ]);
+    bindFormBuilderFrontendSite($form->site);
+
+    livewire(FormComponent::class, [
+        'handle' => 'guided-handoff',
+        'initialValues' => [
+            'conversation_path' => 'visit-type/routine',
+            'email' => 'must-not-prefill@example.com',
+            'unknown' => 'must-not-leak',
+        ],
+    ])
+        ->assertSet('data.conversation_path', 'visit-type/routine')
+        ->assertSet('data.email', null)
+        ->assertSet('data.unknown', null);
+});
+
 it('rate limits repeated public form submissions for the same form, email, and ip', function (): void {
     config()->set('capell-form-builder.throttle.max_attempts', 2);
     config()->set('capell-form-builder.throttle.decay_seconds', 60);
@@ -333,6 +365,7 @@ it('renders a form element component from widget data for the current frontend s
     bindFormBuilderFrontendSite($form->site);
 
     livewire(FormElementComponent::class, ['widgetData' => ['form_handle' => 'contact', 'instance_id' => 'contact-block']])
+        ->call('loadForm')
         ->assertSee('Contact')
         ->assertSee('Email')
         ->assertElementExists('#capell-form-contact-block-email');
@@ -377,9 +410,11 @@ it('uses unique child form keys for repeated form elements', function (): void {
     bindFormBuilderFrontendSite($form->site);
 
     livewire(FormElementComponent::class, ['widgetData' => ['form_handle' => 'contact', 'instance_id' => 'first-contact-block']])
+        ->call('loadForm')
         ->assertElementExists('#capell-form-first-contact-block-email');
 
     livewire(FormElementComponent::class, ['widgetData' => ['form_handle' => 'contact', 'instance_id' => 'second-contact-block']])
+        ->call('loadForm')
         ->assertElementExists('#capell-form-second-contact-block-email');
 });
 

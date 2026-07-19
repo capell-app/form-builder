@@ -10,6 +10,7 @@ use Capell\FormBuilder\Contracts\FormBuilderWebhookHostResolver;
 use Capell\FormBuilder\Data\SubmissionMetaData;
 use Capell\FormBuilder\Enums\SubmissionStatus;
 use Capell\FormBuilder\Events\FormSubmitted;
+use Capell\FormBuilder\Jobs\DispatchSubmissionWebhookJob;
 use Capell\FormBuilder\Mail\FormSubmissionNotificationMail;
 use Capell\FormBuilder\Models\Form;
 use Capell\FormBuilder\Models\Submission;
@@ -19,6 +20,7 @@ use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Validation\ValidationException;
 
 beforeEach(function (): void {
@@ -265,6 +267,8 @@ it('exports stored submissions to csv', function (): void {
 });
 
 it('dispatches configured submission webhooks after successful stored submissions', function (): void {
+    Queue::fake();
+
     /** @var array<string, mixed>|null $requestOptions */
     $requestOptions = null;
 
@@ -284,11 +288,22 @@ it('dispatches configured submission webhooks after successful stored submission
         ],
     ]);
 
-    CreateSubmissionAction::run(
+    $submission = CreateSubmissionAction::run(
         form: $form,
         input: ['email' => 'ben@example.com'],
         meta: new SubmissionMetaData(url: 'https://example.test/contact'),
     );
+
+    Http::assertNothingSent();
+    $submissionId = $submission->getKey();
+    throw_unless(is_int($submissionId), RuntimeException::class, 'Submission must have an integer key.');
+
+    Queue::assertPushed(
+        DispatchSubmissionWebhookJob::class,
+        fn (DispatchSubmissionWebhookJob $job): bool => $job->submissionId === $submissionId,
+    );
+
+    (new DispatchSubmissionWebhookJob($submissionId))->handle();
 
     Http::assertSent(fn ($request): bool => $request->url() === 'https://hooks.example.test/form'
         && $request['event'] === 'form.submitted'
@@ -301,6 +316,8 @@ it('dispatches configured submission webhooks after successful stored submission
 });
 
 it('blocks configured submission webhooks to private hosts', function (): void {
+    Queue::fake();
+
     Http::fake();
 
     $form = Form::factory()->create([
@@ -325,6 +342,8 @@ it('blocks configured submission webhooks to private hosts', function (): void {
 });
 
 it('blocks plaintext configured submission webhooks by default', function (): void {
+    Queue::fake();
+
     Http::fake();
 
     $form = Form::factory()->create([
@@ -347,6 +366,8 @@ it('blocks plaintext configured submission webhooks by default', function (): vo
 });
 
 it('keeps stored submissions when configured webhooks fail', function (): void {
+    Queue::fake();
+
     Http::fake([
         'https://hooks.example.test/form' => Http::response([], 500),
     ]);

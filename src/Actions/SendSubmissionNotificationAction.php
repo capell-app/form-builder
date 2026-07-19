@@ -40,7 +40,7 @@ class SendSubmissionNotificationAction
         } catch (Throwable $throwable) {
             Log::warning('Failed to queue form submission notification.', [
                 'submission_id' => $submission->getKey(),
-                'exception' => $throwable,
+                'exception' => $throwable::class,
             ]);
         }
     }

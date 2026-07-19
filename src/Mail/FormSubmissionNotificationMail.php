@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Capell\FormBuilder\Mail;
 
 use Capell\FormBuilder\Models\Submission;
+use Capell\FormBuilder\Queue\Middleware\SuppressInactivePostmarkRecipientFailure;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -21,7 +22,10 @@ class FormSubmissionNotificationMail extends Mailable implements ShouldQueue
     public function __construct(
         public Submission $submission,
         public ?string $replyToAddress = null,
-    ) {}
+    ) {
+        $this->afterCommit();
+        $this->through([new SuppressInactivePostmarkRecipientFailure]);
+    }
 
     public function envelope(): Envelope
     {

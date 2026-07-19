@@ -1,4 +1,7 @@
-<div class="capell-form-element capell-form-element">
+<div
+    class="capell-form-element capell-form-element"
+    @if ($formReference === '' && $formHandle !== '') wire:init="loadForm" @endif
+>
     @if ($formReference !== '')
         @livewire ('public-form-fields', ['formReference' => $formReference, 'instanceId' => $instanceId], key('public-form-' . $instanceId))
     @else

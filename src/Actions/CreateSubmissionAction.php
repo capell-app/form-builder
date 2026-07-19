@@ -9,11 +9,13 @@ use Capell\FormBuilder\Data\SubmissionMetaData;
 use Capell\FormBuilder\Data\SubmissionPayloadData;
 use Capell\FormBuilder\Enums\SubmissionStatus;
 use Capell\FormBuilder\Events\FormSubmitted;
+use Capell\FormBuilder\Jobs\DispatchSubmissionWebhookJob;
 use Capell\FormBuilder\Models\Form;
 use Capell\FormBuilder\Models\Submission;
 use Illuminate\Support\Facades\Validator;
 use Lorisleiva\Actions\Concerns\AsFake;
 use Lorisleiva\Actions\Concerns\AsObject;
+use RuntimeException;
 
 /**
  * @method static Submission run(Form $form, array<string, mixed> $input, SubmissionMetaData $meta)
@@ -55,7 +57,9 @@ class CreateSubmissionAction
         event(new FormSubmitted($form, $submission, metadata: $submission->meta, payload: $payload->values));
         SendSubmissionNotificationAction::run($submission);
         SendSubmissionAutoresponderAction::run($submission);
-        DispatchSubmissionWebhookAction::run($submission);
+        $submissionId = $submission->getKey();
+        throw_unless(is_int($submissionId), RuntimeException::class, 'Form submission must have an integer key.');
+        DispatchSubmissionWebhookJob::dispatch($submissionId)->afterCommit();
 
         return $submission;
     }

@@ -55,8 +55,9 @@ Screenshot contract: `docs/screenshots.json`.
 - Policies: `FormPolicy`, `SubmissionPolicy`.
 - Extension contracts: `FormBuilderWebhookHostResolver`, `SpamProtectionProvider`.
 - Events: `FormSubmitted`.
-- Actions: `ArchiveSubmissionAction`, `BuildFormComponentValidationRulesAction`, `BuildFormStepsAction`, `BuildFormSubmissionPrivacyExportAction`, `BuildFormValidationRulesAction`, `BuildSubmissionPayloadDataAction`, `BuildSubmissionPayloadEntriesAction`, `BuildSubmissionsCsvAction`, `CalculateFormFieldValuesAction`, `CalculateSubmissionSpamScoreAction`, `CreateFormPaymentCheckoutRedirectUrlAction`, `CreateFormPaymentCheckoutSessionAction`, `and 22 more`.
+- Actions: `ArchiveSubmissionAction`, `BuildFormComponentValidationRulesAction`, `BuildFormStepsAction`, `BuildFormSubmissionPrivacyExportAction`, `BuildFormValidationRulesAction`, `BuildSubmissionPayloadDataAction`, `BuildSubmissionPayloadEntriesAction`, `BuildSubmissionsCsvAction`, `CalculateFormFieldValuesAction`, `CalculateSubmissionSpamScoreAction`, `CreateFormPaymentCheckoutRedirectUrlAction`, `CreateFormPaymentCheckoutSessionAction`, `and 23 more`.
 - Data objects: `FormComponentStepStateData`, `FormFieldConditionData`, `FormFieldData`, `FormPaymentCheckoutData`, `FormSettingsData`, `FormStepData`, `FormSubmissionData`, `FormSubmissionPrivacyRecordIdsData`, `ResolvedFormWebhookEndpointData`, `SubmissionMetaData`, `SubmissionPayloadData`, `SubmissionSpamScoreData`.
+- Jobs: `DispatchSubmissionWebhookJob`.
 - Command signatures: `capell:form-builder:prune`.
 - Manifest action API: `archiveSubmission: Capell\FormBuilder\Actions\ArchiveSubmissionAction`, `buildFormSteps: Capell\FormBuilder\Actions\BuildFormStepsAction`, `buildFormValidationRules: Capell\FormBuilder\Actions\BuildFormValidationRulesAction`, `buildSubmissionPayloadData: Capell\FormBuilder\Actions\BuildSubmissionPayloadDataAction`, `calculateFormFieldValues: Capell\FormBuilder\Actions\CalculateFormFieldValuesAction`, `calculateSubmissionSpamScore: Capell\FormBuilder\Actions\CalculateSubmissionSpamScoreAction`, `createFormPaymentCheckout: Capell\FormBuilder\Actions\CreateFormPaymentCheckoutSessionAction`, `createFormPaymentCheckoutRedirectUrl: Capell\FormBuilder\Actions\CreateFormPaymentCheckoutRedirectUrlAction`, `createFormPaymentCheckoutUrl: Capell\FormBuilder\Actions\CreateFormPaymentCheckoutUrlAction`, `createSubmission: Capell\FormBuilder\Actions\CreateSubmissionAction`, `dispatchUnstoredFormSubmission: Capell\FormBuilder\Actions\DispatchUnstoredFormSubmissionAction`, `evaluateFormFieldVisibility: Capell\FormBuilder\Actions\EvaluateFormFieldVisibilityAction`, `and 5 more`.
 - Scheduled commands: `capell:form-builder:prune (daily)`.
@@ -85,7 +86,7 @@ Screenshot contract: `docs/screenshots.json`.
 - Database changes: package migrations are declared.
 - Config: `config/capell-form-builder.php`.
 - Settings: no package settings declared.
-- Queues or schedules: scheduled commands `capell:form-builder:prune (daily)`.
+- Queues or schedules: scheduled commands `capell:form-builder:prune (daily)`; queue jobs `DispatchSubmissionWebhookJob`.
 - Cache tags: `form-builder`.
 - Commands: `capell:form-builder:prune`.
 

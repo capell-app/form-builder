@@ -1,4 +1,4 @@
-@component ('mail::message')
+@component('mail::message')
     @php
         use Capell\FormBuilder\Actions\BuildSubmissionPayloadEntriesAction;
 

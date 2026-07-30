@@ -28,18 +28,12 @@
                 </h2>
 
                 @if ($form->description)
-                    <p
-                        class="capell-form__description text-sm leading-6 text-gray-600"
-                    >
-                        {{ $form->description }}
-                    </p>
+                    <p class="capell-form__description text-sm leading-6 text-gray-600">{{ $form->description }}</p>
                 @endif
 
                 @if ($steps->count() > 1 && $currentStep)
                     <div class="capell-form__steps space-y-2">
-                        <p
-                            class="capell-form__step-count text-xs font-semibold tracking-wide text-gray-500 uppercase"
-                        >
+                        <p class="capell-form__step-count text-xs font-semibold tracking-wide text-gray-500 uppercase">
                             {{ __('capell-form-builder::form.step_progress', ['current' => $currentStepIndex + 1, 'total' => $steps->count()]) }}
                         </p>
 
@@ -69,16 +63,14 @@
                         x-data
                         x-init="$nextTick(() => $el.focus())"
                     >
-                        <p
-                            class="capell-form__error-summary-title font-semibold"
-                        >
+                        <p class="capell-form__error-summary-title font-semibold">
                             {{ __('capell-form-builder::form.errors_heading') }}
                         </p>
 
                         <ul
                             class="capell-form__error-summary-list mt-2 list-disc space-y-1 pl-5"
                         >
-                            @error ('data')
+                            @error('data')
                                 <li>{{ $message }}</li>
                             @enderror
 
@@ -87,7 +79,7 @@
                                     $errorKey = 'data.' . $field->key;
                                 @endphp
 
-                                @error ($errorKey)
+                                @error($errorKey)
                                     <li>
                                         <a
                                             href="#capell-form-{{ $formInstanceId }}-{{ $field->key }}"
@@ -147,7 +139,7 @@
                                     placeholder="{{ $field->placeholder }}"
                                     @if ($describedBy !== '') aria-describedby="{{ $describedBy }}" @endif
                                     aria-invalid="{{ $errors->has($errorKey) ? 'true' : 'false' }}"
-                                    @required ($field->required)
+                                    @required($field->required)
                                 ></textarea>
                             @elseif ($field->type === FormFieldType::Select)
                                 <select
@@ -156,7 +148,7 @@
                                     class="capell-form__control block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900"
                                     @if ($describedBy !== '') aria-describedby="{{ $describedBy }}" @endif
                                     aria-invalid="{{ $errors->has($errorKey) ? 'true' : 'false' }}"
-                                    @required ($field->required)
+                                    @required($field->required)
                                 >
                                     <option value="">
                                         {{ __('capell-form-builder::form.select_placeholder') }}
@@ -176,7 +168,7 @@
                                     class="capell-form__checkbox h-4 w-4 rounded border-gray-300 text-gray-900 focus:ring-gray-900/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900"
                                     @if ($describedBy !== '') aria-describedby="{{ $describedBy }}" @endif
                                     aria-invalid="{{ $errors->has($errorKey) ? 'true' : 'false' }}"
-                                    @required ($field->required)
+                                    @required($field->required)
                                 />
                             @elseif ($field->type === FormFieldType::File)
                                 <input
@@ -187,7 +179,7 @@
                                     @if ($field->acceptedFileTypes !== []) accept="{{ collect($field->acceptedFileTypes)->map(fn (string $type): string => str_starts_with($type, '.') ? $type : '.' . $type)->implode(',') }}" @endif
                                     @if ($describedBy !== '') aria-describedby="{{ $describedBy }}" @endif
                                     aria-invalid="{{ $errors->has($errorKey) ? 'true' : 'false' }}"
-                                    @required ($field->required)
+                                    @required($field->required)
                                 />
                             @elseif ($field->type === FormFieldType::Payment && is_int($field->paymentAmountCents) && $field->paymentAmountCents > 0)
                                 @php
@@ -226,7 +218,7 @@
                                     placeholder="{{ $field->placeholder }}"
                                     @if ($describedBy !== '') aria-describedby="{{ $describedBy }}" @endif
                                     aria-invalid="{{ $errors->has($errorKey) ? 'true' : 'false' }}"
-                                    @required ($field->required)
+                                    @required($field->required)
                                 />
                             @endif
 
@@ -239,7 +231,7 @@
                                 </p>
                             @endif
 
-                            @error ($errorKey)
+                            @error($errorKey)
                                 <p
                                     id="{{ $errorId }}"
                                     class="capell-form__error text-sm font-medium text-red-700"

@@ -3,7 +3,7 @@
     @if ($formReference === '' && $formHandle !== '') wire:init="loadForm" @endif
 >
     @if ($formReference !== '')
-        @livewire ('public-form-fields', ['formReference' => $formReference, 'instanceId' => $instanceId], key('public-form-' . $instanceId))
+        @livewire('public-form-fields', ['formReference' => $formReference, 'instanceId' => $instanceId], key('public-form-' . $instanceId))
     @else
         <div
             class="capell-form-element__fallback"

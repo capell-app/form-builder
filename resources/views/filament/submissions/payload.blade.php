@@ -6,9 +6,7 @@
 
 <div class="space-y-4">
     @if ($entries->isEmpty())
-        <p class="text-sm text-gray-500 dark:text-gray-400">
-            {{ __('capell-form-builder::table.payload_empty') }}
-        </p>
+        <p class="text-sm text-gray-500 dark:text-gray-400">{{ __('capell-form-builder::table.payload_empty') }}</p>
     @else
         <dl class="divide-y divide-gray-200 dark:divide-white/10">
             @foreach ($entries as $entry)

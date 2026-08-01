@@ -37,11 +37,11 @@ Screenshot contract: `docs/screenshots.json`.
 
 ![Create/edit form schema screen](docs/screenshots/create-edit-form-schema-screen.png)
 
-- FormBuilder admin index (admin, required).
-- Create/edit form schema screen (admin, required).
-- Submissions index (admin, required).
-- Frontend form output (frontend, required).
-- Submission detail view (admin, optional).
+- FormBuilder admin index (admin, required evidence).
+- Create/edit form schema screen (admin, required evidence).
+- Submissions index (admin, required evidence).
+- Frontend form output (frontend, required evidence).
+- Submission detail view (admin, supplementary evidence).
 
 ## Technical Shape
 
@@ -60,7 +60,7 @@ Screenshot contract: `docs/screenshots.json`.
 - Jobs: `DispatchSubmissionWebhookJob`.
 - Command signatures: `capell:form-builder:prune`.
 - Manifest action API: `archiveSubmission: Capell\FormBuilder\Actions\ArchiveSubmissionAction`, `buildFormSteps: Capell\FormBuilder\Actions\BuildFormStepsAction`, `buildFormValidationRules: Capell\FormBuilder\Actions\BuildFormValidationRulesAction`, `buildSubmissionPayloadData: Capell\FormBuilder\Actions\BuildSubmissionPayloadDataAction`, `calculateFormFieldValues: Capell\FormBuilder\Actions\CalculateFormFieldValuesAction`, `calculateSubmissionSpamScore: Capell\FormBuilder\Actions\CalculateSubmissionSpamScoreAction`, `createFormPaymentCheckout: Capell\FormBuilder\Actions\CreateFormPaymentCheckoutSessionAction`, `createFormPaymentCheckoutRedirectUrl: Capell\FormBuilder\Actions\CreateFormPaymentCheckoutRedirectUrlAction`, `createFormPaymentCheckoutUrl: Capell\FormBuilder\Actions\CreateFormPaymentCheckoutUrlAction`, `createSubmission: Capell\FormBuilder\Actions\CreateSubmissionAction`, `dispatchUnstoredFormSubmission: Capell\FormBuilder\Actions\DispatchUnstoredFormSubmissionAction`, `evaluateFormFieldVisibility: Capell\FormBuilder\Actions\EvaluateFormFieldVisibilityAction`, `and 5 more`.
-- Scheduled commands: `capell:form-builder:prune (daily)`.
+- Scheduled commands: `capell:form-builder:prune (daily; package registered)`.
 - Console command classes: `ExportSubmissionsCommand`, `PruneExpiredFormSubmissionsCommand`.
 - Manifest contributions: `admin-resource: Capell\FormBuilder\Manifest\FormResourceContribution`, `admin-resource: Capell\FormBuilder\Manifest\SubmissionResourceContribution`, `frontend-component: Capell\FormBuilder\Manifest\FormElementComponentContribution`, `model: Capell\FormBuilder\Manifest\FormModelContribution`, `model: Capell\FormBuilder\Manifest\SubmissionModelContribution`, `route: Capell\FormBuilder\Manifest\FormBuilderPaymentRoutesContribution`, `scheduled-job: Capell\FormBuilder\Manifest\FormBuilderPruneScheduleContribution`.
 - Health checks: `Capell\FormBuilder\Health\FormBuilderHealthCheck`.
@@ -74,7 +74,7 @@ Screenshot contract: `docs/screenshots.json`.
 - Core record references in migrations: `sites via site_id`.
 - Migration files: `2026_05_10_190849_01_create_form-builder_table.php`, `2026_05_10_190849_02_create_submissions_table.php`, `2026_07_12_000001_add_retention_to_submissions_table.php`.
 - Migration impact: run host migrations through the package install flow before opening package surfaces.
-- Deletion/retention behaviour: migrations declare cascade-on-delete relationships; retention is scheduled through `capell:form-builder:prune` (daily).
+- Deletion/retention behaviour: migrations declare cascade-on-delete relationships; retention is scheduled through `capell:form-builder:prune` (daily; registered by the package provider).
 
 ## Install Impact
 
@@ -86,7 +86,7 @@ Screenshot contract: `docs/screenshots.json`.
 - Database changes: package migrations are declared.
 - Config: `config/capell-form-builder.php`.
 - Settings: no package settings declared.
-- Queues or schedules: scheduled commands `capell:form-builder:prune (daily)`; queue jobs `DispatchSubmissionWebhookJob`.
+- Queues or schedules: scheduled commands `capell:form-builder:prune (daily; package registered)`; queue jobs `DispatchSubmissionWebhookJob`.
 - Cache tags: `form-builder`.
 - Commands: `capell:form-builder:prune`.
 
@@ -96,7 +96,7 @@ Screenshot contract: `docs/screenshots.json`.
 - Run migrations before opening package resources or public routes.
 - Review package configuration before production-like verification: `config/capell-form-builder.php`.
 - Review middleware, throttling, signatures, and public-output safety in `routes/payments.php` before exposing routes.
-- Register the host scheduler so these declared commands run at their documented frequencies: `capell:form-builder:prune (daily)`.
+- Keep the host Laravel scheduler running so package-registered schedules can execute: `capell:form-builder:prune (daily; package registered)`.
 - Keep public Blade and cached HTML free of authoring markers, model IDs, permissions, signed editor URLs, and lazy database queries.
 - Custom write integrations must preserve invalidation for `form-builder` cache tags.
 
@@ -114,7 +114,7 @@ Screenshot contract: `docs/screenshots.json`.
 
 1. Install the package: `composer require capell-app/form-builder`.
 2. Run the required setup: `php artisan migrate`.
-3. Open the Frontend form output and confirm the public output renders without admin state.
+3. Open `/screenshot-fixtures/form-builder/frontend-form-output` and confirm the public output renders without admin state.
 
 ## Next Steps
 

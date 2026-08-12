@@ -42,6 +42,7 @@ Screenshot contract: `docs/screenshots.json`.
 - Submissions index (admin, required evidence).
 - Frontend form output (frontend, required evidence).
 - Submission detail view (admin, supplementary evidence).
+- FormBuilder admin index with admin sidebar menu open (admin, supplementary evidence).
 
 ## Technical Shape
 
@@ -114,7 +115,7 @@ Screenshot contract: `docs/screenshots.json`.
 
 1. Install the package: `composer require capell-app/form-builder`.
 2. Run the required setup: `php artisan migrate`.
-3. Open `/screenshot-fixtures/form-builder/frontend-form-output` and confirm the public output renders without admin state.
+3. Open the package admin surface at `/form-builder/forms` and confirm Form Builder is available.
 
 ## Next Steps
 

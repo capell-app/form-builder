@@ -67,6 +67,7 @@ final class FormBuilderServiceProvider extends AbstractPackageServiceProvider
             ]);
     }
 
+    #[Override]
     public function registeringPackage(): void
     {
         parent::registeringPackage();
@@ -85,7 +86,6 @@ final class FormBuilderServiceProvider extends AbstractPackageServiceProvider
                 ? $instance
                 : new NullSpamProtectionProvider;
         });
-        $this->registerModels();
     }
 
     public function packageBooted(): void
@@ -135,6 +135,7 @@ final class FormBuilderServiceProvider extends AbstractPackageServiceProvider
     protected function bootInstalledPackage(): self
     {
         return $this
+            ->registerModels()
             ->registerPackageAssets()
             ->registerBlazeComponents()
             ->registerRenderables()

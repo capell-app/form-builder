@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Capell\Core\Facades\CapellCore;
+use Capell\Core\Support\CapellCoreManager;
 use Capell\FormBuilder\Contracts\SpamProtectionProvider;
 use Capell\FormBuilder\Models\Form;
 use Capell\FormBuilder\Models\Submission;
@@ -23,6 +24,17 @@ it('registers form-builder models for Capell model enumeration', function (): vo
 
     expect($models)->toContain(Form::class)
         ->and($models)->toContain(Submission::class);
+});
+
+it('registers form-builder models when installed after application boot', function (): void {
+    $models = new ReflectionProperty(CapellCoreManager::class, 'models');
+    $models->setValue(resolve(CapellCoreManager::class), null);
+
+    app()->register(FormBuilderServiceProvider::class, force: true);
+
+    expect(CapellCore::getModels())
+        ->toContain(Form::class)
+        ->toContain(Submission::class);
 });
 
 it('falls back to the null spam protection provider for invalid provider config', function (): void {

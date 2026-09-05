@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Capell\FormBuilder\Livewire;
 
 use Capell\Core\Models\Site;
+use Capell\FormBuilder\Actions\BuildFormAgentToolManifestAction;
 use Capell\FormBuilder\Actions\BuildFormComponentValidationRulesAction;
 use Capell\FormBuilder\Actions\CalculateFormFieldValuesAction;
 use Capell\FormBuilder\Actions\CreateFormPaymentCheckoutRedirectUrlAction;
@@ -81,13 +82,13 @@ final class FormComponent extends Component
             ];
         }
 
-        $this->currentStepKey = $this->firstStepKey();
+        $this->currentStepKey = $this->stepState()->currentStepKey;
     }
 
     public function nextStep(): void
     {
         $form = $this->form();
-        $currentStep = $this->currentStep();
+        $currentStep = $this->stepState()->currentStep;
 
         if (! $form instanceof Form || ! $currentStep instanceof FormStepData) {
             return;
@@ -177,14 +178,19 @@ final class FormComponent extends Component
         }
 
         return view('capell-form-builder::livewire.form', [
+            'agentToolManifest' => BuildFormAgentToolManifestAction::run(
+                $this->stepState()->steps,
+                $this->allFields(),
+                'capell-form-' . $this->instanceId,
+            ),
             'fields' => $this->fields(),
             'form' => $form,
             'formInstanceId' => $this->instanceId,
-            'currentStep' => $this->currentStep(),
-            'currentStepIndex' => $this->currentStepIndex(),
+            'currentStep' => $this->stepState()->currentStep,
+            'currentStepIndex' => $this->stepState()->currentStepIndex,
             'hasPaymentField' => $this->hasPaymentField(),
             'settings' => $this->settings(),
-            'steps' => $this->steps(),
+            'steps' => $this->stepState()->steps,
         ]);
     }
 
@@ -234,7 +240,7 @@ final class FormComponent extends Component
      */
     private function fields(): Collection
     {
-        $currentStep = $this->currentStep();
+        $currentStep = $this->stepState()->currentStep;
 
         if ($currentStep instanceof FormStepData) {
             return $currentStep->fields;
@@ -253,29 +259,6 @@ final class FormComponent extends Component
         return $form instanceof Form
             ? ResolveVisibleFormFieldsAction::run($form, $this->data)
             : collect();
-    }
-
-    /**
-     * @return Collection<int, FormStepData>
-     */
-    private function steps(): Collection
-    {
-        return $this->stepState()->steps;
-    }
-
-    private function currentStep(): ?FormStepData
-    {
-        return $this->stepState()->currentStep;
-    }
-
-    private function firstStepKey(): string
-    {
-        return $this->stepState()->currentStepKey;
-    }
-
-    private function currentStepIndex(): int
-    {
-        return $this->stepState()->currentStepIndex;
     }
 
     private function isFinalStep(): bool

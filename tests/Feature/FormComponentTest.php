@@ -79,6 +79,48 @@ it('renders and stores a submitted form', function (): void {
     expect($contribution?->cacheable)->toBeFalse();
 });
 
+it('renders a scoped public agent tool for eligible single-step forms', function (): void {
+    $form = Form::factory()->create([
+        'handle' => 'agent-contact',
+        'schema' => [
+            [
+                'key' => 'email',
+                'label' => 'Email',
+                'type' => FormFieldType::Email->value,
+                'required' => true,
+            ],
+        ],
+    ]);
+    bindFormBuilderFrontendSite($form->site);
+
+    livewire(FormComponent::class, [
+        'handle' => 'agent-contact',
+        'instanceId' => 'contact-form',
+    ])
+        ->assertSee('data-capell-agent-tools', false)
+        ->assertSee('form.submit.capell-form-contact-form', false)
+        ->assertSee('Submit this form with the following values?', false)
+        ->assertSee('id="capell-form-contact-form"', false)
+        ->assertSee('name="email"', false);
+});
+
+it('does not expose a public agent tool for forms with unsupported controls', function (): void {
+    $form = Form::factory()->create([
+        'handle' => 'agent-upload',
+        'schema' => [
+            [
+                'key' => 'attachment',
+                'label' => 'Attachment',
+                'type' => FormFieldType::File->value,
+            ],
+        ],
+    ]);
+    bindFormBuilderFrontendSite($form->site);
+
+    livewire(FormComponent::class, ['handle' => 'agent-upload'])
+        ->assertDontSee('data-capell-agent-tools', false);
+});
+
 it('prefills declared hidden fields without overriding visible fields', function (): void {
     $form = Form::factory()->create([
         'name' => 'Guided handoff',

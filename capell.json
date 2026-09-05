@@ -101,7 +101,8 @@
         "markSubmissionSpam": "Capell\\FormBuilder\\Actions\\MarkSubmissionSpamAction",
         "replyToSubmission": "Capell\\FormBuilder\\Actions\\ReplyToSubmissionAction",
         "resolveVisibleFormFields": "Capell\\FormBuilder\\Actions\\ResolveVisibleFormFieldsAction",
-        "sendSubmissionNotification": "Capell\\FormBuilder\\Actions\\SendSubmissionNotificationAction"
+        "sendSubmissionNotification": "Capell\\FormBuilder\\Actions\\SendSubmissionNotificationAction",
+        "buildFormAgentToolManifest": "Capell\\FormBuilder\\Actions\\BuildFormAgentToolManifestAction"
     },
     "settings": [],
     "permissions": [
@@ -136,6 +137,37 @@
         "form-builder-submission-workflows",
         "requires-livewire",
         "cache-blocking"
+    ],
+    "agent_tools": [
+        {
+            "name": "form.submit",
+            "description": "Submit this public form after user confirmation.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {},
+                "required": [],
+                "additionalProperties": false
+            },
+            "outputSchema": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "enum": ["submitted", "pending"]
+                    },
+                    "cancelled": {
+                        "type": "boolean"
+                    }
+                },
+                "required": ["status"],
+                "additionalProperties": false
+            },
+            "effect": "write",
+            "binding": {
+                "type": "form",
+                "target": "capell-form"
+            }
+        }
     ],
     "security": {
         "riskTier": "sensitive",

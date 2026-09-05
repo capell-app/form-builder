@@ -3,12 +3,14 @@
 declare(strict_types=1);
 
 use Capell\Core\Models\Site;
+use Capell\FormBuilder\Actions\BuildFormAgentToolManifestAction;
 use Capell\FormBuilder\Actions\BuildFormComponentValidationRulesAction;
 use Capell\FormBuilder\Actions\GuardFormSubmissionRateLimitAction;
 use Capell\FormBuilder\Actions\ResolveFormComponentFormAction;
 use Capell\FormBuilder\Actions\ResolveFormComponentStepStateAction;
 use Capell\FormBuilder\Data\FormComponentStepStateData;
 use Capell\FormBuilder\Data\FormFieldData;
+use Capell\FormBuilder\Data\FormStepData;
 use Capell\FormBuilder\Enums\FormFieldType;
 use Capell\FormBuilder\Models\Form;
 use Illuminate\Support\Collection;
@@ -46,6 +48,106 @@ it('builds Livewire data-prefixed validation rules for a form step', function ()
             'data.email' => ['required', 'email', 'max:255'],
             'data.budget' => ['required', 'numeric'],
         ]);
+});
+
+it('builds a bounded public form tool from hydrated single-step fields', function (): void {
+    $steps = collect([new FormStepData(
+        key: 'default',
+        label: 'Form',
+        fields: collect([
+            new FormFieldData(
+                key: 'email',
+                label: 'Email',
+                type: FormFieldType::Email,
+                required: true,
+            ),
+            new FormFieldData(
+                key: 'budget',
+                label: 'Budget',
+                type: FormFieldType::Number,
+            ),
+            new FormFieldData(
+                key: 'interest',
+                label: 'Interest',
+                type: FormFieldType::Select,
+                options: ['consulting' => 'Consulting', 'training' => 'Training'],
+            ),
+            new FormFieldData(
+                key: 'consent',
+                label: 'Consent',
+                type: FormFieldType::Checkbox,
+                required: true,
+            ),
+            new FormFieldData(
+                key: 'campaign',
+                label: 'Campaign',
+                type: FormFieldType::Hidden,
+            ),
+        ]),
+    )]);
+
+    $manifest = BuildFormAgentToolManifestAction::run($steps, $steps->firstOrFail()->fields, 'capell-form-lead');
+
+    if (! is_array($manifest)) {
+        throw new RuntimeException('Expected a form agent manifest.');
+    }
+
+    expect($manifest)->not->toBeNull()
+        ->and($manifest['messages'])->toBe([
+            'confirmForm' => 'Submit this form with the following values?',
+        ])
+        ->and($manifest['tools'][0]['name'])->toBe('form.submit.capell-form-lead')
+        ->and($manifest['tools'][0]['effect'])->toBe('write')
+        ->and($manifest['tools'][0]['binding'])->toBe([
+            'type' => 'form',
+            'target' => 'capell-form-lead',
+        ])
+        ->and($manifest['tools'][0]['inputSchema'])->toBe([
+            'type' => 'object',
+            'properties' => [
+                'email' => ['type' => 'string', 'format' => 'email', 'maxLength' => 255],
+                'budget' => ['type' => 'number'],
+                'interest' => ['type' => 'string', 'enum' => ['consulting', 'training']],
+                'consent' => ['type' => 'boolean'],
+            ],
+            'required' => ['email', 'consent'],
+            'additionalProperties' => false,
+        ]);
+});
+
+it('does not expose unsupported or multi-step forms as public tools', function (): void {
+    $unsupported = collect([new FormStepData(
+        key: 'default',
+        label: 'Form',
+        fields: collect([new FormFieldData(
+            key: 'attachment',
+            label: 'Attachment',
+            type: FormFieldType::File,
+        )]),
+    )]);
+    $multiStep = collect([
+        new FormStepData(key: 'one', label: 'One', fields: collect()),
+        new FormStepData(key: 'two', label: 'Two', fields: collect()),
+    ]);
+
+    expect(BuildFormAgentToolManifestAction::run($unsupported, $unsupported->firstOrFail()->fields, 'capell-form-upload'))->toBeNull()
+        ->and(BuildFormAgentToolManifestAction::run($multiStep, $multiStep->firstOrFail()->fields, 'capell-form-steps'))->toBeNull();
+});
+
+it('does not expose forms when external spam protection needs an unsupported token', function (): void {
+    config()->set('capell-form-builder.spam_protection.enabled', true);
+
+    $steps = collect([new FormStepData(
+        key: 'default',
+        label: 'Form',
+        fields: collect([new FormFieldData(
+            key: 'email',
+            label: 'Email',
+            type: FormFieldType::Email,
+        )]),
+    )]);
+
+    expect(BuildFormAgentToolManifestAction::run($steps, $steps->firstOrFail()->fields, 'capell-form-contact'))->toBeNull();
 });
 
 it('guards repeated form submissions by form email and IP address', function (): void {

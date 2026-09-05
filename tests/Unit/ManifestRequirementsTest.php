@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Capell\Core\Contracts\Extensions\RegistersExtensionAdminResource;
 use Capell\Core\Contracts\Extensions\RegistersExtensionFrontendComponent;
 use Capell\Core\Contracts\Extensions\RegistersExtensionRoute;
+use Capell\FormBuilder\Actions\BuildFormAgentToolManifestAction;
 use Capell\FormBuilder\Actions\BuildFormStepsAction;
 use Capell\FormBuilder\Actions\BuildFormValidationRulesAction;
 use Capell\FormBuilder\Actions\BuildSubmissionPayloadDataAction;
@@ -74,7 +75,8 @@ describe('form-builder capell.json manifest', function (): void {
             ->and($manifest['actions'])->toHaveKey('createSubmission', CreateSubmissionAction::class)
             ->and($manifest['actions'])->toHaveKey('dispatchUnstoredFormSubmission', DispatchUnstoredFormSubmissionAction::class)
             ->and($manifest['actions'])->toHaveKey('evaluateFormFieldVisibility', EvaluateFormFieldVisibilityAction::class)
-            ->and($manifest['actions'])->toHaveKey('resolveVisibleFormFields', ResolveVisibleFormFieldsAction::class);
+            ->and($manifest['actions'])->toHaveKey('resolveVisibleFormFields', ResolveVisibleFormFieldsAction::class)
+            ->and($manifest['actions'])->toHaveKey('buildFormAgentToolManifest', BuildFormAgentToolManifestAction::class);
     });
 
     it('declares implemented admin resource frontend component and models', function (): void {
@@ -135,6 +137,34 @@ describe('form-builder capell.json manifest', function (): void {
             ->and($manifest['contributionTraceability']['deferredContributions'])->not->toContain('admin-resource', 'model');
     });
 
+    it('declares the typed public form tool contract', function (): void {
+        $manifest = formBuilderManifest();
+
+        expect($manifest['agent_tools'])->toBe([
+            [
+                'name' => 'form.submit',
+                'description' => 'Submit this public form after user confirmation.',
+                'inputSchema' => [
+                    'type' => 'object',
+                    'properties' => [],
+                    'required' => [],
+                    'additionalProperties' => false,
+                ],
+                'outputSchema' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'status' => ['type' => 'string', 'enum' => ['submitted', 'pending']],
+                        'cancelled' => ['type' => 'boolean'],
+                    ],
+                    'required' => ['status'],
+                    'additionalProperties' => false,
+                ],
+                'effect' => 'write',
+                'binding' => ['type' => 'form', 'target' => 'capell-form'],
+            ],
+        ]);
+    });
+
     it('declares the shipped marketplace screenshot set', function (): void {
         $manifest = formBuilderManifest();
 
@@ -172,6 +202,7 @@ describe('form-builder capell.json manifest', function (): void {
  * @return array{
  *     dependencies: array{requires: list<string>, supports: list<string>},
  *     capabilities: list<string>,
+ *     agent_tools: list<array<string, mixed>>,
  *     actions: array<string, class-string>,
  *     contributes: list<array<string, string|list<string>>>,
  *     permissions: list<string>,
@@ -199,6 +230,7 @@ function formBuilderManifest(): array
             'supports' => formBuilderStringList($dependencies['supports'] ?? []),
         ],
         'capabilities' => formBuilderStringList($manifest['capabilities'] ?? []),
+        'agent_tools' => formBuilderAgentTools($manifest['agent_tools'] ?? []),
         'actions' => formBuilderClassMap($manifest['actions'] ?? []),
         'contributes' => formBuilderStringMapList($manifest['contributes'] ?? []),
         'permissions' => formBuilderStringList($manifest['permissions'] ?? []),
@@ -220,7 +252,7 @@ function formBuilderStringList(mixed $values): array
         return [];
     }
 
-    return array_values(array_filter($values, static fn (mixed $value): bool => is_string($value)));
+    return array_values(array_filter($values, is_string(...)));
 }
 
 /**
@@ -241,6 +273,33 @@ function formBuilderClassMap(mixed $values): array
     }
 
     return $map;
+}
+
+/**
+ * @return list<array<string, mixed>>
+ */
+function formBuilderAgentTools(mixed $values): array
+{
+    if (! is_array($values)) {
+        return [];
+    }
+
+    $tools = [];
+
+    foreach ($values as $value) {
+        if (is_array($value)) {
+            $tool = [];
+            foreach ($value as $key => $entry) {
+                if (is_string($key)) {
+                    $tool[$key] = $entry;
+                }
+            }
+
+            $tools[] = $tool;
+        }
+    }
+
+    return $tools;
 }
 
 /**

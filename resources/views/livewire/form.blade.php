@@ -3,6 +3,13 @@
 @endphp
 
 <div class="capell-form-builder-form capell-form w-full">
+    @if (is_array($agentToolManifest ?? null))
+        <script
+            type="application/json"
+            data-capell-agent-tools
+        >{!! json_encode($agentToolManifest, JSON_THROW_ON_ERROR | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!}</script>
+    @endif
+
     @if ($form)
         @if ($submitted)
             <p
@@ -17,6 +24,7 @@
             </p>
         @else
             <form
+                id="capell-form-{{ $formInstanceId }}"
                 wire:submit="submit"
                 wire:target="submit"
                 class="capell-form__form space-y-5"
@@ -134,6 +142,7 @@
                             @if ($field->type === FormFieldType::Textarea)
                                 <textarea
                                     wire:model="data.{{ $field->key }}"
+                                    name="{{ $field->key }}"
                                     id="{{ $fieldId }}"
                                     class="capell-form__control block min-h-28 w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900"
                                     placeholder="{{ $field->placeholder }}"
@@ -144,6 +153,7 @@
                             @elseif ($field->type === FormFieldType::Select)
                                 <select
                                     wire:model="data.{{ $field->key }}"
+                                    name="{{ $field->key }}"
                                     id="{{ $fieldId }}"
                                     class="capell-form__control block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900"
                                     @if ($describedBy !== '') aria-describedby="{{ $describedBy }}" @endif
@@ -164,6 +174,7 @@
                                 <input
                                     type="checkbox"
                                     wire:model="data.{{ $field->key }}"
+                                    name="{{ $field->key }}"
                                     id="{{ $fieldId }}"
                                     class="capell-form__checkbox h-4 w-4 rounded border-gray-300 text-gray-900 focus:ring-gray-900/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900"
                                     @if ($describedBy !== '') aria-describedby="{{ $describedBy }}" @endif
@@ -213,6 +224,7 @@
                                 <input
                                     type="{{ in_array($field->type, [FormFieldType::Number, FormFieldType::Payment], true) ? 'number' : $field->type->value }}"
                                     wire:model="data.{{ $field->key }}"
+                                    name="{{ $field->key }}"
                                     id="{{ $fieldId }}"
                                     class="capell-form__control block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900"
                                     placeholder="{{ $field->placeholder }}"

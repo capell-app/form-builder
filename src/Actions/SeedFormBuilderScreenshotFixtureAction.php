@@ -77,22 +77,32 @@ final class SeedFormBuilderScreenshotFixtureAction
             ],
         );
 
+        // Submission times hang off the seed day so the inbox always reads as
+        // recent. Rows are matched by submitter email, not timestamp, so a
+        // re-run on a later day moves the same four rows forward.
+        $anchor = CarbonImmutable::now('UTC')->startOfDay();
         $submissions = [
-            ['2027-02-12 09:14:00', SubmissionStatus::New, ['full_name' => 'Hannah Clarke', 'email' => 'hannah@example.test', 'budget' => '5k-20k', 'message' => 'We need to migrate our marketing site before the summer campaign.']],
-            ['2027-02-12 11:42:00', SubmissionStatus::New, ['full_name' => 'Omar Haddad', 'email' => 'omar@example.test', 'budget' => 'over-20k', 'message' => 'Looking for a multi-site rollout across three regions.']],
-            ['2027-02-11 16:05:00', SubmissionStatus::Read, ['full_name' => 'Grace Liu', 'email' => 'grace@example.test', 'budget' => 'under-5k', 'message' => 'Could you help refresh our charity events pages?']],
-            ['2027-02-10 08:30:00', SubmissionStatus::Archived, ['full_name' => 'Tom Barker', 'email' => 'tom@example.test', 'budget' => '5k-20k', 'message' => 'Following up on the proposal we discussed last month.']],
+            [$anchor->subDay()->setTime(9, 14), SubmissionStatus::New, ['full_name' => 'Hannah Clarke', 'email' => 'hannah@example.test', 'budget' => '5k-20k', 'message' => 'We need to migrate our marketing site before the summer campaign.']],
+            [$anchor->subDay()->setTime(11, 42), SubmissionStatus::New, ['full_name' => 'Omar Haddad', 'email' => 'omar@example.test', 'budget' => 'over-20k', 'message' => 'Looking for a multi-site rollout across three regions.']],
+            [$anchor->subDays(2)->setTime(16, 5), SubmissionStatus::Read, ['full_name' => 'Grace Liu', 'email' => 'grace@example.test', 'budget' => 'under-5k', 'message' => 'Could you help refresh our charity events pages?']],
+            [$anchor->subDays(3)->setTime(8, 30), SubmissionStatus::Archived, ['full_name' => 'Tom Barker', 'email' => 'tom@example.test', 'budget' => '5k-20k', 'message' => 'Following up on the proposal we discussed last month.']],
         ];
 
+        $existing = Submission::query()
+            ->where('form_id', $contact->getKey())
+            ->get()
+            ->keyBy(static function (Submission $submission): string {
+                $email = $submission->payload->values['email'] ?? null;
+
+                return is_string($email) ? $email : '';
+            });
+
         foreach ($submissions as [$submittedAt, $status, $values]) {
-            $submittedAt = CarbonImmutable::parse($submittedAt, 'UTC');
+            $submission = $existing->get($values['email']);
 
-            $exists = Submission::query()
-                ->where('form_id', $contact->getKey())
-                ->where('submitted_at', $submittedAt)
-                ->exists();
+            if ($submission instanceof Submission) {
+                $submission->forceFill(['status' => $status, 'submitted_at' => $submittedAt])->save();
 
-            if ($exists) {
                 continue;
             }
 
@@ -100,7 +110,7 @@ final class SeedFormBuilderScreenshotFixtureAction
                 'form_id' => $contact->getKey(),
                 'site_id' => $siteId,
                 'payload' => new SubmissionPayloadData(values: $values),
-                'meta' => new SubmissionMetaData(url: '/contact', userAgent: 'Mozilla/5.0'),
+                'meta' => new SubmissionMetaData(userAgent: 'Mozilla/5.0', url: '/contact'),
                 'status' => $status,
                 'submitted_at' => $submittedAt,
                 'legal_hold' => false,

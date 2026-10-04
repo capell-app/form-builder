@@ -71,12 +71,24 @@
             "package": "form-builder",
             "surface": "admin",
             "targetType": "admin-surface",
-            "target": null,
+            "target": "SubmissionsTable.view_payload",
+            "url": "/form-builder/submissions",
+            "waitFor": "table",
             "required": false,
-            "notes": "Optional Beta evidence target. The current file duplicates the submissions index capture; replace it with an independently captured submission detail state before using it as release evidence.",
+            "notes": "Submissions have no detail page; the detail state is the Submission details modal opened from the first row's action, showing the decrypted payload and reply context.",
             "useCase": "An administrator reads a submission payload and reply context without exposing encrypted raw storage.",
             "screenshotPath": "packages/form-builder/docs/screenshots/submission-detail-view.png",
-            "darkScreenshotPath": "packages/form-builder/docs/screenshots/submission-detail-view-dark.png"
+            "darkScreenshotPath": "packages/form-builder/docs/screenshots/submission-detail-view-dark.png",
+            "interactions": [
+                {
+                    "type": "click",
+                    "selector": ".fi-ta-row:has-text(\"hannah@example.test\") :is(a, button):has-text(\"Submission details\")"
+                },
+                {
+                    "type": "waitFor",
+                    "selector": ".fi-modal-window:has-text(\"hannah@example.test\")"
+                }
+            ]
         },
         {
             "id": "form-builder-admin-sidebar-menu-open",
@@ -96,6 +108,10 @@
                 {
                     "type": "click",
                     "selector": ".fi-topbar-open-collapse-sidebar-btn"
+                },
+                {
+                    "type": "waitFor",
+                    "selector": ".fi-sidebar.fi-sidebar-open"
                 }
             ]
         }

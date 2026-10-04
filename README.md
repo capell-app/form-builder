@@ -10,8 +10,6 @@ Form Builder adds site-scoped form schemas, conditional and multi-step fields, c
 
 Editors build forms and triage submissions in the admin, while visitors complete the published form through a Livewire frontend component.
 
-Evidence: [`capell.json`](capell.json), [`src/Models/Form.php`](src/Models/Form.php), [`src/Models/Submission.php`](src/Models/Submission.php), [`src/Providers/FormBuilderServiceProvider.php`](src/Providers/FormBuilderServiceProvider.php), [`docs/overview.admin.md`](docs/overview.admin.md), [`docs/screenshots.json`](docs/screenshots.json), [`src/Filament/Resources/Forms/FormResource.php`](src/Filament/Resources/Forms/FormResource.php), [`tests/Feature/FormComponentTest.php`](tests/Feature/FormComponentTest.php).
-
 Status details:
 
 - Status: Available
@@ -26,8 +24,6 @@ Status details:
 **For developers:** Typed field data and Actions handle visibility, validation, calculations, spam scoring, rate limits, and persistence, with a contract for replacing the spam provider.
 
 **For teams:** Teams can publish structured forms, receive notifications, review or reply to submissions, and apply retention or legal-hold rules from one workflow.
-
-Evidence: [`src/Data/FormFieldData.php`](src/Data/FormFieldData.php), [`src/Actions/BuildFormValidationRulesAction.php`](src/Actions/BuildFormValidationRulesAction.php), [`src/Actions/CalculateSubmissionSpamScoreAction.php`](src/Actions/CalculateSubmissionSpamScoreAction.php), [`src/Contracts/SpamProtectionProvider.php`](src/Contracts/SpamProtectionProvider.php), [`docs/admin-guide.md`](docs/admin-guide.md), [`src/Actions/CreateSubmissionAction.php`](src/Actions/CreateSubmissionAction.php), [`src/Actions/ReplyToSubmissionAction.php`](src/Actions/ReplyToSubmissionAction.php), [`tests/Integration/Actions/FormSubmissionRetentionTest.php`](tests/Integration/Actions/FormSubmissionRetentionTest.php).
 
 ## Screens And Workflow
 
@@ -269,12 +265,14 @@ Screenshot contract: `docs/screenshots.json`.
 ## Quick Start
 
 1. Install the package: `composer require capell-app/form-builder`.
-2. Open the package admin surface at `/form-builder/forms` and confirm Form Builder is available.
+2. Open the package admin surface at `/admin/form-builder/forms` and confirm Form Builder is available.
 
 ## Next Steps
 
 - [Package docs](docs/README.md)
 - [Overview](docs/overview.md)
+- [Worked extension examples](docs/extension-contracts.md)
+- [Worked action walkthroughs](docs/extension-examples.md)
 - [Admin guide](docs/admin-guide.md)
 - Configuration files: [`config/capell-form-builder.php`](config/capell-form-builder.php).
 - [Troubleshooting](#troubleshooting)
@@ -284,6 +282,5 @@ Screenshot contract: `docs/screenshots.json`.
 - [Capell documentation design system](../../docs/DESIGN_SYSTEM.md)
 - [Capell and package ERD notes](../../docs/erd/capell-and-package-erds.md)
 - Related packages: [Payments](../payments/README.md).
-- Focused tests: `vendor/bin/pest packages/form-builder/tests --configuration=phpunit.xml`.
 
 <!-- prettier-ignore-end -->

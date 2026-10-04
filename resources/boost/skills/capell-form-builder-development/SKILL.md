@@ -1,6 +1,6 @@
 ---
 name: capell-form-builder-development
-description: Use when editing Capell FormBuilder definitions, validation, submissions, or frontend rendering.
+description: Form definitions, encrypted submissions, frontend Livewire rendering, validation, and submission states. Use when editing Capell FormBuilder definitions, validation, submissions, or frontend rendering.
 ---
 
 # Capell FormBuilder

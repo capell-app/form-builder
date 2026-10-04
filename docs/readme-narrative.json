@@ -24,7 +24,8 @@
                 "src/Data/FormFieldData.php",
                 "src/Actions/BuildFormValidationRulesAction.php",
                 "src/Actions/CalculateSubmissionSpamScoreAction.php",
-                "src/Contracts/SpamProtectionProvider.php"
+                "src/Contracts/SpamProtectionProvider.php",
+                "docs/extension-examples.md"
             ]
         },
         "teams": {

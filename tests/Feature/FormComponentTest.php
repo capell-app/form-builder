@@ -25,6 +25,8 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
+use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
+use Livewire\Features\SupportTesting\Testable;
 
 use function Pest\Livewire\livewire;
 
@@ -452,6 +454,23 @@ it('renders a form element component from widget data for the current frontend s
         ->first(fn (mixed $record): bool => $record->contributionClass === FormElementComponent::class);
 
     expect($contribution?->cacheable)->toBeFalse();
+});
+
+it('loads a deferred public form after the original frontend request state has gone', function (): void {
+    $form = Form::factory()->create([
+        'handle' => 'deferred-enquiry',
+        'schema' => [['key' => 'email', 'label' => 'Email', 'type' => FormFieldType::Email->value, 'required' => true]],
+    ]);
+    bindFormBuilderFrontendSite($form->site);
+    $component = livewire(FormElementComponent::class, ['handle' => 'deferred-enquiry']);
+
+    app()->instance(FrontendContextReader::class, new FrontendState);
+    Frontend::clearResolvedInstance(FrontendContextReader::class);
+
+    $component->call('loadForm')->assertSeeHtml('<form')->assertSee('Email');
+
+    expect(static fn (): Testable => $component->set('siteReference', 'another-site'))
+        ->toThrow(CannotUpdateLockedPropertyException::class);
 });
 
 it('renders a safe fallback when a public form handle is unavailable', function (): void {
@@ -1125,6 +1144,13 @@ it('throttles repeated public form submissions for the configured email field ke
 
 function bindFormBuilderFrontendSite(Site $site): void
 {
+    $origin = parse_url(url('/'));
+    $site->siteDomains()->update([
+        'domain' => $origin['host'] ?? 'localhost',
+        'scheme' => $origin['scheme'] ?? 'http',
+        'path' => '/',
+        'port' => $origin['port'] ?? null,
+    ]);
     $state = (new FrontendState)->withSite($site);
 
     app()->instance(FrontendContextReader::class, $state);

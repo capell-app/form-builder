@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
+use Capell\Core\Actions\RuntimeRefresh\RefreshInstalledPackageRuntimeAction;
 use Capell\Core\Facades\CapellCore;
-use Capell\Core\Support\CapellCoreManager;
 use Capell\FormBuilder\Contracts\SpamProtectionProvider;
 use Capell\FormBuilder\Models\Form;
 use Capell\FormBuilder\Models\Submission;
@@ -26,13 +26,15 @@ it('registers form-builder models for Capell model enumeration', function (): vo
         ->and($models)->toContain(Submission::class);
 });
 
-it('registers form-builder models when installed after application boot', function (): void {
-    $models = new ReflectionProperty(CapellCoreManager::class, 'models');
-    $models->setValue(resolve(CapellCoreManager::class), null);
+it('retains form-builder models across repeated installed runtime refresh', function (): void {
+    $before = CapellCore::getModels();
+    $provider = app()->getProvider(FormBuilderServiceProvider::class);
+    $package = CapellCore::getPackage(FormBuilderServiceProvider::$packageName);
+    RefreshInstalledPackageRuntimeAction::run($package);
+    RefreshInstalledPackageRuntimeAction::run($package);
 
-    app()->register(FormBuilderServiceProvider::class, force: true);
-
-    expect(CapellCore::getModels())
+    expect(app()->getProvider(FormBuilderServiceProvider::class))->toBe($provider)
+        ->and(CapellCore::getModels())->toBe($before)
         ->toContain(Form::class)
         ->toContain(Submission::class);
 });

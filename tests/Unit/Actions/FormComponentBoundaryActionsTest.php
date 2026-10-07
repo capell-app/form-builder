@@ -13,6 +13,7 @@ use Capell\FormBuilder\Data\FormFieldData;
 use Capell\FormBuilder\Data\FormStepData;
 use Capell\FormBuilder\Enums\FormFieldType;
 use Capell\FormBuilder\Models\Form;
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 use PHPUnit\Framework\Assert;
@@ -218,9 +219,11 @@ it('resolves form component forms by current site handle id and reference', func
     ]);
 
     $reference = ResolveFormComponentFormAction::referenceFor($form);
+    app()->instance('request', Request::create($site->siteDomains()->firstOrFail()->full_url));
     $formByHandle = ResolveFormComponentFormAction::run('contact', '', $site);
     $formById = ResolveFormComponentFormAction::run((int) $form->getKey(), '', $site);
     $formByReference = ResolveFormComponentFormAction::run(null, $reference, $site);
+    app()->instance('request', Request::create($otherSite->siteDomains()->firstOrFail()->full_url));
     $otherSiteResolvedForm = ResolveFormComponentFormAction::run('contact', '', $otherSite);
 
     Assert::assertInstanceOf(Form::class, $formByHandle);
@@ -241,6 +244,8 @@ it('rejects invalid inactive and cross-site form component references', function
         'is_active' => false,
     ]);
     $otherSiteForm = Form::factory()->for($otherSite, 'site')->create();
+
+    app()->instance('request', Request::create($site->siteDomains()->firstOrFail()->full_url));
 
     expect(ResolveFormComponentFormAction::run(null, 'not-valid', $site))->toBeNull()
         ->and(ResolveFormComponentFormAction::run(null, ResolveFormComponentFormAction::referenceFor($inactiveForm), $site))->toBeNull()

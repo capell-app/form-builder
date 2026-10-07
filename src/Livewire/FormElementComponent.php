@@ -7,6 +7,8 @@ namespace Capell\FormBuilder\Livewire;
 use Capell\Core\Contracts\Extensions\RegistersExtensionFrontendComponent;
 use Capell\Core\Models\Site;
 use Capell\Core\Support\Security\PublicUrlSanitizer;
+use Capell\FormBuilder\Actions\ResolveFormComponentFormAction;
+use Capell\FormBuilder\Actions\ResolveFormRequestSiteAction;
 use Capell\FormBuilder\Models\Form;
 use Capell\Frontend\Actions\Performance\RecordExtensionRenderContributionAction;
 use Capell\Frontend\Facades\Frontend;
@@ -14,7 +16,9 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Str;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
+use Override;
 use Throwable;
 
 class FormElementComponent extends Component implements RegistersExtensionFrontendComponent
@@ -25,6 +29,9 @@ class FormElementComponent extends Component implements RegistersExtensionFronte
 
     public string $formHandle = '';
 
+    #[Locked]
+    public string $siteReference = '';
+
     public string $instanceId = '';
 
     public string $fallbackMessage = '';
@@ -33,6 +40,7 @@ class FormElementComponent extends Component implements RegistersExtensionFronte
 
     public ?string $fallbackUrl = null;
 
+    #[Override]
     public static function compatibleCapellApiVersion(): string
     {
         return '^1.0';
@@ -52,6 +60,14 @@ class FormElementComponent extends Component implements RegistersExtensionFronte
         $this->formHandle = is_int($resolvedHandle) || is_string($resolvedHandle)
             ? trim((string) $resolvedHandle)
             : '';
+
+        // Deferred Livewire requests do not run the original frontend pipeline.
+        // Retain only a consistency reference; subsequent requests resolve
+        // their own site before allowing the form to render or submit.
+        $site = $this->currentSite();
+        if ($site instanceof Site) {
+            $this->siteReference = Crypt::encryptString((string) $site->id);
+        }
     }
 
     public function loadForm(): void
@@ -63,12 +79,16 @@ class FormElementComponent extends Component implements RegistersExtensionFronte
         $form = $this->resolveFormForCurrentSite($this->formHandle);
 
         if ($form instanceof Form) {
-            $this->formReference = $this->encryptFormReference($form);
+            $this->formReference = ResolveFormComponentFormAction::referenceFor($form);
         }
     }
 
     public function render(): View
     {
+        if ($this->formReference !== '' && $this->resolveSiteId() === null) {
+            $this->formReference = '';
+        }
+
         if ($this->formReference !== '') {
             RecordExtensionRenderContributionAction::run(
                 packageName: self::PackageName,
@@ -103,14 +123,14 @@ class FormElementComponent extends Component implements RegistersExtensionFronte
             return null;
         }
 
-        $site = $this->currentSite();
-        if (! $site instanceof Site) {
+        $siteId = $this->resolveSiteId();
+        if ($siteId === null) {
             return null;
         }
 
         return Form::query()
             ->active()
-            ->where('site_id', $site->getKey())
+            ->where('site_id', $siteId)
             ->where(function (Builder $builder) use ($handle): void {
                 if (is_numeric($handle)) {
                     $builder->whereKey((int) $handle);
@@ -121,12 +141,24 @@ class FormElementComponent extends Component implements RegistersExtensionFronte
             ->first();
     }
 
-    private function encryptFormReference(Form $form): string
+    private function resolveSiteId(): ?int
     {
-        return Crypt::encryptString(json_encode([
-            'form_id' => $form->getKey(),
-            'site_id' => $form->site_id,
-        ], JSON_THROW_ON_ERROR));
+        try {
+            $siteId = Crypt::decryptString($this->siteReference);
+        } catch (Throwable) {
+            return null;
+        }
+
+        if (! ctype_digit($siteId) || (int) $siteId < 1) {
+            return null;
+        }
+
+        $currentSite = ResolveFormRequestSiteAction::run();
+        if (! $currentSite instanceof Site || $currentSite->id !== (int) $siteId) {
+            return null;
+        }
+
+        return $currentSite->id;
     }
 
     private function currentSite(): ?Site

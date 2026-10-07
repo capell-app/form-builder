@@ -33,16 +33,22 @@ use Capell\FormBuilder\Models\Submission;
 use Capell\FormBuilder\Policies\FormPolicy;
 use Capell\FormBuilder\Policies\SubmissionPolicy;
 use Capell\FormBuilder\Support\DnsFormBuilderWebhookHostResolver;
+use Capell\FormBuilder\Support\FormRequestContext;
 use Capell\FormBuilder\Support\SpamProtection\NullSpamProtectionProvider;
 use Composer\InstalledVersions;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Livewire;
+
+use function Livewire\on;
+
 use Override;
+use ReflectionProperty;
 use Spatie\LaravelPackageTools\Package;
 
 final class FormBuilderServiceProvider extends AbstractPackageServiceProvider
@@ -51,6 +57,7 @@ final class FormBuilderServiceProvider extends AbstractPackageServiceProvider
 
     public static string $packageName = 'capell-app/form-builder';
 
+    #[Override]
     public function configurePackage(Package $package): void
     {
         $package
@@ -58,7 +65,6 @@ final class FormBuilderServiceProvider extends AbstractPackageServiceProvider
             ->hasConfigFile()
             ->hasViews(self::$name)
             ->hasTranslations()
-            ->hasRoute('payments')
             ->hasCommand(ExportSubmissionsCommand::class)
             ->hasCommand(PruneExpiredFormSubmissionsCommand::class)
             ->hasCommand(SeedFormBuilderScreenshotFixtureCommand::class)
@@ -90,33 +96,6 @@ final class FormBuilderServiceProvider extends AbstractPackageServiceProvider
         });
     }
 
-    public function packageBooted(): void
-    {
-        Gate::policy(Form::class, FormPolicy::class);
-        Gate::policy(Submission::class, SubmissionPolicy::class);
-
-        if (! $this->isPackageInstalled()) {
-            return;
-        }
-
-        Relation::morphMap([
-            'form' => Form::class,
-            'form_submission' => Submission::class,
-        ], merge: true);
-
-        if (config('capell-form-builder.retention.schedule_enabled', true) === true) {
-            $this->callAfterResolving(Schedule::class, static function (Schedule $schedule): void {
-                $schedule->command('capell:form-builder:prune')->daily()->withoutOverlapping();
-            });
-        }
-    }
-
-    #[Override]
-    protected function isPackageInstalled(): bool
-    {
-        return CapellCore::getPackage(self::$packageName)->isInstalled();
-    }
-
     #[Override]
     protected function isLivewireV3(): bool
     {
@@ -134,9 +113,32 @@ final class FormBuilderServiceProvider extends AbstractPackageServiceProvider
     }
 
     #[Override]
-    protected function bootInstalledPackage(): self
+    protected function bootInstalledRuntime(): void
     {
-        return $this
+        // Activation can occur inside another package's or Filament's route group.
+        $router = $this->app->make(Router::class);
+        $groups = new ReflectionProperty(Router::class, 'groupStack');
+        $previous = $groups->getValue($router);
+        $groups->setValue($router, []);
+        try {
+            $this->loadRoutesFrom(__DIR__ . '/../../routes/payments.php');
+        } finally {
+            $groups->setValue($router, $previous);
+        }
+        Gate::policy(Form::class, FormPolicy::class);
+        Gate::policy(Submission::class, SubmissionPolicy::class);
+        Relation::morphMap([
+            'form' => Form::class,
+            'form_submission' => Submission::class,
+        ], merge: true);
+
+        if (config('capell-form-builder.retention.schedule_enabled', true) === true) {
+            $this->registerSchedule(static function (Schedule $schedule): void {
+                $schedule->command('capell:form-builder:prune')->daily()->withoutOverlapping();
+            });
+        }
+
+        $this
             ->registerModels()
             ->registerPackageAssets()
             ->registerBlazeComponents()
@@ -272,6 +274,9 @@ final class FormBuilderServiceProvider extends AbstractPackageServiceProvider
 
     private function registerPackageLivewireComponents(): self
     {
+        on('snapshot-verified', FormRequestContext::captureVerifiedSnapshot(...));
+        on('dehydrate', FormRequestContext::dehydrate(...));
+
         Livewire::component(LivewireComponentEnum::PublicFormFields->value, FormComponent::class);
         Livewire::component(LivewireComponentEnum::PublicForm->value, FormElementComponent::class);
 

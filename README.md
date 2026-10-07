@@ -251,6 +251,7 @@ Screenshot contract: `docs/screenshots.json`.
 - Keep the host Laravel scheduler running so package-registered schedules can execute: `capell:form-builder:prune (daily; package registered)`.
 - Keep public Blade and cached HTML free of authoring markers, model IDs, permissions, signed editor URLs, and lazy database queries.
 - Custom write integrations must preserve invalidation for `form-builder` cache tags.
+- For deferred forms, aliases and path-mounted sites, see [public form request authority](docs/request-site-resolution.md), including the cache migration requirement for older snapshots.
 
 ## Troubleshooting
 

@@ -305,5 +305,12 @@
                 </div>
             </form>
         @endif
+    @else
+        <div
+            class="capell-form-element__fallback"
+            role="status"
+        >
+            <p>{{ __('capell-form-builder::message.form_unavailable') }}</p>
+        </div>
     @endif
 </div>

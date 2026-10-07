@@ -15,6 +15,8 @@ use Capell\FormBuilder\Filament\Resources\Forms\Pages\ListForms;
 use Capell\FormBuilder\Models\Form;
 use Capell\FormBuilder\Rules\ValidCalculationExpression;
 use Capell\FormBuilder\Support\CalculationExpression;
+use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Repeater;
@@ -24,6 +26,7 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
@@ -33,6 +36,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Gate;
 use Override;
@@ -234,7 +238,7 @@ final class FormResource extends Resource
     }
 
     /**
-     * @return array<int, mixed>
+     * @return array<int, Component | Action | ActionGroup | string | Htmlable>
      */
     private static function fieldSchema(): array
     {

@@ -10,6 +10,7 @@ use Capell\Core\Facades\CapellCore;
 use Capell\FormBuilder\Models\Form;
 use Capell\FormBuilder\Models\Submission;
 use Capell\FormBuilder\Providers\FormBuilderServiceProvider;
+use Capell\Frontend\Providers\FrontendServiceProvider;
 use Capell\Payments\Providers\PaymentsServiceProvider;
 use Capell\Tests\AbstractTestCase;
 use Livewire\LivewireServiceProvider;
@@ -30,6 +31,7 @@ class FormBuilderTestCase extends AbstractTestCase
     {
         return [
             ...parent::getPackageProviders($app),
+            FrontendServiceProvider::class,
             AdminServiceProvider::class,
             PaymentsServiceProvider::class,
             FormBuilderServiceProvider::class,

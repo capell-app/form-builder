@@ -25,6 +25,7 @@ use Capell\FormBuilder\Data\SubmissionMetaData;
 use Capell\FormBuilder\Enums\FormFieldType;
 use Capell\FormBuilder\Models\Form;
 use Capell\FormBuilder\Models\Submission;
+use Capell\FormBuilder\Support\FormRequestContext;
 use Capell\Frontend\Actions\Performance\RecordExtensionRenderContributionAction;
 use Capell\Frontend\Facades\Frontend;
 use Illuminate\Contracts\View\View;
@@ -55,6 +56,8 @@ final class FormComponent extends Component
 
     private ?Form $resolvedForm = null;
 
+    private bool $formResolved = false;
+
     /**
      * @param  array<string, mixed>  $initialValues
      */
@@ -67,6 +70,7 @@ final class FormComponent extends Component
         $this->instanceId = $this->resolveInstanceId($instanceId);
         $this->formReference = is_string($formReference) ? $formReference : '';
         $this->resolvedForm = ResolveFormComponentFormAction::run($handle, $this->formReference, $this->currentSite());
+        $this->formResolved = true;
 
         if ($this->resolvedForm instanceof Form) {
             $this->formReference = ResolveFormComponentFormAction::referenceFor($this->resolvedForm);
@@ -210,7 +214,12 @@ final class FormComponent extends Component
 
     private function form(): ?Form
     {
-        return $this->resolvedForm ??= ResolveFormComponentFormAction::run(null, $this->formReference, $this->currentSite());
+        if (! $this->formResolved) {
+            $this->resolvedForm = ResolveFormComponentFormAction::run(null, $this->formReference, $this->currentSite());
+            $this->formResolved = true;
+        }
+
+        return $this->resolvedForm;
     }
 
     private function resolveInstanceId(?string $instanceId): string
@@ -320,7 +329,7 @@ final class FormComponent extends Component
         return new SubmissionMetaData(
             ipAddress: $settings->collectIpAddress ? $request->ip() : null,
             userAgent: $settings->collectUserAgent ? $request->userAgent() : null,
-            url: $request->fullUrl(),
+            url: FormRequestContext::url(),
             referer: $request->headers->get('referer'),
         );
     }

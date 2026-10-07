@@ -30,8 +30,14 @@ final class ResolveFormComponentFormAction
 
     public function handle(int|string|null $handle = null, string $formReference = '', ?Site $site = null): ?Form
     {
-        return $this->resolveFormFromReference($formReference, $site)
-            ?? $this->resolveFormForSite($handle, $site);
+        $requestSite = ResolveFormRequestSiteAction::run();
+        if (! $requestSite instanceof Site || ($site instanceof Site && ! $site->is($requestSite))) {
+            return null;
+        }
+
+        return $formReference !== ''
+            ? $this->resolveFormFromReference($formReference, $requestSite)
+            : $this->resolveFormForSite($handle, $requestSite);
     }
 
     private function resolveFormForSite(int|string|null $handle, ?Site $site): ?Form
@@ -53,7 +59,7 @@ final class ResolveFormComponentFormAction
             ->first();
     }
 
-    private function resolveFormFromReference(string $formReference, ?Site $site): ?Form
+    private function resolveFormFromReference(string $formReference, Site $site): ?Form
     {
         if ($formReference === '') {
             return null;
@@ -76,15 +82,15 @@ final class ResolveFormComponentFormAction
             return null;
         }
 
-        $siteKey = $site?->getKey();
-        if ($site instanceof Site && (! is_numeric($siteKey) || (int) $siteKey !== (int) $siteId)) {
+        $siteKey = $site->getKey();
+        if (! is_numeric($siteKey) || (int) $siteKey !== (int) $siteId) {
             return null;
         }
 
         return Form::query()
             ->active()
             ->whereKey((int) $formId)
-            ->where('site_id', (int) $siteId)
+            ->where('site_id', $siteKey)
             ->first();
     }
 }

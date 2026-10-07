@@ -18,4 +18,4 @@ Form definitions, encrypted submissions, frontend Livewire rendering, validation
 - Keep submissions encrypted and status changes action-driven.
 - Validation and spam/read/archive behaviour belongs in Actions.
 - Frontend Livewire should render form-builder, not own submission policy.
-- Run `vendor/bin/pest packages/form-builder/tests`.
+- Verify customisations in the consuming application's test suite.

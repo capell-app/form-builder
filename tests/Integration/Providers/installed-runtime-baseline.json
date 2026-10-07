@@ -1,0 +1,502 @@
+{
+    "version": 3,
+    "package": "form-builder",
+    "scenarios": {
+        "default": {
+            "source": {
+                "ref": "origin/main",
+                "commit": "646068b2d21e233ea517c342d62bc0eca1762192",
+                "providers": {
+                    "Providers/FormBuilderServiceProvider.php": "f72a8a9d6ff824725e38c14d2ee7821d0ef863e69400a65a934c15d50e97ecad"
+                }
+            },
+            "disabledContributions": [],
+            "surfaces": {
+                "routes": ["capell-payments.form-builder.checkout"],
+                "livewire": [
+                    "capell-form-builder=Capell\\FormBuilder\\Livewire",
+                    "public-form-fields=Capell\\FormBuilder\\Livewire\\FormComponent",
+                    "public-form=Capell\\FormBuilder\\Livewire\\FormElementComponent"
+                ],
+                "filament": [
+                    "resource:Capell\\FormBuilder\\Filament\\Resources\\Forms\\FormResource",
+                    "resource:Capell\\FormBuilder\\Filament\\Resources\\Submissions\\SubmissionResource"
+                ],
+                "listeners": [
+                    "capell.theme-demo.forms|static Capell\\FormBuilder\\Providers\\FormBuilderServiceProvider(string|int $siteId, string $formsPayload):void"
+                ],
+                "gates": [],
+                "policies": [
+                    "Capell\\FormBuilder\\Models\\Form=Capell\\FormBuilder\\Policies\\FormPolicy",
+                    "Capell\\FormBuilder\\Models\\Submission=Capell\\FormBuilder\\Policies\\SubmissionPolicy"
+                ],
+                "commands": [
+                    "capell:form-builder-screenshot-fixture",
+                    "capell:form-builder:export-submissions",
+                    "capell:form-builder:prune"
+                ],
+                "view-namespaces": ["capell-form-builder"],
+                "config-keys": [
+                    "capell-form-builder",
+                    "capell-form-builder.collect_ip_address",
+                    "capell-form-builder.collect_user_agent",
+                    "capell-form-builder.retention",
+                    "capell-form-builder.retention.days",
+                    "capell-form-builder.retention.schedule_enabled",
+                    "capell-form-builder.spam_protection",
+                    "capell-form-builder.spam_protection.enabled",
+                    "capell-form-builder.spam_protection.provider",
+                    "capell-form-builder.spam_protection.timeout_seconds",
+                    "capell-form-builder.spam_protection.token_field",
+                    "capell-form-builder.spam_protection.turnstile",
+                    "capell-form-builder.spam_protection.turnstile.secret_key",
+                    "capell-form-builder.spam_protection.turnstile.site_key",
+                    "capell-form-builder.spam_scoring",
+                    "capell-form-builder.spam_scoring.blocked_keywords",
+                    "capell-form-builder.spam_scoring.enabled",
+                    "capell-form-builder.spam_scoring.max_links",
+                    "capell-form-builder.spam_scoring.spam_threshold",
+                    "capell-form-builder.store_submissions",
+                    "capell-form-builder.throttle",
+                    "capell-form-builder.throttle.decay_seconds",
+                    "capell-form-builder.throttle.max_attempts",
+                    "capell-form-builder.uploads",
+                    "capell-form-builder.uploads.directory",
+                    "capell-form-builder.uploads.disk",
+                    "capell-form-builder.webhooks",
+                    "capell-form-builder.webhooks.allow_insecure_urls",
+                    "capell-form-builder.webhooks.allow_private_urls",
+                    "capell-form-builder.webhooks.timeout_seconds"
+                ],
+                "migrations": [
+                    "2026_05_10_190849_01_create_form-builder_table",
+                    "2026_05_10_190849_02_create_submissions_table",
+                    "2026_07_12_000001_add_retention_to_submissions_table"
+                ]
+            },
+            "uninstalledSurfaces": {
+                "routes": [],
+                "livewire": [],
+                "filament": [],
+                "listeners": [],
+                "gates": [],
+                "policies": [],
+                "commands": [
+                    "capell:form-builder-screenshot-fixture",
+                    "capell:form-builder:export-submissions",
+                    "capell:form-builder:prune"
+                ],
+                "view-namespaces": ["capell-form-builder"],
+                "config-keys": [
+                    "capell-form-builder",
+                    "capell-form-builder.collect_ip_address",
+                    "capell-form-builder.collect_user_agent",
+                    "capell-form-builder.retention",
+                    "capell-form-builder.retention.days",
+                    "capell-form-builder.retention.schedule_enabled",
+                    "capell-form-builder.spam_protection",
+                    "capell-form-builder.spam_protection.enabled",
+                    "capell-form-builder.spam_protection.provider",
+                    "capell-form-builder.spam_protection.timeout_seconds",
+                    "capell-form-builder.spam_protection.token_field",
+                    "capell-form-builder.spam_protection.turnstile",
+                    "capell-form-builder.spam_protection.turnstile.secret_key",
+                    "capell-form-builder.spam_protection.turnstile.site_key",
+                    "capell-form-builder.spam_scoring",
+                    "capell-form-builder.spam_scoring.blocked_keywords",
+                    "capell-form-builder.spam_scoring.enabled",
+                    "capell-form-builder.spam_scoring.max_links",
+                    "capell-form-builder.spam_scoring.spam_threshold",
+                    "capell-form-builder.store_submissions",
+                    "capell-form-builder.throttle",
+                    "capell-form-builder.throttle.decay_seconds",
+                    "capell-form-builder.throttle.max_attempts",
+                    "capell-form-builder.uploads",
+                    "capell-form-builder.uploads.directory",
+                    "capell-form-builder.uploads.disk",
+                    "capell-form-builder.webhooks",
+                    "capell-form-builder.webhooks.allow_insecure_urls",
+                    "capell-form-builder.webhooks.allow_private_urls",
+                    "capell-form-builder.webhooks.timeout_seconds"
+                ],
+                "migrations": [
+                    "2026_05_10_190849_01_create_form-builder_table",
+                    "2026_05_10_190849_02_create_submissions_table",
+                    "2026_07_12_000001_add_retention_to_submissions_table"
+                ]
+            }
+        },
+        "retention-disabled": {
+            "source": {
+                "ref": "origin/main",
+                "commit": "646068b2d21e233ea517c342d62bc0eca1762192",
+                "providers": {
+                    "Providers/FormBuilderServiceProvider.php": "f72a8a9d6ff824725e38c14d2ee7821d0ef863e69400a65a934c15d50e97ecad"
+                }
+            },
+            "disabledContributions": ["capell:form-builder:prune"],
+            "surfaces": {
+                "routes": ["capell-payments.form-builder.checkout"],
+                "livewire": [
+                    "capell-form-builder=Capell\\FormBuilder\\Livewire",
+                    "public-form-fields=Capell\\FormBuilder\\Livewire\\FormComponent",
+                    "public-form=Capell\\FormBuilder\\Livewire\\FormElementComponent"
+                ],
+                "filament": [
+                    "resource:Capell\\FormBuilder\\Filament\\Resources\\Forms\\FormResource",
+                    "resource:Capell\\FormBuilder\\Filament\\Resources\\Submissions\\SubmissionResource"
+                ],
+                "listeners": [
+                    "capell.theme-demo.forms|static Capell\\FormBuilder\\Providers\\FormBuilderServiceProvider(string|int $siteId, string $formsPayload):void"
+                ],
+                "gates": [],
+                "policies": [
+                    "Capell\\FormBuilder\\Models\\Form=Capell\\FormBuilder\\Policies\\FormPolicy",
+                    "Capell\\FormBuilder\\Models\\Submission=Capell\\FormBuilder\\Policies\\SubmissionPolicy"
+                ],
+                "commands": [
+                    "capell:form-builder-screenshot-fixture",
+                    "capell:form-builder:export-submissions",
+                    "capell:form-builder:prune"
+                ],
+                "view-namespaces": ["capell-form-builder"],
+                "config-keys": [
+                    "capell-form-builder",
+                    "capell-form-builder.collect_ip_address",
+                    "capell-form-builder.collect_user_agent",
+                    "capell-form-builder.retention",
+                    "capell-form-builder.retention.days",
+                    "capell-form-builder.retention.schedule_enabled",
+                    "capell-form-builder.spam_protection",
+                    "capell-form-builder.spam_protection.enabled",
+                    "capell-form-builder.spam_protection.provider",
+                    "capell-form-builder.spam_protection.timeout_seconds",
+                    "capell-form-builder.spam_protection.token_field",
+                    "capell-form-builder.spam_protection.turnstile",
+                    "capell-form-builder.spam_protection.turnstile.secret_key",
+                    "capell-form-builder.spam_protection.turnstile.site_key",
+                    "capell-form-builder.spam_scoring",
+                    "capell-form-builder.spam_scoring.blocked_keywords",
+                    "capell-form-builder.spam_scoring.enabled",
+                    "capell-form-builder.spam_scoring.max_links",
+                    "capell-form-builder.spam_scoring.spam_threshold",
+                    "capell-form-builder.store_submissions",
+                    "capell-form-builder.throttle",
+                    "capell-form-builder.throttle.decay_seconds",
+                    "capell-form-builder.throttle.max_attempts",
+                    "capell-form-builder.uploads",
+                    "capell-form-builder.uploads.directory",
+                    "capell-form-builder.uploads.disk",
+                    "capell-form-builder.webhooks",
+                    "capell-form-builder.webhooks.allow_insecure_urls",
+                    "capell-form-builder.webhooks.allow_private_urls",
+                    "capell-form-builder.webhooks.timeout_seconds"
+                ],
+                "migrations": [
+                    "2026_05_10_190849_01_create_form-builder_table",
+                    "2026_05_10_190849_02_create_submissions_table",
+                    "2026_07_12_000001_add_retention_to_submissions_table"
+                ]
+            },
+            "uninstalledSurfaces": {
+                "routes": [],
+                "livewire": [],
+                "filament": [],
+                "listeners": [],
+                "gates": [],
+                "policies": [],
+                "commands": [
+                    "capell:form-builder-screenshot-fixture",
+                    "capell:form-builder:export-submissions",
+                    "capell:form-builder:prune"
+                ],
+                "view-namespaces": ["capell-form-builder"],
+                "config-keys": [
+                    "capell-form-builder",
+                    "capell-form-builder.collect_ip_address",
+                    "capell-form-builder.collect_user_agent",
+                    "capell-form-builder.retention",
+                    "capell-form-builder.retention.days",
+                    "capell-form-builder.retention.schedule_enabled",
+                    "capell-form-builder.spam_protection",
+                    "capell-form-builder.spam_protection.enabled",
+                    "capell-form-builder.spam_protection.provider",
+                    "capell-form-builder.spam_protection.timeout_seconds",
+                    "capell-form-builder.spam_protection.token_field",
+                    "capell-form-builder.spam_protection.turnstile",
+                    "capell-form-builder.spam_protection.turnstile.secret_key",
+                    "capell-form-builder.spam_protection.turnstile.site_key",
+                    "capell-form-builder.spam_scoring",
+                    "capell-form-builder.spam_scoring.blocked_keywords",
+                    "capell-form-builder.spam_scoring.enabled",
+                    "capell-form-builder.spam_scoring.max_links",
+                    "capell-form-builder.spam_scoring.spam_threshold",
+                    "capell-form-builder.store_submissions",
+                    "capell-form-builder.throttle",
+                    "capell-form-builder.throttle.decay_seconds",
+                    "capell-form-builder.throttle.max_attempts",
+                    "capell-form-builder.uploads",
+                    "capell-form-builder.uploads.directory",
+                    "capell-form-builder.uploads.disk",
+                    "capell-form-builder.webhooks",
+                    "capell-form-builder.webhooks.allow_insecure_urls",
+                    "capell-form-builder.webhooks.allow_private_urls",
+                    "capell-form-builder.webhooks.timeout_seconds"
+                ],
+                "migrations": [
+                    "2026_05_10_190849_01_create_form-builder_table",
+                    "2026_05_10_190849_02_create_submissions_table",
+                    "2026_07_12_000001_add_retention_to_submissions_table"
+                ]
+            }
+        },
+        "privacy-enabled": {
+            "source": {
+                "ref": "origin/main",
+                "commit": "646068b2d21e233ea517c342d62bc0eca1762192",
+                "providers": {
+                    "Providers/FormBuilderServiceProvider.php": "f72a8a9d6ff824725e38c14d2ee7821d0ef863e69400a65a934c15d50e97ecad"
+                }
+            },
+            "disabledContributions": [],
+            "surfaces": {
+                "routes": ["capell-payments.form-builder.checkout"],
+                "livewire": [
+                    "capell-form-builder=Capell\\FormBuilder\\Livewire",
+                    "public-form-fields=Capell\\FormBuilder\\Livewire\\FormComponent",
+                    "public-form=Capell\\FormBuilder\\Livewire\\FormElementComponent"
+                ],
+                "filament": [
+                    "resource:Capell\\FormBuilder\\Filament\\Resources\\Forms\\FormResource",
+                    "resource:Capell\\FormBuilder\\Filament\\Resources\\Submissions\\SubmissionResource"
+                ],
+                "listeners": [
+                    "capell.theme-demo.forms|static Capell\\FormBuilder\\Providers\\FormBuilderServiceProvider(string|int $siteId, string $formsPayload):void"
+                ],
+                "gates": [],
+                "policies": [
+                    "Capell\\FormBuilder\\Models\\Form=Capell\\FormBuilder\\Policies\\FormPolicy",
+                    "Capell\\FormBuilder\\Models\\Submission=Capell\\FormBuilder\\Policies\\SubmissionPolicy"
+                ],
+                "commands": [
+                    "capell:form-builder-screenshot-fixture",
+                    "capell:form-builder:export-submissions",
+                    "capell:form-builder:prune"
+                ],
+                "view-namespaces": ["capell-form-builder"],
+                "config-keys": [
+                    "capell-form-builder",
+                    "capell-form-builder.collect_ip_address",
+                    "capell-form-builder.collect_user_agent",
+                    "capell-form-builder.retention",
+                    "capell-form-builder.retention.days",
+                    "capell-form-builder.retention.schedule_enabled",
+                    "capell-form-builder.spam_protection",
+                    "capell-form-builder.spam_protection.enabled",
+                    "capell-form-builder.spam_protection.provider",
+                    "capell-form-builder.spam_protection.timeout_seconds",
+                    "capell-form-builder.spam_protection.token_field",
+                    "capell-form-builder.spam_protection.turnstile",
+                    "capell-form-builder.spam_protection.turnstile.secret_key",
+                    "capell-form-builder.spam_protection.turnstile.site_key",
+                    "capell-form-builder.spam_scoring",
+                    "capell-form-builder.spam_scoring.blocked_keywords",
+                    "capell-form-builder.spam_scoring.enabled",
+                    "capell-form-builder.spam_scoring.max_links",
+                    "capell-form-builder.spam_scoring.spam_threshold",
+                    "capell-form-builder.store_submissions",
+                    "capell-form-builder.throttle",
+                    "capell-form-builder.throttle.decay_seconds",
+                    "capell-form-builder.throttle.max_attempts",
+                    "capell-form-builder.uploads",
+                    "capell-form-builder.uploads.directory",
+                    "capell-form-builder.uploads.disk",
+                    "capell-form-builder.webhooks",
+                    "capell-form-builder.webhooks.allow_insecure_urls",
+                    "capell-form-builder.webhooks.allow_private_urls",
+                    "capell-form-builder.webhooks.timeout_seconds"
+                ],
+                "migrations": [
+                    "2026_05_10_190849_01_create_form-builder_table",
+                    "2026_05_10_190849_02_create_submissions_table",
+                    "2026_07_12_000001_add_retention_to_submissions_table"
+                ]
+            },
+            "uninstalledSurfaces": {
+                "routes": [],
+                "livewire": [],
+                "filament": [],
+                "listeners": [],
+                "gates": [],
+                "policies": [],
+                "commands": [
+                    "capell:form-builder-screenshot-fixture",
+                    "capell:form-builder:export-submissions",
+                    "capell:form-builder:prune"
+                ],
+                "view-namespaces": ["capell-form-builder"],
+                "config-keys": [
+                    "capell-form-builder",
+                    "capell-form-builder.collect_ip_address",
+                    "capell-form-builder.collect_user_agent",
+                    "capell-form-builder.retention",
+                    "capell-form-builder.retention.days",
+                    "capell-form-builder.retention.schedule_enabled",
+                    "capell-form-builder.spam_protection",
+                    "capell-form-builder.spam_protection.enabled",
+                    "capell-form-builder.spam_protection.provider",
+                    "capell-form-builder.spam_protection.timeout_seconds",
+                    "capell-form-builder.spam_protection.token_field",
+                    "capell-form-builder.spam_protection.turnstile",
+                    "capell-form-builder.spam_protection.turnstile.secret_key",
+                    "capell-form-builder.spam_protection.turnstile.site_key",
+                    "capell-form-builder.spam_scoring",
+                    "capell-form-builder.spam_scoring.blocked_keywords",
+                    "capell-form-builder.spam_scoring.enabled",
+                    "capell-form-builder.spam_scoring.max_links",
+                    "capell-form-builder.spam_scoring.spam_threshold",
+                    "capell-form-builder.store_submissions",
+                    "capell-form-builder.throttle",
+                    "capell-form-builder.throttle.decay_seconds",
+                    "capell-form-builder.throttle.max_attempts",
+                    "capell-form-builder.uploads",
+                    "capell-form-builder.uploads.directory",
+                    "capell-form-builder.uploads.disk",
+                    "capell-form-builder.webhooks",
+                    "capell-form-builder.webhooks.allow_insecure_urls",
+                    "capell-form-builder.webhooks.allow_private_urls",
+                    "capell-form-builder.webhooks.timeout_seconds"
+                ],
+                "migrations": [
+                    "2026_05_10_190849_01_create_form-builder_table",
+                    "2026_05_10_190849_02_create_submissions_table",
+                    "2026_07_12_000001_add_retention_to_submissions_table"
+                ]
+            }
+        },
+        "companions-absent": {
+            "source": {
+                "ref": "origin/main",
+                "commit": "646068b2d21e233ea517c342d62bc0eca1762192",
+                "providers": {
+                    "Providers/FormBuilderServiceProvider.php": "f72a8a9d6ff824725e38c14d2ee7821d0ef863e69400a65a934c15d50e97ecad"
+                }
+            },
+            "disabledContributions": [],
+            "surfaces": {
+                "routes": ["capell-payments.form-builder.checkout"],
+                "livewire": [
+                    "capell-form-builder=Capell\\FormBuilder\\Livewire",
+                    "public-form-fields=Capell\\FormBuilder\\Livewire\\FormComponent",
+                    "public-form=Capell\\FormBuilder\\Livewire\\FormElementComponent"
+                ],
+                "filament": [
+                    "resource:Capell\\FormBuilder\\Filament\\Resources\\Forms\\FormResource",
+                    "resource:Capell\\FormBuilder\\Filament\\Resources\\Submissions\\SubmissionResource"
+                ],
+                "listeners": [
+                    "capell.theme-demo.forms|static Capell\\FormBuilder\\Providers\\FormBuilderServiceProvider(string|int $siteId, string $formsPayload):void"
+                ],
+                "gates": [],
+                "policies": [
+                    "Capell\\FormBuilder\\Models\\Form=Capell\\FormBuilder\\Policies\\FormPolicy",
+                    "Capell\\FormBuilder\\Models\\Submission=Capell\\FormBuilder\\Policies\\SubmissionPolicy"
+                ],
+                "commands": [
+                    "capell:form-builder-screenshot-fixture",
+                    "capell:form-builder:export-submissions",
+                    "capell:form-builder:prune"
+                ],
+                "view-namespaces": ["capell-form-builder"],
+                "config-keys": [
+                    "capell-form-builder",
+                    "capell-form-builder.collect_ip_address",
+                    "capell-form-builder.collect_user_agent",
+                    "capell-form-builder.retention",
+                    "capell-form-builder.retention.days",
+                    "capell-form-builder.retention.schedule_enabled",
+                    "capell-form-builder.spam_protection",
+                    "capell-form-builder.spam_protection.enabled",
+                    "capell-form-builder.spam_protection.provider",
+                    "capell-form-builder.spam_protection.timeout_seconds",
+                    "capell-form-builder.spam_protection.token_field",
+                    "capell-form-builder.spam_protection.turnstile",
+                    "capell-form-builder.spam_protection.turnstile.secret_key",
+                    "capell-form-builder.spam_protection.turnstile.site_key",
+                    "capell-form-builder.spam_scoring",
+                    "capell-form-builder.spam_scoring.blocked_keywords",
+                    "capell-form-builder.spam_scoring.enabled",
+                    "capell-form-builder.spam_scoring.max_links",
+                    "capell-form-builder.spam_scoring.spam_threshold",
+                    "capell-form-builder.store_submissions",
+                    "capell-form-builder.throttle",
+                    "capell-form-builder.throttle.decay_seconds",
+                    "capell-form-builder.throttle.max_attempts",
+                    "capell-form-builder.uploads",
+                    "capell-form-builder.uploads.directory",
+                    "capell-form-builder.uploads.disk",
+                    "capell-form-builder.webhooks",
+                    "capell-form-builder.webhooks.allow_insecure_urls",
+                    "capell-form-builder.webhooks.allow_private_urls",
+                    "capell-form-builder.webhooks.timeout_seconds"
+                ],
+                "migrations": [
+                    "2026_05_10_190849_01_create_form-builder_table",
+                    "2026_05_10_190849_02_create_submissions_table",
+                    "2026_07_12_000001_add_retention_to_submissions_table"
+                ]
+            },
+            "uninstalledSurfaces": {
+                "routes": [],
+                "livewire": [],
+                "filament": [],
+                "listeners": [],
+                "gates": [],
+                "policies": [],
+                "commands": [
+                    "capell:form-builder-screenshot-fixture",
+                    "capell:form-builder:export-submissions",
+                    "capell:form-builder:prune"
+                ],
+                "view-namespaces": ["capell-form-builder"],
+                "config-keys": [
+                    "capell-form-builder",
+                    "capell-form-builder.collect_ip_address",
+                    "capell-form-builder.collect_user_agent",
+                    "capell-form-builder.retention",
+                    "capell-form-builder.retention.days",
+                    "capell-form-builder.retention.schedule_enabled",
+                    "capell-form-builder.spam_protection",
+                    "capell-form-builder.spam_protection.enabled",
+                    "capell-form-builder.spam_protection.provider",
+                    "capell-form-builder.spam_protection.timeout_seconds",
+                    "capell-form-builder.spam_protection.token_field",
+                    "capell-form-builder.spam_protection.turnstile",
+                    "capell-form-builder.spam_protection.turnstile.secret_key",
+                    "capell-form-builder.spam_protection.turnstile.site_key",
+                    "capell-form-builder.spam_scoring",
+                    "capell-form-builder.spam_scoring.blocked_keywords",
+                    "capell-form-builder.spam_scoring.enabled",
+                    "capell-form-builder.spam_scoring.max_links",
+                    "capell-form-builder.spam_scoring.spam_threshold",
+                    "capell-form-builder.store_submissions",
+                    "capell-form-builder.throttle",
+                    "capell-form-builder.throttle.decay_seconds",
+                    "capell-form-builder.throttle.max_attempts",
+                    "capell-form-builder.uploads",
+                    "capell-form-builder.uploads.directory",
+                    "capell-form-builder.uploads.disk",
+                    "capell-form-builder.webhooks",
+                    "capell-form-builder.webhooks.allow_insecure_urls",
+                    "capell-form-builder.webhooks.allow_private_urls",
+                    "capell-form-builder.webhooks.timeout_seconds"
+                ],
+                "migrations": [
+                    "2026_05_10_190849_01_create_form-builder_table",
+                    "2026_05_10_190849_02_create_submissions_table",
+                    "2026_07_12_000001_add_retention_to_submissions_table"
+                ]
+            }
+        }
+    }
+}

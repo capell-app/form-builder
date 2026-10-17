@@ -20,8 +20,9 @@ it('suppresses only Postmark inactive recipient failures', function (): void {
     $job = new stdClass;
     $inactive = formBuilderPostmarkFailure(406);
 
-    expect(fn () => $middleware->handle($job, fn () => throw $inactive))->not->toThrow(Throwable::class)
-        ->and(fn () => $middleware->handle($job, fn () => throw new RuntimeException('retry')))->toThrow(RuntimeException::class, 'retry');
+    $middleware->handle($job, fn () => throw $inactive);
+
+    expect(fn () => $middleware->handle($job, fn () => throw new RuntimeException('retry')))->toThrow(RuntimeException::class, 'retry');
 });
 
 it('attaches permanent failure middleware to queued form mail', function (): void {

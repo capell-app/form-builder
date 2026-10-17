@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Capell\Core\Support\Packages\InstalledRuntimeLifecycle;
 use Capell\FormBuilder\Data\SubmissionMetaData;
 use Capell\FormBuilder\Data\SubmissionPayloadData;
 use Capell\FormBuilder\Models\Submission;
@@ -14,9 +15,9 @@ it('exports and erases matching form submissions through the privacy registries'
     app()->singleton(PrivacySubjectEraserRegistry::class);
     app()->singleton(PrivacySubjectExporterRegistry::class);
 
-    $provider = new FormBuilderServiceProvider(app());
-    $registerContributors = new ReflectionMethod($provider, 'registerPrivacyCenterContributors');
-    $registerContributors->invoke($provider);
+    // Activate the package after its optional host integrations are available.
+    app()->instance(InstalledRuntimeLifecycle::class, new InstalledRuntimeLifecycle(app()));
+    app()->register(FormBuilderServiceProvider::class, force: true);
 
     $subject = new FormBuilderPrivacyTestSubject([
         'id' => 123,

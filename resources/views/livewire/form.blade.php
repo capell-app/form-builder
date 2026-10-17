@@ -30,18 +30,18 @@
                 class="capell-form__form space-y-5"
             >
                 <h2
-                    class="capell-form__title text-xl font-semibold text-gray-950"
+                    class="capell-form__title text-xl font-semibold text-gray-950 dark:text-gray-50"
                 >
                     {{ $form->name }}
                 </h2>
 
                 @if ($form->description)
-                    <p class="capell-form__description text-sm leading-6 text-gray-600">{{ $form->description }}</p>
+                    <p class="capell-form__description text-sm leading-6 text-gray-600 dark:text-gray-300">{{ $form->description }}</p>
                 @endif
 
                 @if ($steps->count() > 1 && $currentStep)
                     <div class="capell-form__steps space-y-2">
-                        <p class="capell-form__step-count text-xs font-semibold tracking-wide text-gray-500 uppercase">
+                        <p class="capell-form__step-count text-xs font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400">
                             {{ __('capell-form-builder::form.step_progress', ['current' => $currentStepIndex + 1, 'total' => $steps->count()]) }}
                         </p>
 
@@ -134,7 +134,7 @@
                         <div class="capell-form__field space-y-2">
                             <label
                                 for="{{ $fieldId }}"
-                                class="capell-form__label block text-sm font-medium text-gray-900"
+                                class="capell-form__label block text-sm font-medium text-gray-900 dark:text-gray-100"
                             >
                                 {{ $field->label }}
                             </label>
@@ -144,7 +144,7 @@
                                     wire:model="data.{{ $field->key }}"
                                     name="{{ $field->key }}"
                                     id="{{ $fieldId }}"
-                                    class="capell-form__control block min-h-28 w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900"
+                                    class="capell-form__control block min-h-28 w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm dark:border-white/20 dark:bg-white/5 dark:text-white dark:placeholder:text-gray-400 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900"
                                     placeholder="{{ $field->placeholder }}"
                                     @if ($describedBy !== '') aria-describedby="{{ $describedBy }}" @endif
                                     aria-invalid="{{ $errors->has($errorKey) ? 'true' : 'false' }}"
@@ -155,7 +155,7 @@
                                     wire:model="data.{{ $field->key }}"
                                     name="{{ $field->key }}"
                                     id="{{ $fieldId }}"
-                                    class="capell-form__control block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900"
+                                    class="capell-form__control block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm dark:border-white/20 dark:bg-white/5 dark:text-white dark:placeholder:text-gray-400 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900"
                                     @if ($describedBy !== '') aria-describedby="{{ $describedBy }}" @endif
                                     aria-invalid="{{ $errors->has($errorKey) ? 'true' : 'false' }}"
                                     @required($field->required)
@@ -186,7 +186,7 @@
                                     type="file"
                                     wire:model="data.{{ $field->key }}"
                                     id="{{ $fieldId }}"
-                                    class="capell-form__control block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900"
+                                    class="capell-form__control block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm dark:border-white/20 dark:bg-white/5 dark:text-white dark:placeholder:text-gray-400 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900"
                                     @if ($field->acceptedFileTypes !== []) accept="{{ collect($field->acceptedFileTypes)->map(fn (string $type): string => str_starts_with($type, '.') ? $type : '.' . $type)->implode(',') }}" @endif
                                     @if ($describedBy !== '') aria-describedby="{{ $describedBy }}" @endif
                                     aria-invalid="{{ $errors->has($errorKey) ? 'true' : 'false' }}"
@@ -215,7 +215,7 @@
                                     type="number"
                                     wire:model="data.{{ $field->key }}"
                                     id="{{ $fieldId }}"
-                                    class="capell-form__control block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900"
+                                    class="capell-form__control block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm dark:border-white/20 dark:bg-white/5 dark:text-white dark:placeholder:text-gray-400 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900"
                                     readonly
                                     @if ($describedBy !== '') aria-describedby="{{ $describedBy }}" @endif
                                     aria-invalid="{{ $errors->has($errorKey) ? 'true' : 'false' }}"
@@ -226,7 +226,7 @@
                                     wire:model="data.{{ $field->key }}"
                                     name="{{ $field->key }}"
                                     id="{{ $fieldId }}"
-                                    class="capell-form__control block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900"
+                                    class="capell-form__control block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm dark:border-white/20 dark:bg-white/5 dark:text-white dark:placeholder:text-gray-400 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900"
                                     placeholder="{{ $field->placeholder }}"
                                     @if ($describedBy !== '') aria-describedby="{{ $describedBy }}" @endif
                                     aria-invalid="{{ $errors->has($errorKey) ? 'true' : 'false' }}"
@@ -237,7 +237,7 @@
                             @if ($field->helpText)
                                 <p
                                     id="{{ $helpId }}"
-                                    class="capell-form__help text-sm text-gray-500"
+                                    class="capell-form__help text-sm text-gray-500 dark:text-gray-400"
                                 >
                                     {{ $field->helpText }}
                                 </p>
@@ -262,7 +262,7 @@
                     @if ($steps->count() > 1 && $currentStepIndex > 0)
                         <button
                             type="button"
-                            class="capell-form__previous inline-flex min-h-11 items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-900 transition hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900 disabled:cursor-not-allowed disabled:opacity-60"
+                            class="capell-form__previous inline-flex min-h-11 items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-900 transition hover:bg-gray-50 dark:border-white/20 dark:bg-transparent dark:text-gray-100 dark:hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900 disabled:cursor-not-allowed disabled:opacity-60"
                             wire:click="previousStep"
                             wire:loading.attr="disabled"
                             wire:target="previousStep,nextStep,submit"
@@ -274,7 +274,7 @@
                     @if ($steps->count() > 1 && $currentStepIndex < $steps->count() - 1)
                         <button
                             type="button"
-                            class="capell-form__next inline-flex min-h-11 items-center justify-center rounded-md bg-gray-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900 disabled:cursor-not-allowed disabled:opacity-60"
+                            class="capell-form__next inline-flex min-h-11 items-center justify-center rounded-md bg-gray-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-800 dark:bg-white dark:text-gray-950 dark:hover:bg-gray-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900 disabled:cursor-not-allowed disabled:opacity-60"
                             wire:click="nextStep"
                             wire:loading.attr="disabled"
                             wire:target="previousStep,nextStep,submit"
@@ -284,7 +284,7 @@
                     @else
                         <button
                             type="submit"
-                            class="capell-form__submit inline-flex min-h-11 items-center justify-center rounded-md bg-gray-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900 disabled:cursor-not-allowed disabled:opacity-60"
+                            class="capell-form__submit inline-flex min-h-11 items-center justify-center rounded-md bg-gray-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-800 dark:bg-white dark:text-gray-950 dark:hover:bg-gray-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900 disabled:cursor-not-allowed disabled:opacity-60"
                             wire:loading.attr="disabled"
                             wire:target="previousStep,nextStep,submit"
                         >

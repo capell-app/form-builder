@@ -13,6 +13,7 @@ use Capell\Core\Data\RenderableDefinitionData;
 use Capell\Core\Data\VendorAssetData;
 use Capell\Core\Facades\CapellCore;
 use Capell\Core\Support\Packages\AbstractPackageServiceProvider;
+use Capell\Core\Support\Packages\RouteGroupIsolation;
 use Capell\Core\Support\Renderables\RenderableRegistry;
 use Capell\FormBuilder\Actions\BuildFormSubmissionPrivacyExportAction;
 use Capell\FormBuilder\Actions\EraseFormSubmissionPrivacyDataAction;
@@ -48,7 +49,6 @@ use Livewire\Livewire;
 use function Livewire\on;
 
 use Override;
-use ReflectionProperty;
 use Spatie\LaravelPackageTools\Package;
 
 final class FormBuilderServiceProvider extends AbstractPackageServiceProvider
@@ -116,15 +116,9 @@ final class FormBuilderServiceProvider extends AbstractPackageServiceProvider
     protected function bootInstalledRuntime(): void
     {
         // Activation can occur inside another package's or Filament's route group.
-        $router = $this->app->make(Router::class);
-        $groups = new ReflectionProperty(Router::class, 'groupStack');
-        $previous = $groups->getValue($router);
-        $groups->setValue($router, []);
-        try {
+        RouteGroupIsolation::run($this->app->make(Router::class), function (): void {
             $this->loadRoutesFrom(__DIR__ . '/../../routes/payments.php');
-        } finally {
-            $groups->setValue($router, $previous);
-        }
+        });
         Gate::policy(Form::class, FormPolicy::class);
         Gate::policy(Submission::class, SubmissionPolicy::class);
         Relation::morphMap([

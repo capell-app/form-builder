@@ -18,6 +18,7 @@ use Capell\Frontend\Actions\Performance\RecordExtensionRenderContributionAction;
 use Capell\Frontend\Contracts\FrontendContextReader;
 use Capell\Frontend\Facades\Frontend;
 use Capell\Frontend\Support\State\FrontendState;
+use Capell\Tests\Support\RenderedHtml;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Event;
@@ -70,14 +71,25 @@ it('renders editor labels in validation errors without exposing field paths or u
 ]);
 
 it('keeps public form workflow buttons at the primary touch target size', function (): void {
-    $formView = file_get_contents(dirname(__DIR__, 2) . '/resources/views/livewire/form.blade.php');
-
-    if (! is_string($formView)) {
-        throw new RuntimeException('Unable to read the public Form Builder component.');
+    $form = Form::factory()->create([
+        'handle' => 'touch-workflow',
+        'schema' => [
+            ['key' => 'company', 'label' => 'Company', 'type' => 'text', 'step_key' => 'Company'],
+            ['key' => 'contact', 'label' => 'Contact', 'type' => 'text', 'step_key' => 'Contact'],
+        ],
+    ]);
+    bindFormBuilderFrontendSite($form->site);
+    $component = livewire(FormComponent::class, ['handle' => 'touch-workflow']);
+    foreach (['next', 'previous', 'submit'] as $action) {
+        if ($action === 'previous') {
+            $component->call('nextStep')->assertHasNoErrors();
+        }
+        $html = (new RenderedHtml($component->html()));
+        $button = $html->element('//button[contains(concat(" ", normalize-space(@class), " "), " capell-form__' . $action . ' ")]');
+        // This single Tailwind safety token gives each rendered workflow control a 44px minimum touch target.
+        expect(explode(' ', $button->getAttribute('class')))->toContain('min-h-11')
+            ->and(trim($button->textContent))->not->toBe('');
     }
-
-    expect(substr_count($formView, 'inline-flex min-h-11 items-center'))->toBe(3)
-        ->and($formView)->not->toContain('inline-flex min-h-10 items-center');
 });
 
 it('renders and stores a submitted form', function (): void {
@@ -1197,3 +1209,49 @@ function formComponentStoredFileReference(SubmissionPayloadData $payload, string
         'path' => $fileReference['path'],
     ];
 }
+
+it('renders contact form controls with light and dark treatments', function (string $type): void {
+    $form = Form::factory()->create([
+        'handle' => 'contact-presentation',
+        'name' => 'Contact the studio',
+        'description' => 'Tell us about your project.',
+        'schema' => [
+            ['key' => 'enquiry', 'label' => 'Your enquiry', 'type' => $type, 'help_text' => 'Include your timescale.'],
+        ],
+    ]);
+    bindFormBuilderFrontendSite($form->site);
+    $html = livewire(FormComponent::class, ['handle' => 'contact-presentation'])->html();
+    $dom = new RenderedHtml($html);
+
+    $expectedClasses = [
+        'title' => ['text-gray-950', 'dark:text-gray-50'],
+        'description' => ['text-gray-600', 'dark:text-gray-300'],
+        'label' => ['text-gray-900', 'dark:text-gray-100'],
+        'help' => ['text-gray-500', 'dark:text-gray-400'],
+        'control' => ['border-gray-300', 'dark:border-white/20', 'dark:bg-white/5', 'dark:text-white', 'dark:placeholder:text-gray-400'],
+        'submit' => ['min-h-11', 'bg-gray-950', 'text-white', 'dark:bg-white', 'dark:text-gray-950', 'dark:hover:bg-gray-200'],
+    ];
+    foreach ($expectedClasses as $part => $classes) {
+        $element = $dom->element('//*[contains(concat(" ", normalize-space(@class), " "), " capell-form__' . $part . ' ")]');
+        expect(explode(' ', $element->getAttribute('class')))->toContain(...$classes);
+    }
+    expect($html)->not->toContain('capell-app/form-builder', 'data-model', 'data-field-path');
+})->with(['text', 'textarea', 'select', 'file', 'payment']);
+
+it('renders dark contact step navigation without losing touch targets', function (): void {
+    $form = Form::factory()->create([
+        'handle' => 'contact-steps',
+        'schema' => [
+            ['key' => 'company', 'label' => 'Company', 'type' => 'text', 'step_key' => 'Company'],
+            ['key' => 'contact', 'label' => 'Contact', 'type' => 'text', 'step_key' => 'Contact'],
+        ],
+    ]);
+    bindFormBuilderFrontendSite($form->site);
+    $component = livewire(FormComponent::class, ['handle' => 'contact-steps']);
+    $dom = new RenderedHtml($component->html());
+    expect(explode(' ', $dom->element('//p[contains(@class, "capell-form__step-count")]')->getAttribute('class')))->toContain('dark:text-gray-400');
+    expect(explode(' ', $dom->element('//button[contains(@class, "capell-form__next")]')->getAttribute('class')))->toContain('min-h-11', 'dark:bg-white', 'dark:text-gray-950', 'dark:hover:bg-gray-200');
+    $component->call('nextStep')->assertHasNoErrors();
+    $dom = new RenderedHtml($component->html());
+    expect(explode(' ', $dom->element('//button[contains(@class, "capell-form__previous")]')->getAttribute('class')))->toContain('min-h-11', 'dark:border-white/20', 'dark:bg-transparent', 'dark:text-gray-100', 'dark:hover:bg-white/10');
+});

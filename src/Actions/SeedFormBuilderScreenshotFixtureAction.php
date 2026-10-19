@@ -9,6 +9,7 @@ use Capell\FormBuilder\Data\SubmissionPayloadData;
 use Capell\FormBuilder\Enums\SubmissionStatus;
 use Capell\FormBuilder\Models\Form;
 use Capell\FormBuilder\Models\Submission;
+use Capell\ScreenshotFixtures\FixtureState;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
@@ -25,6 +26,9 @@ final class SeedFormBuilderScreenshotFixtureAction
     public static function run(): array
     {
         self::assertDisposableScreenshotEnvironment();
+
+        require_once dirname(__DIR__, 4) . '/scripts/screenshots/FixtureState.php';
+        FixtureState::boot();
 
         $siteId = DB::table('sites')->orderBy('id')->value('id');
 
@@ -167,7 +171,9 @@ final class SeedFormBuilderScreenshotFixtureAction
                 && in_array(getenv('CAPELL_SCREENSHOT_FIXTURE'), ['1', 'true', 'record-state'], true)
                 && is_string($basePath)
                 && is_string($appPath)
-                && $basePath === $appPath,
+                && $basePath === $appPath
+                && ($basePath === realpath(dirname(__DIR__, 4) . '/vendor/orchestra/testbench-core/laravel')
+                    || str_starts_with($basePath, dirname(__DIR__, 4) . '/tmp/testbench-skeletons/')),
             RuntimeException::class,
             'Form Builder screenshot fixtures require the explicit disposable local screenshot environment.',
         );

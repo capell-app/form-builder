@@ -21,5 +21,6 @@ class FormSettingsData extends Data
         public ?string $webhookUrl = null,
         public bool $collectIpAddress = true,
         public bool $collectUserAgent = true,
+        public ?string $visitorEmailFieldKey = null,
     ) {}
 }

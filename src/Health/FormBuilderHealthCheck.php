@@ -69,12 +69,13 @@ final class FormBuilderHealthCheck implements ChecksExtensionHealth
             && config('capell-form-builder.retention.schedule_enabled', true) === true;
 
         return new DoctorCheckResultData(
-            label: 'Form Builder submission retention',
+            label: 'Form Builder: submission cleanup scheduled',
             passed: $configured,
             message: $configured
                 ? sprintf('Expired submissions are scheduled for pruning after %d days, excluding legal holds.', (int) $days)
                 : 'Submission retention or its scheduled prune is disabled.',
             remediation: $configured ? null : 'Configure a positive retention.days value and enable the retention schedule.',
+            id: 'legacy.form.builder.submission.retention',
         );
     }
 
@@ -86,7 +87,7 @@ final class FormBuilderHealthCheck implements ChecksExtensionHealth
         $missingTables = $this->missingTables();
 
         return new DoctorCheckResultData(
-            label: 'Form Builder storage tables',
+            label: 'Form Builder: database tables present',
             passed: $missingTables === [],
             message: $missingTables === []
                 ? 'The forms and submissions tables are present.'
@@ -94,6 +95,7 @@ final class FormBuilderHealthCheck implements ChecksExtensionHealth
             remediation: $missingTables === []
                 ? null
                 : 'Run the Capell migrations to create the Form Builder storage tables.',
+            id: 'legacy.form.builder.storage.tables',
         );
     }
 
@@ -105,7 +107,7 @@ final class FormBuilderHealthCheck implements ChecksExtensionHealth
         $spamScoringEnabled = $this->spamScoringEnabled();
 
         return new DoctorCheckResultData(
-            label: 'Form Builder spam scoring',
+            label: 'Form Builder: spam protection configured',
             passed: $spamScoringEnabled,
             message: $spamScoringEnabled
                 ? 'Spam scoring is enabled; honeypot submissions are scored as spam.'
@@ -113,6 +115,7 @@ final class FormBuilderHealthCheck implements ChecksExtensionHealth
             remediation: $spamScoringEnabled
                 ? null
                 : 'Set capell-form-builder.spam_scoring.enabled to true to score honeypot submissions.',
+            id: 'legacy.form.builder.spam.scoring',
         );
     }
 
@@ -124,7 +127,7 @@ final class FormBuilderHealthCheck implements ChecksExtensionHealth
         $unencryptedAttributes = $this->unencryptedSubmissionAttributes();
 
         return new DoctorCheckResultData(
-            label: 'Form Builder encrypted submissions',
+            label: 'Form Builder: submission encryption available',
             passed: $unencryptedAttributes === [],
             message: $unencryptedAttributes === []
                 ? 'Submission payload and metadata are encrypted at rest.'
@@ -132,6 +135,7 @@ final class FormBuilderHealthCheck implements ChecksExtensionHealth
             remediation: $unencryptedAttributes === []
                 ? null
                 : 'Ensure the Submission model casts payload and meta through EncryptedDataCast.',
+            id: 'legacy.form.builder.encrypted.submissions',
         );
     }
 

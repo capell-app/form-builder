@@ -6,6 +6,7 @@ return [
     'calculation_failed' => 'This value could not be calculated. Please contact the form owner.',
     'invalid_calculation_expression' => 'Enter a valid arithmetic expression using numbers, field keys, parentheses and +, -, * or /.',
     'admin' => [
+        'duplicate_field_key' => 'These fields share a key: :fields. Give each field a unique key across all steps and conditions. Update any integrations or conditions that use a changed key; existing submissions keep their original keys.',
         'fields' => [
             'accepted_file_types' => 'Accepted file types',
             'autoresponder_body' => 'Autoresponder body',
@@ -19,9 +20,11 @@ return [
             'default_value' => 'Default value',
             'description' => 'Description',
             'field_key' => 'Key',
+            'field_key_help' => 'Must be unique across the whole form, including steps and conditional fields. Changing a key does not rename answers in existing submissions; update integrations and conditions deliberately.',
             'field_label' => 'Label',
             'field_type' => 'Type',
-            'handle' => 'Handle',
+            'handle' => 'Key',
+            'handle_help' => 'Used to select this form in code and widgets. Letters, numbers, dashes and underscores only; update any references if you change it.',
             'help_text' => 'Help text',
             'is_active' => 'Active',
             'max_file_size_kilobytes' => 'Maximum file size (KB)',
@@ -41,11 +44,14 @@ return [
             'updated_at' => 'Updated',
             'validation_rules' => 'Validation rules',
             'visibility_conditions' => 'Visibility conditions',
+            'visitor_email_field_key' => 'Visitor email field',
+            'visitor_email_field_key_help' => 'Choose the Email field used for replies, notification Reply-To and autoresponders. If it is unavailable or has no valid address, the first valid Email field in form order is used.',
             'webhook_url' => 'Submission webhook URL',
         ],
         'placeholders' => [
             'accepted_file_types' => 'pdf, docx',
             'validation_rules' => 'max:120',
+            'visitor_email_field_key' => 'Automatic: first valid Email field',
         ],
         'sections' => [
             'details' => 'Details',
@@ -87,4 +93,8 @@ return [
     'steps_label' => 'Form steps',
     'submit' => 'Submit',
     'submitting' => 'Submitting...',
+    'delete_modal' => [
+        'heading' => 'Delete this form?',
+        'description' => 'This permanently removes the form and its saved submissions. Visitors will no longer be able to submit it. This cannot be undone.',
+    ],
 ];

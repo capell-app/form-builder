@@ -9,6 +9,7 @@ use Capell\FormBuilder\Filament\Resources\Submissions\SubmissionResource;
 use Capell\FormBuilder\Mail\SubmissionReplyMail;
 use Capell\FormBuilder\Models\Form;
 use Capell\FormBuilder\Models\Submission;
+use Capell\FormBuilder\Policies\SubmissionPolicy;
 use Capell\FormBuilder\Support\SubmissionSiteAccess;
 use Capell\Tests\Fixtures\Models\User;
 use Capell\Tests\Support\Concerns\CreatesAdminUser;
@@ -28,6 +29,16 @@ uses(CreatesAdminUser::class);
 beforeEach(function (): void {
     Filament::setCurrentPanel(Filament::getPanel('admin'));
     SubmissionSiteAccess::flushMemoizedPermissions();
+});
+
+it('denies direct creation and deletion of captured submissions at the policy boundary', function (): void {
+    $this->actingAsAdmin();
+    $actor = capell_test_instance(auth()->user(), User::class);
+    $policy = new SubmissionPolicy;
+
+    expect($policy->create($actor))->toBeFalse()
+        ->and($policy->delete($actor, new Submission))->toBeFalse()
+        ->and($policy->deleteAny($actor))->toBeFalse();
 });
 
 it('can reply to a submission from the Filament table', function (): void {
@@ -128,9 +139,9 @@ it('allows users with submission view permission to access submissions', functio
         ->and(SubmissionResource::canViewAny())->toBeTrue();
 });
 
-it('places submissions under marketing studio navigation', function (): void {
-    expect(SubmissionResource::getNavigationGroup())->toBeNull()
-        ->and(SubmissionResource::getNavigationParentItem())->toBe((string) __('capell-admin::navigation.marketing_studio'))
+it('places submissions in the marketing navigation group', function (): void {
+    expect(SubmissionResource::getNavigationGroup())->toBe((string) __('capell-admin::navigation.group_marketing'))
+        ->and(SubmissionResource::getNavigationParentItem())->toBeNull()
         ->and(SubmissionResource::getNavigationSort())->toBe(10);
 });
 

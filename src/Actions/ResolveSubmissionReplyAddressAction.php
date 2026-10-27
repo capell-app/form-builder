@@ -25,6 +25,8 @@ class ResolveSubmissionReplyAddressAction
         $submission->loadMissing('form');
 
         $values = $submission->payload->values ?? [];
+        $selectedKey = $submission->form->settings?->visitorEmailFieldKey;
+        $fallback = null;
 
         foreach ($submission->form->schema ?? [] as $field) {
             if (is_array($field)) {
@@ -38,11 +40,15 @@ class ResolveSubmissionReplyAddressAction
             $address = $this->validatedAddress($values[$field->key] ?? null);
 
             if ($address !== null) {
-                return $address;
+                if ($field->key === $selectedKey) {
+                    return $address;
+                }
+
+                $fallback ??= $address;
             }
         }
 
-        return null;
+        return $fallback;
     }
 
     private function validatedAddress(mixed $value): ?string

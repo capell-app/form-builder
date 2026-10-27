@@ -1,0 +1,8 @@
+{
+    "audience": "Editors",
+    "prerequisites": "Permission to edit forms on an authorised site, a compatible page element or developer integration, and submission-view permission to check the inbox.",
+    "destination": "/admin/form-builder/forms",
+    "task": "Save an active enquiry form and follow Put this form on a page. Preview same-site placement, publish explicitly and send a labelled public test enquiry.",
+    "expectedResult": "With Store submissions enabled, the enquiry appears in View submissions with the expected fields.",
+    "nextStep": "Check notifications and remove or archive the test enquiry according to your retention policy."
+}

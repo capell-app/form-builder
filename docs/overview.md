@@ -8,7 +8,7 @@ Form Builder creates site-scoped public forms and a site-scoped submission inbox
 
 ## Setup requirements
 
-Install the package and run its migrations, then add the frontend Form element with an active form's Handle. Public lookup requires both the current site and an active matching form; a handle from another site does not render that form.
+Install the package and run its migrations, then add the frontend Form element with an active form's Key. Public lookup requires both the current site and an active matching form; a key from another site does not render that form.
 
 Keep a queue worker running when staff notifications or submitter autoresponders are configured. Keep Laravel's scheduler running for retention. Configure a private upload disk and directory before accepting files; Form Builder stores uploaded binaries through that filesystem and does not encrypt the file itself. Payments is optional and must be installed and configured separately before Payment fields can redirect to checkout.
 
@@ -16,7 +16,7 @@ Form and Submission resources use separate generated permissions. Non-global adm
 
 ## Build and publish a form
 
-Open **Marketing Studio > Forms**, select the Site, choose a unique Handle for that site, and add fields in the required order. Available schema behaviour includes required and custom Laravel validation rules, conditional visibility, step keys, calculated values, file restrictions, a honeypot, and payment amounts/currency. Hidden conditional fields are not validated or stored.
+Open **Marketing > Forms**, select the Site, choose a unique Key for that site, and add fields in the required order. Available schema behaviour includes required and custom Laravel validation rules, conditional visibility, step keys, calculated values, file restrictions, a honeypot, and payment amounts/currency. Hidden conditional fields are not validated or stored.
 
 Only an active form renders publicly. Test the complete published form after changing keys, conditions, calculations, upload rules, or steps; stored payloads retain the field keys that existed when each visitor submitted.
 
@@ -43,9 +43,9 @@ The Submission existing in the inbox means the form was accepted, not that payme
 
 ## Triage and reply
 
-Open **Marketing Studio > Form submissions** to view the decrypted payload, filter by form/status, mark Read, Spam, or Archived, apply/release a legal hold, and reply. Reply is unavailable for Spam or when no valid submitted Email field exists. It sends immediately through the configured mail transport and changes New to Read after a successful send; Form Builder does not retain the reply body or a delivery receipt.
+Open **Marketing > Form submissions** to view the decrypted payload, filter by form/status, mark Read, Spam, or Archived, apply/release a legal hold, and reply. Reply is unavailable for Spam or when no valid submitted Email field exists. It sends immediately through the configured mail transport and changes New to Read after a successful send; Form Builder does not retain the reply body or a delivery receipt.
 
-For operational exports, `capell:form-builder:export-submissions` writes decrypted submissions to standard output or `--path`. `--form` accepts an ID or handle; omitting it exports every site. This console command has no admin site-policy filter, so restrict shell access and protect the resulting CSV. Spreadsheet formula prefixes are neutralised, but the file still contains personal data.
+For operational exports, `capell:form-builder:export-submissions` writes decrypted submissions to standard output or `--path`. `--form` accepts an ID or key; omitting it exports every site. This console command has no admin site-policy filter, so restrict shell access and protect the resulting CSV. Spreadsheet formula prefixes are neutralised, but the file still contains personal data.
 
 ## Privacy and retention
 
@@ -54,6 +54,10 @@ Submission payload and metadata are encrypted with the application key. Keep `AP
 The daily `capell:form-builder:prune` schedule is enabled by default and uses 365 days unless configured otherwise. It permanently deletes expired rows and their recognised stored upload paths, while preserving legal holds and future `retention_until` values. Use `--dry-run` before changing the retention period. If scheduling is disabled or Laravel's scheduler is not running, nothing is pruned.
 
 When Privacy Center is installed, Form Builder matches subjects by their email against payload keys containing `email`, exports matching submissions, and deletes matching rows on erasure. That matching is installation-wide and does not establish identity beyond the email value. The eraser does not run the retention action and therefore does not remove uploaded files referenced by those rows; include the upload disk in the site's erasure procedure.
+
+## After saving your first form
+
+Use **Put this form on a page** from the saved form. It explains same-site placement, activation, draft preview, explicit publication and a public test enquiry. If the page editor has no Form element, give the developer the displayed handle and site so they can wire the public component first. **View submissions** appears only with submission-view permission. Keep **Store submissions** on when testing the inbox.
 
 ---
 

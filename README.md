@@ -99,6 +99,7 @@ Screenshot contract: `docs/screenshots.json`.
 - `ArchiveSubmissionAction`
 - `BuildFormAgentToolManifestAction`
 - `BuildFormComponentValidationRulesAction`
+- `BuildFormPlacementAction`
 - `BuildFormStepsAction`
 - `BuildFormSubmissionPrivacyExportAction`
 - `BuildFormValidationAttributesAction`
@@ -142,6 +143,7 @@ Screenshot contract: `docs/screenshots.json`.
 - `FormFieldConditionData`
 - `FormFieldData`
 - `FormPaymentCheckoutData`
+- `FormPlacementData`
 - `FormRequestContextData`
 - `FormSettingsData`
 - `FormStepData`
@@ -209,6 +211,7 @@ Screenshot contract: `docs/screenshots.json`.
 
 ### Blade views
 
+- `packages/form-builder/resources/views/filament/form-placement.blade.php`
 - `packages/form-builder/resources/views/filament/submissions/payload.blade.php`
 - `packages/form-builder/resources/views/livewire/form-element.blade.php`
 - `packages/form-builder/resources/views/livewire/form.blade.php`
@@ -267,7 +270,15 @@ Screenshot contract: `docs/screenshots.json`.
 ## Quick Start
 
 1. Install the package: `composer require capell-app/form-builder`.
-2. Open the package admin surface at `/admin/form-builder/forms` and confirm Form Builder is available.
+2. For Editors: Permission to edit forms on an authorised site, a compatible page element or developer integration, and submission-view permission to check the inbox.
+3. Open `/admin/form-builder/forms`. Save an active enquiry form and follow Put this form on a page. Preview same-site placement, publish explicitly and send a labelled public test enquiry.
+4. Check the result: With Store submissions enabled, the enquiry appears in View submissions with the expected fields. Next: Check notifications and remove or archive the test enquiry according to your retention policy.
+
+## Upgrading
+
+No manual steps between minor versions.
+
+Read [CHANGELOG.md](CHANGELOG.md) before upgrading.
 
 ## Next Steps
 

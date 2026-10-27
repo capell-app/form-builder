@@ -63,6 +63,21 @@ final class SubmissionPolicy
         );
     }
 
+    public function create(User $user): bool
+    {
+        return false;
+    }
+
+    public function delete(User $user, Submission $submission): bool
+    {
+        return false;
+    }
+
+    public function deleteAny(User $user): bool
+    {
+        return false;
+    }
+
     private function hasPermission(User $user, string $ability): bool
     {
         if (SiteScope::isGlobalActor($user)) {

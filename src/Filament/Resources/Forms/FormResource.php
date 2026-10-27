@@ -68,6 +68,7 @@ final class FormResource extends Resource
                             ->maxLength(255),
                         TextInput::make('handle')
                             ->label(__('capell-form-builder::form.admin.fields.handle'))
+                            ->helperText(__('capell-form-builder::form.admin.fields.handle_help'))
                             ->required()
                             ->alphaDash()
                             ->maxLength(255),
@@ -85,6 +86,7 @@ final class FormResource extends Resource
                         Repeater::make('schema')
                             ->label(__('capell-form-builder::form.admin.fields.schema'))
                             ->schema(self::fieldSchema())
+                            ->live()
                             ->defaultItems(1)
                             ->reorderable()
                             ->collapsible()
@@ -101,6 +103,31 @@ final class FormResource extends Resource
                             ->label(__('capell-form-builder::form.admin.fields.notification_email'))
                             ->email()
                             ->maxLength(255),
+                        Select::make('settings.visitor_email_field_key')
+                            ->label(__('capell-form-builder::form.admin.fields.visitor_email_field_key'))
+                            ->helperText(__('capell-form-builder::form.admin.fields.visitor_email_field_key_help'))
+                            ->placeholder(__('capell-form-builder::form.admin.placeholders.visitor_email_field_key'))
+                            ->options(function (Get $get): array {
+                                $fields = $get('schema');
+                                $options = [];
+
+                                foreach (is_array($fields) ? $fields : [] as $field) {
+                                    if (! is_array($field) || ! in_array($field['type'] ?? null, [FormFieldType::Email, FormFieldType::Email->value], true)) {
+                                        continue;
+                                    }
+
+                                    $key = $field['key'] ?? null;
+
+                                    if (! is_string($key) || $key === '') {
+                                        continue;
+                                    }
+
+                                    $label = is_string($field['label'] ?? null) && $field['label'] !== '' ? $field['label'] : $key;
+                                    $options[$key] = $label . ' (' . $key . ')';
+                                }
+
+                                return $options;
+                            }),
                         TextInput::make('settings.autoresponder_subject')
                             ->label(__('capell-form-builder::form.admin.fields.autoresponder_subject'))
                             ->maxLength(255),
@@ -216,15 +243,9 @@ final class FormResource extends Resource
     }
 
     #[Override]
-    public static function getNavigationGroup(): ?string
+    public static function getNavigationGroup(): string
     {
-        return null;
-    }
-
-    #[Override]
-    public static function getNavigationParentItem(): string
-    {
-        return (string) __('capell-admin::navigation.marketing_studio');
+        return __('capell-admin::navigation.group_marketing');
     }
 
     #[Override]
@@ -245,6 +266,7 @@ final class FormResource extends Resource
         return [
             TextInput::make('key')
                 ->label(__('capell-form-builder::form.admin.fields.field_key'))
+                ->helperText(__('capell-form-builder::form.admin.fields.field_key_help'))
                 ->required()
                 ->alphaDash()
                 ->maxLength(255),
@@ -304,6 +326,7 @@ final class FormResource extends Resource
                 ->maxLength(3)
                 ->visible(fn (Get $get): bool => $get('type') === FormFieldType::Payment),
             Repeater::make('visibility_conditions')
+                ->defaultItems(0)
                 ->label(__('capell-form-builder::form.admin.fields.visibility_conditions'))
                 ->schema([
                     TextInput::make('field_key')

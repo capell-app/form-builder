@@ -7,6 +7,7 @@ namespace Capell\FormBuilder\Actions;
 use Capell\FormBuilder\Data\FormFieldData;
 use Capell\FormBuilder\Enums\FormFieldType;
 use Capell\FormBuilder\Models\Form;
+use Capell\FormBuilder\Support\EditorValidationRuleGrammar;
 use Lorisleiva\Actions\Concerns\AsFake;
 use Lorisleiva\Actions\Concerns\AsObject;
 
@@ -17,10 +18,6 @@ class BuildFormValidationRulesAction
 {
     use AsFake;
     use AsObject;
-
-    private const int DEFAULT_SHORT_TEXT_MAX_LENGTH = 255;
-
-    private const int DEFAULT_LONG_TEXT_MAX_LENGTH = 10000;
 
     private const int DEFAULT_FILE_MAX_KILOBYTES = 10240;
 
@@ -105,7 +102,7 @@ class BuildFormValidationRulesAction
     {
         return array_values(array_filter(
             array_map(
-                fn (string $rule): ?string => $this->normalizeEditorRule($rule, $field),
+                fn (string $rule): ?string => EditorValidationRuleGrammar::normalize($rule, $field->type),
                 $rules,
             ),
             static fn (?string $rule): bool => $rule !== null,
@@ -118,7 +115,7 @@ class BuildFormValidationRulesAction
      */
     private function applyDefaultMaxRule(array $rules, FormFieldData $field): array
     {
-        $defaultMax = $this->defaultMaxLength($field);
+        $defaultMax = EditorValidationRuleGrammar::maxLengthCap($field->type);
 
         if ($defaultMax === null) {
             return $rules;
@@ -128,35 +125,6 @@ class BuildFormValidationRulesAction
             ...$rules,
             'max:' . $defaultMax,
         ];
-    }
-
-    private function normalizeEditorRule(string $rule, FormFieldData $field): ?string
-    {
-        if (preg_match('/^max:(\d+)$/', $rule, $matches) === 1) {
-            $max = (int) $matches[1];
-            $upperBound = $this->defaultMaxLength($field);
-
-            return 'max:' . ($upperBound === null ? $max : min($max, $upperBound));
-        }
-
-        if (preg_match('/^(min|size):\d+$/', $rule) === 1) {
-            return $rule;
-        }
-
-        if (preg_match('/^mimes:[a-z0-9_,]+$/', $rule) === 1 && $field->type === FormFieldType::File) {
-            return $rule;
-        }
-
-        return in_array($rule, ['email', 'url', 'alpha', 'alpha_dash', 'alpha_num', 'numeric', 'integer'], true) ? $rule : null;
-    }
-
-    private function defaultMaxLength(FormFieldData $field): ?int
-    {
-        return match ($field->type) {
-            FormFieldType::Text, FormFieldType::Email, FormFieldType::Hidden, FormFieldType::Select => self::DEFAULT_SHORT_TEXT_MAX_LENGTH,
-            FormFieldType::Textarea => self::DEFAULT_LONG_TEXT_MAX_LENGTH,
-            default => null,
-        };
     }
 
     private function fileMaxKilobytes(FormFieldData $field): int

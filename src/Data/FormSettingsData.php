@@ -22,5 +22,7 @@ class FormSettingsData extends Data
         public bool $collectIpAddress = true,
         public bool $collectUserAgent = true,
         public ?string $visitorEmailFieldKey = null,
+        public ?string $contactNameFieldKey = null,
+        public ?string $contactPhoneFieldKey = null,
     ) {}
 }

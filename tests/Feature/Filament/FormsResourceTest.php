@@ -6,6 +6,7 @@ use Capell\Admin\Filament\Pages\SettingsPage;
 use Capell\Core\Models\Page;
 use Capell\Core\Models\Site;
 use Capell\FormBuilder\Actions\BuildFormPlacementAction;
+use Capell\FormBuilder\Actions\BuildFormValidationRulesAction;
 use Capell\FormBuilder\Actions\ResolveVisibleFormFieldsAction;
 use Capell\FormBuilder\Data\SubmissionPayloadData;
 use Capell\FormBuilder\Enums\FormFieldType;
@@ -440,4 +441,130 @@ it('saves corrected distinct keys and validates and stores their answers indepen
     $payload = $form->submissions()->sole()->payload;
     throw_unless($payload instanceof SubmissionPayloadData, RuntimeException::class);
     expect($payload->values)->toBe(['email' => 'reader@example.test', 'quantity' => 7]);
+});
+
+it('rejects validation rules the public form would ignore or cap and keeps the entered form', function (string $type, array $rules, string $expected): void {
+    Repeater::fake();
+    $existing = Form::factory()->create();
+
+    livewire(CreateForm::class)
+        ->fillForm([
+            'site_id' => $existing->site_id,
+            'name' => 'Rule check', 'handle' => 'rule-check',
+            'schema' => [['key' => 'answer', 'label' => 'Answer', 'type' => $type, 'validation_rules' => $rules]],
+        ])
+        ->call('create')
+        ->assertHasFormErrors(['schema.0.validation_rules'])
+        ->assertSet('data.schema.0.validation_rules', $rules)
+        ->assertSee($expected);
+
+    expect(Form::query()->where('handle', 'rule-check')->exists())->toBeFalse();
+})->with([
+    'misspelt rule' => ['text', ['emial'], '"emial" is not a supported rule'],
+    'executable-looking rule' => ['text', ['regex:/.*/'], '"regex:/.*/" is not a supported rule'],
+    'max above cap' => ['text', ['max:5000'], 'held to 255 characters'],
+    'mimes on text' => ['text', ['mimes:pdf'], 'only applies to file upload fields'],
+]);
+
+it('saves supported validation rules and enforces them on the public form', function (): void {
+    Repeater::fake();
+    $existing = Form::factory()->create();
+
+    livewire(CreateForm::class)
+        ->fillForm([
+            'site_id' => $existing->site_id,
+            'name' => 'Valid rules', 'handle' => 'valid-rules', 'is_active' => true,
+            'schema' => [
+                ['key' => 'code', 'label' => 'Code', 'type' => 'text', 'validation_rules' => ['alpha_num', 'min:3', 'max:6']],
+                ['key' => 'notes', 'label' => 'Notes', 'type' => 'textarea', 'validation_rules' => ['max:9000']],
+            ],
+            'settings' => ['store_submissions' => true],
+        ])
+        ->call('create')
+        ->assertHasNoFormErrors();
+
+    $form = Form::query()->where('handle', 'valid-rules')->sole();
+    $rules = BuildFormValidationRulesAction::run($form, ['code' => 'ab']);
+
+    expect($rules['code'])->toContain('alpha_num', 'min:3', 'max:6')
+        ->and($rules['notes'])->toContain('max:9000');
+});
+
+it('rejects visibility conditions that reference missing, own or cyclic field keys', function (array $schema, array $errorPaths, string $expected): void {
+    Repeater::fake();
+    $existing = Form::factory()->create();
+
+    livewire(CreateForm::class)
+        ->fillForm([
+            'site_id' => $existing->site_id,
+            'name' => 'Condition check', 'handle' => 'condition-check',
+            'schema' => $schema,
+        ])
+        ->call('create')
+        ->assertHasFormErrors($errorPaths)
+        ->assertSee($expected);
+
+    expect(Form::query()->where('handle', 'condition-check')->exists())->toBeFalse();
+})->with([
+    'unknown key' => [[
+        ['key' => 'topic', 'label' => 'Topic', 'type' => 'text'],
+        ['key' => 'detail', 'label' => 'Detail', 'type' => 'text', 'required' => true, 'visibility_conditions' => [['field_key' => 'topik', 'operator' => 'equals', 'value' => 'sales']]],
+    ], ['schema.1.visibility_conditions.0.field_key'], 'No field in this form has the key "topik"'],
+    'self reference' => [[
+        ['key' => 'detail', 'label' => 'Detail', 'type' => 'text', 'visibility_conditions' => [['field_key' => 'detail', 'operator' => 'filled']]],
+    ], ['schema.0.visibility_conditions.0.field_key'], 'based on its own answer'],
+    'cycle' => [[
+        ['key' => 'first', 'label' => 'First', 'type' => 'text', 'visibility_conditions' => [['field_key' => 'second', 'operator' => 'filled']]],
+        ['key' => 'second', 'label' => 'Second', 'type' => 'text', 'visibility_conditions' => [['field_key' => 'first', 'operator' => 'filled']]],
+    ], ['schema.0.visibility_conditions.0.field_key', 'schema.1.visibility_conditions.0.field_key'], 'depend on each other in a loop'],
+]);
+
+it('rejects a condition left pointing at a renamed field when editing', function (): void {
+    Repeater::fake();
+    $form = Form::factory()->create([
+        'schema' => [
+            ['key' => 'topic', 'label' => 'Topic', 'type' => 'text'],
+            ['key' => 'detail', 'label' => 'Detail', 'type' => 'text', 'visibility_conditions' => [['field_key' => 'topic', 'operator' => 'equals', 'value' => 'sales']]],
+        ],
+    ]);
+
+    livewire(EditForm::class, ['record' => $form->getRouteKey()])
+        ->set('data.schema.0.key', 'subject')
+        ->call('save')
+        ->assertHasFormErrors(['schema.1.visibility_conditions.0.field_key']);
+
+    expect($form->refresh()->schema[0]->key)->toBe('topic');
+});
+
+it('names the delivery a form loses when submissions are not stored', function (): void {
+    Repeater::fake();
+    $existing = Form::factory()->create();
+
+    livewire(CreateForm::class)
+        ->fillForm([
+            'site_id' => $existing->site_id,
+            'schema' => [['key' => 'email', 'label' => 'Email', 'type' => 'email']],
+            'settings' => ['store_submissions' => true, 'notification_email' => 'team@example.test', 'webhook_url' => 'https://hooks.example.test/in'],
+        ])
+        ->assertSee(__('capell-form-builder::form.admin.fields.store_submissions_help'))
+        ->fillForm(['settings' => ['store_submissions' => false, 'notification_email' => 'team@example.test', 'webhook_url' => 'https://hooks.example.test/in']])
+        ->assertSee(__('capell-form-builder::form.admin.fields.store_submissions_off_skipped', ['deliveries' => 'notification email, webhook']));
+});
+
+it('offers and persists contact name and phone field mappings', function (): void {
+    Repeater::fake();
+    $form = Form::factory()->create(['schema' => [
+        ['key' => 'customer', 'label' => 'Customer', 'type' => 'text'],
+        ['key' => 'callback', 'label' => 'Callback', 'type' => 'text'],
+        ['key' => 'email', 'label' => 'Email', 'type' => 'email'],
+    ]]);
+    $options = ['customer' => 'Customer (customer)', 'callback' => 'Callback (callback)'];
+    livewire(EditForm::class, ['record' => $form->getRouteKey()])
+        ->assertFormFieldExists('settings.contact_name_field_key', fn (Select $field): bool => $field->getOptions() === $options)
+        ->assertFormFieldExists('settings.contact_phone_field_key', fn (Select $field): bool => $field->getOptions() === $options)
+        ->fillForm(['settings.contact_name_field_key' => 'customer', 'settings.contact_phone_field_key' => 'callback'])
+        ->call('save')->assertHasNoFormErrors();
+
+    expect($form->refresh()->settings?->contactNameFieldKey)->toBe('customer')
+        ->and($form->settings?->contactPhoneFieldKey)->toBe('callback');
 });

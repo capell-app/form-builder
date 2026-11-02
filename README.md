@@ -136,6 +136,8 @@ Screenshot contract: `docs/screenshots.json`.
 - `SeedFormBuilderScreenshotFixtureAction`
 - `SendSubmissionAutoresponderAction`
 - `SendSubmissionNotificationAction`
+- `ValidateFormFieldKeysAction`
+- `ValidateFormSchemaAuthoringAction`
 
 ### Data objects
 

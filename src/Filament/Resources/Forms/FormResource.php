@@ -98,6 +98,8 @@ final class FormResource extends Resource
                     ->schema([
                         Toggle::make('settings.store_submissions')
                             ->label(__('capell-form-builder::form.admin.fields.store_submissions'))
+                            ->live()
+                            ->helperText(fn (Get $get): string => self::storageConsequence($get))
                             ->default(true),
                         TextInput::make('settings.notification_email')
                             ->label(__('capell-form-builder::form.admin.fields.notification_email'))
@@ -128,6 +130,26 @@ final class FormResource extends Resource
 
                                 return $options;
                             }),
+                        ...array_map(
+                            static fn (string $name): Select => Select::make('settings.contact_' . $name . '_field_key')
+                                ->label(__('capell-form-builder::form.admin.fields.contact_' . $name . '_field_key'))
+                                ->options(function (Get $get): array {
+                                    $options = [];
+                                    foreach (is_array($get('schema')) ? $get('schema') : [] as $field) {
+                                        if (! is_array($field) || ! in_array($field['type'] ?? null, [FormFieldType::Text, FormFieldType::Text->value], true)) {
+                                            continue;
+                                        }
+                                        $key = $field['key'] ?? null;
+                                        if (is_string($key) && $key !== '') {
+                                            $label = is_string($field['label'] ?? null) && $field['label'] !== '' ? $field['label'] : $key;
+                                            $options[$key] = $label . ' (' . $key . ')';
+                                        }
+                                    }
+
+                                    return $options;
+                                }),
+                            ['name', 'phone'],
+                        ),
                         TextInput::make('settings.autoresponder_subject')
                             ->label(__('capell-form-builder::form.admin.fields.autoresponder_subject'))
                             ->maxLength(255),
@@ -259,6 +281,40 @@ final class FormResource extends Resource
     }
 
     /**
+     * Unstored submissions only emit a transient event, so built-in delivery that
+     * needs a saved submission is skipped. Name what this form would lose.
+     */
+    private static function storageConsequence(Get $get): string
+    {
+        if ($get('settings.store_submissions') !== false) {
+            return (string) __('capell-form-builder::form.admin.fields.store_submissions_help');
+        }
+
+        $skipped = [];
+
+        foreach ([
+            'settings.notification_email' => 'notification_email',
+            'settings.autoresponder_subject' => 'autoresponder',
+            'settings.autoresponder_body' => 'autoresponder',
+            'settings.webhook_url' => 'webhook',
+        ] as $path => $delivery) {
+            if (filled($get($path))) {
+                $skipped[$delivery] = (string) __('capell-form-builder::form.admin.unstored_delivery.' . $delivery);
+            }
+        }
+
+        foreach (is_array($get('schema')) ? $get('schema') : [] as $field) {
+            if (is_array($field) && in_array($field['type'] ?? null, [FormFieldType::Payment, FormFieldType::Payment->value], true)) {
+                $skipped['payment'] = (string) __('capell-form-builder::form.admin.unstored_delivery.payment');
+            }
+        }
+
+        return $skipped === []
+            ? (string) __('capell-form-builder::form.admin.fields.store_submissions_off_help')
+            : (string) __('capell-form-builder::form.admin.fields.store_submissions_off_skipped', ['deliveries' => implode(', ', $skipped)]);
+    }
+
+    /**
      * @return array<int, Component | Action | ActionGroup | string | Htmlable>
      */
     private static function fieldSchema(): array
@@ -296,6 +352,7 @@ final class FormResource extends Resource
                 ->label(__('capell-form-builder::form.admin.fields.default_value')),
             TagsInput::make('validation_rules')
                 ->label(__('capell-form-builder::form.admin.fields.validation_rules'))
+                ->helperText(__('capell-form-builder::form.admin.fields.validation_rules_help'))
                 ->placeholder(__('capell-form-builder::form.admin.placeholders.validation_rules'))
                 ->columnSpanFull(),
             TextInput::make('step_key')
@@ -331,6 +388,7 @@ final class FormResource extends Resource
                 ->schema([
                     TextInput::make('field_key')
                         ->label(__('capell-form-builder::form.admin.fields.condition_field_key'))
+                        ->helperText(__('capell-form-builder::form.admin.fields.condition_field_key_help'))
                         ->required()
                         ->alphaDash(),
                     Select::make('operator')

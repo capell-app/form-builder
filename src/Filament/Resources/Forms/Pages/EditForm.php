@@ -6,6 +6,7 @@ namespace Capell\FormBuilder\Filament\Resources\Forms\Pages;
 
 use Capell\FormBuilder\Actions\BuildFormPlacementAction;
 use Capell\FormBuilder\Actions\ValidateFormFieldKeysAction;
+use Capell\FormBuilder\Actions\ValidateFormSchemaAuthoringAction;
 use Capell\FormBuilder\Filament\Resources\Forms\FormResource;
 use Capell\FormBuilder\Models\Form;
 use Filament\Actions\Action;
@@ -24,6 +25,7 @@ final class EditForm extends EditRecord
 
         /** @var array<array<string, mixed>> $schema */
         ValidateFormFieldKeysAction::run($schema);
+        ValidateFormSchemaAuthoringAction::run($schema);
     }
 
     #[Override]

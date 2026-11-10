@@ -53,7 +53,7 @@ Submission payload and metadata are encrypted with the application key. Keep `AP
 
 The daily `capell:form-builder:prune` schedule is enabled by default and uses 365 days unless configured otherwise. It permanently deletes expired rows and their recognised stored upload paths, while preserving legal holds and future `retention_until` values. Use `--dry-run` before changing the retention period. If scheduling is disabled or Laravel's scheduler is not running, nothing is pruned.
 
-When Privacy Center is installed, Form Builder matches subjects by their email against payload keys containing `email`, exports matching submissions, and deletes matching rows on erasure. That matching is installation-wide and does not establish identity beyond the email value. The eraser does not run the retention action and therefore does not remove uploaded files referenced by those rows; include the upload disk in the site's erasure procedure.
+When Privacy Centre is installed, Form Builder matches subjects by their email against payload keys containing `email`, exports matching submissions, and deletes matching rows on erasure. That matching is installation-wide and does not establish identity beyond the email value. The eraser does not run the retention action and therefore does not remove uploaded files referenced by those rows; include the upload disk in the site's erasure procedure.
 
 ## After saving your first form
 

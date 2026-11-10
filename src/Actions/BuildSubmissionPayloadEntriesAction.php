@@ -8,6 +8,7 @@ use Capell\FormBuilder\Data\FormFieldData;
 use Capell\FormBuilder\Models\Form;
 use Capell\FormBuilder\Models\Submission;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Number;
 use Lorisleiva\Actions\Concerns\AsFake;
 use Lorisleiva\Actions\Concerns\AsObject;
 use Spatie\LaravelData\DataCollection;
@@ -83,7 +84,7 @@ final class BuildSubmissionPayloadEntriesAction
                 'name' => $storedFileReference['original_name'],
                 'disk' => $storedFileReference['disk'],
                 'path' => $storedFileReference['path'],
-                'size' => number_format((int) $storedFileReference['size']),
+                'size' => (string) Number::format((int) $storedFileReference['size'], precision: 0, locale: app()->getLocale()),
             ]);
         }
 

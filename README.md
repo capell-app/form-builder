@@ -2,238 +2,56 @@
 
 <!-- prettier-ignore-start -->
 
-## What This Plugin Adds
-
-Form Builder is an **Available**, **Schema-owning** Capell package in the **Capell Engagement & CRM** product group. It ships as `capell-app/form-builder` and extends these surfaces: admin, frontend.
+## What It Does
 
 Form Builder adds site-scoped form schemas, conditional and multi-step fields, calculations, spam checks, optional payment handoff, and encrypted submission records.
 
+- **Price and availability:** Check current availability and price on the [Capell Marketplace listing](https://capell.app/extensions/form-builder).
+- **Licence:** Check the licence terms on the [Capell Marketplace listing](https://capell.app/extensions/form-builder).
+- **Requires:** `PHP ^8.4`, `capell-app/admin ^1.0.66`, `capell-app/core ^1.0.75`, `capell-app/frontend ^1.0`.
+- **Install:** `composer require capell-app/form-builder`.
+
 Editors build forms and triage submissions in the admin, while visitors complete the published form through a Livewire frontend component.
 
-Status details:
-
-- Status: Available
-- Tier: premium
-- Bundle: engagement-crm
-- Composer package: `capell-app/form-builder`
-- Namespace: `Capell\FormBuilder`
-- Theme key: not applicable
-
-## Why It Matters
+## Who It Is For
 
 **For developers:** Typed field data and Actions handle visibility, validation, calculations, spam scoring, rate limits, and persistence, with a contract for replacing the spam provider.
 
 **For teams:** Teams can publish structured forms, receive notifications, review or reply to submissions, and apply retention or legal-hold rules from one workflow.
 
-## Screens And Workflow
+## Quick Start
 
-Screenshot contract: `docs/screenshots.json`.
+1. Install the package: `composer require capell-app/form-builder`.
+2. For Editors: Permission to edit forms on an authorised site, a compatible page element or developer integration, and submission-view permission to check the inbox.
+3. Open `/admin/form-builder/forms`. Save an active enquiry form and follow Put this form on a page. Preview same-site placement, publish explicitly and send a labelled public test enquiry.
+4. Check the result: With Store submissions enabled, the enquiry appears in View submissions with the expected fields. Next: Check notifications and remove or archive the test enquiry according to your retention policy.
+
+## Configure
+
+- **Configuration files:** `config/capell-form-builder.php`.
+- **Commands:** `php artisan capell:form-builder:export-submissions`, `php artisan capell:form-builder:prune`.
+
+## Limits And Pitfalls
+
+- Install the required Capell packages at the versions in `composer.json`: `capell-app/admin ^1.0.66`, `capell-app/core ^1.0.75`, `capell-app/frontend ^1.0`.
+- Run migrations before opening package resources or public routes.
+- Review middleware, throttling, signatures, and public-output safety in `routes/payments.php` before exposing routes.
+- Keep the host Laravel scheduler running so package-registered schedules can execute: `capell:form-builder:prune (daily; package registered)`.
+- Keep public Blade and cached HTML free of authoring markers, model IDs, permissions, signed editor URLs, and lazy database queries.
+- Custom write integrations must preserve invalidation for `form-builder` cache tags.
+
+## Screens And Workflow
 
 ![FormBuilder admin index](docs/screenshots/form-builder-admin-index.png)
 
 ![Create/edit form schema screen](docs/screenshots/create-edit-form-schema-screen.png)
 
-- FormBuilder admin index (admin, required evidence).
-- Create/edit form schema screen (admin, required evidence).
-- Submissions index (admin, required evidence).
-- Frontend form output (frontend, required evidence).
-- Submission detail view (admin, supplementary evidence).
-- FormBuilder admin index with admin sidebar menu open (admin, supplementary evidence).
-
-## Technical Shape
-
-### Service providers
-
-- `Capell\FormBuilder\Providers\FormBuilderServiceProvider`
-
-### Config files
-
-- `packages/form-builder/config/capell-form-builder.php`
-
-### Migrations
-
-- `packages/form-builder/database/migrations/2026_05_10_190849_01_create_form-builder_table.php`
-- `packages/form-builder/database/migrations/2026_05_10_190849_02_create_submissions_table.php`
-- `packages/form-builder/database/migrations/2026_07_12_000001_add_retention_to_submissions_table.php`
-
-### Models
-
-- `Form`
-- `Submission`
-
-### Filament classes
-
-- `FormResource`
-- `CreateForm`
-- `EditForm`
-- `ListForms`
-- `ListSubmissions`
-- `SubmissionResource`
-- `SubmissionsTable`
-
-### Livewire components
-
-- `FormComponent`
-- `FormElementComponent`
-
-### Route files
-
-- `packages/form-builder/routes/payments.php`
-
-### Policies
-
-- `FormPolicy`
-- `SubmissionPolicy`
-
-### Extension contracts
-
-- `FormBuilderWebhookHostResolver`
-- `SpamProtectionProvider`
-
-### Events
-
-- `FormSubmitted`
-
-### Actions
-
-- `ArchiveSubmissionAction`
-- `BuildFormAgentToolManifestAction`
-- `BuildFormComponentValidationRulesAction`
-- `BuildFormPlacementAction`
-- `BuildFormStepsAction`
-- `BuildFormSubmissionPrivacyExportAction`
-- `BuildFormValidationAttributesAction`
-- `BuildFormValidationRulesAction`
-- `BuildSubmissionPayloadDataAction`
-- `BuildSubmissionPayloadEntriesAction`
-- `BuildSubmissionsCsvAction`
-- `CalculateFormFieldValuesAction`
-- `CalculateSubmissionSpamScoreAction`
-- `CreateFormPaymentCheckoutRedirectUrlAction`
-- `CreateFormPaymentCheckoutSessionAction`
-- `CreateFormPaymentCheckoutUrlAction`
-- `CreateSubmissionAction`
-- `DispatchSubmissionWebhookAction`
-- `DispatchUnstoredFormSubmissionAction`
-- `EraseFormSubmissionPrivacyDataAction`
-- `EvaluateFormFieldVisibilityAction`
-- `GuardFormSubmissionRateLimitAction`
-- `InstallThemeDemoFormsAction`
-- `IsFormPaymentIntegrationAvailableAction`
-- `MarkSubmissionReadAction`
-- `MarkSubmissionSpamAction`
-- `PruneExpiredFormSubmissionsAction`
-- `RedactSubmissionWebhookErrorMessageAction`
-- `ReplyToSubmissionAction`
-- `ResolveFormComponentFormAction`
-- `ResolveFormComponentStepStateAction`
-- `ResolveFormInitialValuesAction`
-- `ResolveFormPaymentCheckoutDataAction`
-- `ResolveFormRequestSiteAction`
-- `ResolveFormSubmissionPrivacyRecordIdsAction`
-- `ResolveSubmissionReplyAddressAction`
-- `ResolveVisibleFormFieldsAction`
-- `SeedFormBuilderScreenshotFixtureAction`
-- `SendSubmissionAutoresponderAction`
-- `SendSubmissionNotificationAction`
-- `ValidateFormFieldKeysAction`
-- `ValidateFormSchemaAuthoringAction`
-
-### Data objects
-
-- `FormComponentStepStateData`
-- `FormFieldConditionData`
-- `FormFieldData`
-- `FormPaymentCheckoutData`
-- `FormPlacementData`
-- `FormRequestContextData`
-- `FormSettingsData`
-- `FormStepData`
-- `FormSubmissionData`
-- `FormSubmissionPrivacyRecordIdsData`
-- `ResolvedFormWebhookEndpointData`
-- `SubmissionMetaData`
-- `SubmissionPayloadData`
-- `SubmissionSpamScoreData`
-
-### Jobs
-
-- `DispatchSubmissionWebhookJob`
-
-### Command signatures
-
-- `capell:form-builder:export-submissions`
-- `capell:form-builder:prune`
-
-### Manifest action API
-
-- `archiveSubmission: Capell\FormBuilder\Actions\ArchiveSubmissionAction`
-- `buildFormAgentToolManifest: Capell\FormBuilder\Actions\BuildFormAgentToolManifestAction`
-- `buildFormSteps: Capell\FormBuilder\Actions\BuildFormStepsAction`
-- `buildFormValidationRules: Capell\FormBuilder\Actions\BuildFormValidationRulesAction`
-- `buildSubmissionPayloadData: Capell\FormBuilder\Actions\BuildSubmissionPayloadDataAction`
-- `calculateFormFieldValues: Capell\FormBuilder\Actions\CalculateFormFieldValuesAction`
-- `calculateSubmissionSpamScore: Capell\FormBuilder\Actions\CalculateSubmissionSpamScoreAction`
-- `createFormPaymentCheckout: Capell\FormBuilder\Actions\CreateFormPaymentCheckoutSessionAction`
-- `createFormPaymentCheckoutRedirectUrl: Capell\FormBuilder\Actions\CreateFormPaymentCheckoutRedirectUrlAction`
-- `createFormPaymentCheckoutUrl: Capell\FormBuilder\Actions\CreateFormPaymentCheckoutUrlAction`
-- `createSubmission: Capell\FormBuilder\Actions\CreateSubmissionAction`
-- `dispatchUnstoredFormSubmission: Capell\FormBuilder\Actions\DispatchUnstoredFormSubmissionAction`
-- `evaluateFormFieldVisibility: Capell\FormBuilder\Actions\EvaluateFormFieldVisibilityAction`
-- `markSubmissionRead: Capell\FormBuilder\Actions\MarkSubmissionReadAction`
-- `markSubmissionSpam: Capell\FormBuilder\Actions\MarkSubmissionSpamAction`
-- `replyToSubmission: Capell\FormBuilder\Actions\ReplyToSubmissionAction`
-- `resolveVisibleFormFields: Capell\FormBuilder\Actions\ResolveVisibleFormFieldsAction`
-- `sendSubmissionNotification: Capell\FormBuilder\Actions\SendSubmissionNotificationAction`
-
-### Scheduled commands
-
-- `capell:form-builder:prune (daily; package registered)`
-
-### Console command classes
-
-- `ExportSubmissionsCommand`
-- `PruneExpiredFormSubmissionsCommand`
-- `SeedFormBuilderScreenshotFixtureCommand`
-
-### Manifest contributions
-
-- `admin-resource: Capell\FormBuilder\Manifest\FormResourceContribution`
-- `admin-resource: Capell\FormBuilder\Manifest\SubmissionResourceContribution`
-- `console-command: Capell\FormBuilder\Manifest\FormBuilderConsoleCommandsContribution`
-- `frontend-component: Capell\FormBuilder\Manifest\FormElementComponentContribution`
-- `model: Capell\FormBuilder\Manifest\FormModelContribution`
-- `model: Capell\FormBuilder\Manifest\SubmissionModelContribution`
-- `route: Capell\FormBuilder\Manifest\FormBuilderPaymentRoutesContribution`
-- `scheduled-job: Capell\FormBuilder\Manifest\FormBuilderPruneScheduleContribution`
-
-### Health checks
-
-- `Capell\FormBuilder\Health\FormBuilderHealthCheck`
-
-### Blade views
-
-- `packages/form-builder/resources/views/filament/form-placement.blade.php`
-- `packages/form-builder/resources/views/filament/submissions/payload.blade.php`
-- `packages/form-builder/resources/views/livewire/form-element.blade.php`
-- `packages/form-builder/resources/views/livewire/form.blade.php`
-- `packages/form-builder/resources/views/mail/submission-autoresponder.blade.php`
-- `packages/form-builder/resources/views/mail/submission-notification.blade.php`
-- `packages/form-builder/resources/views/mail/submission-reply.blade.php`
-
-### Cache tags
-
-- `form-builder`
-
-
-## Data Model
-
-- Required tables: `forms`, `submissions`.
-- Models: `Form`, `Submission`.
-- Core record references in migrations: `sites via site_id`.
-- Migration files: `2026_05_10_190849_01_create_form-builder_table.php`, `2026_05_10_190849_02_create_submissions_table.php`, `2026_07_12_000001_add_retention_to_submissions_table.php`.
-- Migration impact: run host migrations through the package install flow before opening package surfaces.
-- Deletion/retention behaviour: migrations declare cascade-on-delete relationships; retention is scheduled through `capell:form-builder:prune` (daily; registered by the package provider).
+- FormBuilder admin index (admin).
+- Create/edit form schema screen (admin).
+- Submissions index (admin).
+- Frontend form output (frontend).
+- Submission detail view (admin).
+- FormBuilder admin index with admin sidebar menu open (admin).
 
 ## Install Impact
 
@@ -249,16 +67,6 @@ Screenshot contract: `docs/screenshots.json`.
 - Cache tags: `form-builder`.
 - Commands: `capell:form-builder:export-submissions`, `capell:form-builder:prune`.
 
-## Common Pitfalls
-
-- Keep required Capell packages on compatible v4 releases: `capell-app/admin`, `capell-app/core`, `capell-app/frontend`.
-- Run migrations before opening package resources or public routes.
-- Review package configuration before production-like verification: `config/capell-form-builder.php`.
-- Review middleware, throttling, signatures, and public-output safety in `routes/payments.php` before exposing routes.
-- Keep the host Laravel scheduler running so package-registered schedules can execute: `capell:form-builder:prune (daily; package registered)`.
-- Keep public Blade and cached HTML free of authoring markers, model IDs, permissions, signed editor URLs, and lazy database queries.
-- Custom write integrations must preserve invalidation for `form-builder` cache tags.
-
 ## Troubleshooting
 
 | Symptom | Likely cause | Check | Fix |
@@ -268,13 +76,6 @@ Screenshot contract: `docs/screenshots.json`.
 | Route returns unexpected output | Route cache, middleware, or signed URL setup does not match the package route file | Check the route files listed in `Technical Shape` | Clear route cache and verify middleware before exposing public routes |
 | Background work does not run | Queue worker or declared schedule is not active | Check the jobs and scheduled commands listed in `Technical Shape` | Start the queue worker or host scheduler, then run the focused command or package test |
 | Public output leaks unexpected state | Render data, cache variation, or authoring boundary has regressed | Check public Blade, cache tags, and public-output safety tests | Move data loading out of Blade and rerun the package public-output tests |
-
-## Quick Start
-
-1. Install the package: `composer require capell-app/form-builder`.
-2. For Editors: Permission to edit forms on an authorised site, a compatible page element or developer integration, and submission-view permission to check the inbox.
-3. Open `/admin/form-builder/forms`. Save an active enquiry form and follow Put this form on a page. Preview same-site placement, publish explicitly and send a labelled public test enquiry.
-4. Check the result: With Store submissions enabled, the enquiry appears in View submissions with the expected fields. Next: Check notifications and remove or archive the test enquiry according to your retention policy.
 
 ## Upgrading
 
@@ -291,7 +92,7 @@ Read [CHANGELOG.md](CHANGELOG.md) before upgrading.
 - [Admin guide](docs/admin-guide.md)
 - Configuration files: [`config/capell-form-builder.php`](config/capell-form-builder.php).
 - [Troubleshooting](#troubleshooting)
-- [Screenshot contract](docs/screenshots.json)
+- [Developer reference](docs/reference.md)
 - [Marketplace assets](docs/assets/marketplace/)
 - [Capell content language plan](../../docs/CONTENT_LANGUAGE_PLAN.md)
 - [Capell documentation design system](../../docs/DESIGN_SYSTEM.md)

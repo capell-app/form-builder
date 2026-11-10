@@ -24,7 +24,9 @@
         "conflicts": []
     },
     "providers": {
-        "metadata": [],
+        "metadata": [
+            "Capell\\FormBuilder\\Providers\\MigrationMetadataServiceProvider"
+        ],
         "install": [],
         "runtime": [
             "Capell\\FormBuilder\\Providers\\FormBuilderServiceProvider"
@@ -188,10 +190,14 @@
     "security": {
         "riskTier": "sensitive",
         "publicSurface": {
-            "routeNames": ["capell-payments.form-builder.checkout"],
+            "routeNames": [
+                "GET /capell/payments/forms/{submission}/checkout (capell-payments.form-builder.checkout)"
+            ],
             "auth": "public",
             "csrfExemptRoutes": [],
-            "signedRoutes": ["capell-payments.form-builder.checkout"],
+            "signedRoutes": [
+                "GET /capell/payments/forms/{submission}/checkout (capell-payments.form-builder.checkout)"
+            ],
             "tokenizedRoutes": [],
             "webhookRoutes": [],
             "throttledRoutes": []
@@ -302,6 +308,22 @@
     "marketplace": {
         "summary": "Build site-scoped forms in Capell and capture spam-filtered, encrypted submissions into a per-site triage inbox with one-click email replies.",
         "description": "Form Builder gives each Capell site its own forms with conditional fields, calculated values, honeypot + heuristic spam scoring, and configurable file-upload rules. Every submission is encrypted at rest and lands in a site-scoped admin inbox where staff can read, archive, mark spam, and reply by email without leaving the panel. Frontend forms render through a cache-safe Livewire component with built-in throttling and accessible markup. Pairs with Email Studio and Public Actions to turn submissions into automated workflows.",
+        "problem": "Our team loses track of enquiries submitted through site forms.",
+        "outcome": "The site has structured forms and a site-specific submission inbox.",
+        "faq": [
+            {
+                "question": "Can forms adapt to answers?",
+                "answer": "Forms support conditional and multi-step fields as well as calculations."
+            },
+            {
+                "question": "Where do submissions go?",
+                "answer": "Encrypted submission records are available for editors to triage in the admin."
+            },
+            {
+                "question": "How is sensitive submission retention managed?",
+                "answer": "Teams can apply retention or legal-hold rules to submissions."
+            }
+        ],
         "screenshots": [
             {
                 "path": "docs/assets/marketplace/extension-card.jpg",

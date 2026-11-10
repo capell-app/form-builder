@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Capell\FormBuilder\Actions;
 
+use Capell\Core\Support\TableName;
 use Capell\FormBuilder\Data\SubmissionMetaData;
 use Capell\FormBuilder\Data\SubmissionPayloadData;
 use Capell\FormBuilder\Enums\SubmissionStatus;
@@ -27,10 +28,10 @@ final class SeedFormBuilderScreenshotFixtureAction
     {
         self::assertDisposableScreenshotEnvironment();
 
-        require_once dirname(__DIR__, 4) . '/scripts/screenshots/FixtureState.php';
+        require_once (str_contains(__DIR__, '/vendor/capell-app/') ? dirname(__DIR__, 5) : dirname(__DIR__, 4)) . '/scripts/screenshots/FixtureState.php';
         FixtureState::boot();
 
-        $siteId = DB::table('sites')->orderBy('id')->value('id');
+        $siteId = DB::table(TableName::resolve('sites'))->orderBy('id')->value('id');
 
         throw_unless(is_numeric($siteId), RuntimeException::class, 'Form Builder screenshot fixtures require an installed site.');
 
@@ -172,8 +173,8 @@ final class SeedFormBuilderScreenshotFixtureAction
                 && is_string($basePath)
                 && is_string($appPath)
                 && $basePath === $appPath
-                && ($basePath === realpath(dirname(__DIR__, 4) . '/vendor/orchestra/testbench-core/laravel')
-                    || str_starts_with($basePath, dirname(__DIR__, 4) . '/tmp/testbench-skeletons/')),
+                && ($basePath === realpath((str_contains(__DIR__, '/vendor/capell-app/') ? dirname(__DIR__, 5) : dirname(__DIR__, 4)) . '/vendor/orchestra/testbench-core/laravel')
+                    || str_starts_with($basePath, (str_contains(__DIR__, '/vendor/capell-app/') ? dirname(__DIR__, 5) : dirname(__DIR__, 4)) . '/tmp/testbench-skeletons/')),
             RuntimeException::class,
             'Form Builder screenshot fixtures require the explicit disposable local screenshot environment.',
         );

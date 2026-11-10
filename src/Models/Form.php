@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Capell\FormBuilder\Models;
 
+use Capell\Core\Concerns\HasCapellTable;
 use Capell\Core\Models\Site;
 use Capell\FormBuilder\Data\FormFieldData;
 use Capell\FormBuilder\Data\FormSettingsData;
@@ -22,6 +23,8 @@ use Spatie\LaravelData\DataCollection;
  */
 class Form extends Model
 {
+    use HasCapellTable;
+
     /** @use HasFactory<FormFactory> */
     use HasFactory;
 

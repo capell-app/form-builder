@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Capell\FormBuilder\Models;
 
+use Capell\Core\Concerns\HasCapellTable;
 use Capell\Core\Models\Site;
 use Capell\FormBuilder\Casts\EncryptedDataCast;
 use Capell\FormBuilder\Data\SubmissionMetaData;
@@ -27,6 +28,8 @@ use Override;
  */
 class Submission extends Model
 {
+    use HasCapellTable;
+
     /** @use HasFactory<SubmissionFactory> */
     use HasFactory;
 

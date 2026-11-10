@@ -195,7 +195,7 @@
                             @elseif ($field->type === FormFieldType::Payment && is_int($field->paymentAmountCents) && $field->paymentAmountCents > 0)
                                 @php
                                     $paymentCurrency = strtoupper($field->paymentCurrency ?: config('capell-payments.form_builder.default_currency', 'gbp'));
-                                    $paymentAmount = number_format($field->paymentAmountCents / 100, 2);
+                                    $paymentAmount = \Illuminate\Support\Number::format($field->paymentAmountCents / 100, precision: 2, locale: app()->getLocale());
                                 @endphp
 
                                 <input

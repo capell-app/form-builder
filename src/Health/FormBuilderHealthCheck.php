@@ -6,6 +6,7 @@ namespace Capell\FormBuilder\Health;
 
 use Capell\Core\Contracts\Extensions\ChecksExtensionHealth;
 use Capell\Core\Data\Diagnostics\DoctorCheckResultData;
+use Capell\Core\Support\TableName;
 use Capell\FormBuilder\Casts\EncryptedDataCast;
 use Capell\FormBuilder\Models\Submission;
 use Illuminate\Support\Collection;
@@ -144,7 +145,7 @@ final class FormBuilderHealthCheck implements ChecksExtensionHealth
      */
     public function missingTables(): array
     {
-        return array_values(collect(self::REQUIRED_TABLES)
+        return array_values(collect(array_map(TableName::resolve(...), self::REQUIRED_TABLES))
             ->reject(static fn (string $tableName): bool => Schema::hasTable($tableName))
             ->values()
             ->all());

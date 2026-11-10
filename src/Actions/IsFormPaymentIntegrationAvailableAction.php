@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Capell\FormBuilder\Actions;
 
 use Capell\Core\Facades\CapellCore;
+use Capell\Core\Support\TableName;
 use Capell\Payments\Actions\CreateCheckoutSessionAction;
 use Capell\Payments\Actions\ValidateFormPaymentReturnUrlAction;
 use Capell\Payments\Models\CheckoutSession;
@@ -20,7 +21,7 @@ final class IsFormPaymentIntegrationAvailableAction
     public function handle(): bool
     {
         return CapellCore::isPackageInstalled('capell-app/payments')
-            && Schema::hasTable('payment_checkout_sessions')
+            && Schema::hasTable(TableName::resolve('payment_checkout_sessions'))
             && class_exists(CreateCheckoutSessionAction::class)
             && class_exists(ValidateFormPaymentReturnUrlAction::class)
             && class_exists(CheckoutSession::class);

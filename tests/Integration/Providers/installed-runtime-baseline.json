@@ -4,10 +4,10 @@
     "scenarios": {
         "default": {
             "source": {
-                "ref": "c92ce184be4d91c372f35ca125ea25f6c1308599",
-                "commit": "c92ce184be4d91c372f35ca125ea25f6c1308599",
+                "ref": "HEAD",
+                "commit": "f1c031c0c3b1c26616a09e4b526a5785cab4549c",
                 "providers": {
-                    "Providers/FormBuilderServiceProvider.php": "0e5632fd0d232ed1f397e89bebdff4595b07953fa1706840c4f61042cf1ac3bb",
+                    "Providers/FormBuilderServiceProvider.php": "21a5524f4b03bd10f89f78b776daa29fef37997ebd5ba646707dbd8ad0b1a236",
                     "Providers/MigrationMetadataServiceProvider.php": "b7aa37fceb0646ec459c84f625b5ea88cd33156d1bade6cb9f40aa37c9a6e7dc"
                 },
                 "configure": null
@@ -38,9 +38,32 @@
                             "tag": null,
                             "type": "resource"
                         }
+                    ],
+                    [
+                        "Capell\\Admin\\Data\\AdminSurfaceContributionData",
+                        {
+                            "class": "Capell\\FormBuilder\\Bridges\\LayoutBuilder\\FormBuilderFormWidgetConfigurator",
+                            "group": "Widgets",
+                            "key": "configurator:Widgets:FormBuilderForm",
+                            "name": "FormBuilderForm",
+                            "position": null,
+                            "tag": null,
+                            "type": "configurator"
+                        }
                     ]
                 ],
                 "bindings": {
+                    "Capell\\FormBuilder\\Bridges\\LayoutBuilder\\FormWidgetAvailability": {
+                        "concrete": [
+                            "<vendor>/laravel/framework/src/Illuminate/Container/Container.php",
+                            "Illuminate\\Container\\Container( $container,  $parameters): bound=Illuminate\\Foundation\\Application",
+                            {
+                                "abstract": "Capell\\FormBuilder\\Bridges\\LayoutBuilder\\FormWidgetAvailability",
+                                "concrete": "Capell\\FormBuilder\\Bridges\\LayoutBuilder\\FormWidgetAvailability"
+                            }
+                        ],
+                        "shared": true
+                    },
                     "Capell\\FormBuilder\\Contracts\\FormBuilderWebhookHostResolver": {
                         "concrete": [
                             "<vendor>/laravel/framework/src/Illuminate/Container/Container.php",
@@ -67,7 +90,8 @@
                 "commands": {
                     "capell:form-builder-screenshot-fixture": "Capell\\FormBuilder\\Console\\Commands\\SeedFormBuilderScreenshotFixtureCommand",
                     "capell:form-builder:export-submissions": "Capell\\FormBuilder\\Console\\Commands\\ExportSubmissionsCommand",
-                    "capell:form-builder:prune": "Capell\\FormBuilder\\Console\\Commands\\PruneExpiredFormSubmissionsCommand"
+                    "capell:form-builder:prune": "Capell\\FormBuilder\\Console\\Commands\\PruneExpiredFormSubmissionsCommand",
+                    "capell:form-builder:recover-deliveries": "Capell\\FormBuilder\\Console\\Commands\\RecoverSubmissionDeliveriesCommand"
                 },
                 "config-defaults": {
                     "capell-form-builder.php": {
@@ -140,6 +164,22 @@
                             "static Capell\\FormBuilder\\Providers\\FormBuilderServiceProvider(string|int $siteId, string $formsPayload):void source=5e95ac712147138157dc03b821980ab7",
                             []
                         ]
+                    ],
+                    "eloquent.created: Capell\\FormBuilder\\Models\\Form": [
+                        "Capell\\FormBuilder\\LayoutBuilder\\InvalidateFormWidgetPagesObserver@created"
+                    ],
+                    "eloquent.deleted: Capell\\FormBuilder\\Models\\Form": [
+                        "Capell\\FormBuilder\\LayoutBuilder\\InvalidateFormWidgetPagesObserver@deleted"
+                    ],
+                    "eloquent.deleting: Capell\\FormBuilder\\Models\\Form": [
+                        [
+                            "<package>/src/Models/Form.php",
+                            "static Capell\\FormBuilder\\Models\\Form(self $form):void source=e2d7a8a393ff2af69fdd88b770e90a30",
+                            []
+                        ]
+                    ],
+                    "eloquent.updated: Capell\\FormBuilder\\Models\\Form": [
+                        "Capell\\FormBuilder\\LayoutBuilder\\InvalidateFormWidgetPagesObserver@updated"
                     ]
                 },
                 "livewire": {
@@ -300,6 +340,30 @@
                         "Capell\\Admin\\Support\\CapellAdminManager",
                         "admin",
                         "context"
+                    ],
+                    [
+                        "content-widget",
+                        "renderable:layout-widget:capell-form-builder::widget.form",
+                        "Capell\\Core\\Data\\RenderableDefinitionData",
+                        "Capell\\Core\\Support\\Renderables\\RenderableRegistry",
+                        "runtime",
+                        "context"
+                    ],
+                    [
+                        "content-widget",
+                        "component:Widget:FormBuilderForm",
+                        "capell-form-builder::widget.form",
+                        "Capell\\Core\\Support\\CapellCoreManager",
+                        "runtime",
+                        "context"
+                    ],
+                    [
+                        "configurator",
+                        "configurator:Widgets:FormBuilderForm",
+                        "Capell\\FormBuilder\\Bridges\\LayoutBuilder\\FormBuilderFormWidgetConfigurator",
+                        "Capell\\Admin\\Support\\CapellAdminManager",
+                        "admin",
+                        "context"
                     ]
                 ],
                 "receipts": {
@@ -327,6 +391,13 @@
                             "Capell\\FormBuilder\\Filament\\Resources\\Submissions\\SubmissionResource"
                         ]
                     ],
+                    "configurator": [
+                        [
+                            "configurator",
+                            "configurator:Widgets:FormBuilderForm",
+                            "Capell\\FormBuilder\\Bridges\\LayoutBuilder\\FormBuilderFormWidgetConfigurator"
+                        ]
+                    ],
                     "content-widget": [
                         [
                             "content-widget",
@@ -337,6 +408,16 @@
                             "content-widget",
                             "renderable:form-field:capell-form-builder::element.form",
                             "Capell\\Core\\Data\\RenderableDefinitionData"
+                        ],
+                        [
+                            "content-widget",
+                            "renderable:layout-widget:capell-form-builder::widget.form",
+                            "Capell\\Core\\Data\\RenderableDefinitionData"
+                        ],
+                        [
+                            "content-widget",
+                            "component:Widget:FormBuilderForm",
+                            "capell-form-builder::widget.form"
                         ]
                     ],
                     "model": [
@@ -355,6 +436,20 @@
                 "registries": {
                     "Capell\\Admin\\Support\\AdminSurfaceContributionRegistry": {
                         "contributions": {
+                            "configurator": {
+                                "configurator:Widgets:FormBuilderForm": [
+                                    "Capell\\Admin\\Data\\AdminSurfaceContributionData",
+                                    {
+                                        "class": "Capell\\FormBuilder\\Bridges\\LayoutBuilder\\FormBuilderFormWidgetConfigurator",
+                                        "group": "Widgets",
+                                        "key": "configurator:Widgets:FormBuilderForm",
+                                        "name": "FormBuilderForm",
+                                        "position": null,
+                                        "tag": null,
+                                        "type": "configurator"
+                                    }
+                                ]
+                            },
                             "resource": {
                                 "resource:Forms:default": [
                                     "Capell\\Admin\\Data\\AdminSurfaceContributionData",
@@ -453,6 +548,13 @@
                             ]
                         }
                     },
+                    "Capell\\Core\\Support\\Components\\ComponentRegistry": {
+                        "components": {
+                            "Widget": {
+                                "FormBuilderForm": "capell-form-builder::widget.form"
+                            }
+                        }
+                    },
                     "Capell\\Core\\Support\\Migration\\MigrationRootRegistry": {
                         "roots": {
                             "capell-app/form-builder": [
@@ -497,11 +599,39 @@
                                         "viewDataResolver": null
                                     }
                                 ]
+                            },
+                            "layout-widget": {
+                                "capell-form-builder::widget.form": [
+                                    "Capell\\Core\\Data\\RenderableDefinitionData",
+                                    {
+                                        "adminPreview": null,
+                                        "assetComponent": null,
+                                        "blade": null,
+                                        "contribution": null,
+                                        "key": "capell-form-builder::widget.form",
+                                        "livewire": "Capell\\FormBuilder\\Livewire\\FormElementComponent",
+                                        "type": "layout-widget",
+                                        "viewDataResolver": null
+                                    }
+                                ]
                             }
                         }
                     }
                 },
                 "renderables": [
+                    [
+                        "Capell\\Core\\Data\\RenderableDefinitionData",
+                        {
+                            "adminPreview": null,
+                            "assetComponent": null,
+                            "blade": null,
+                            "contribution": null,
+                            "key": "capell-form-builder::widget.form",
+                            "livewire": "Capell\\FormBuilder\\Livewire\\FormElementComponent",
+                            "type": "layout-widget",
+                            "viewDataResolver": null
+                        }
+                    ],
                     [
                         "Capell\\Core\\Data\\RenderableDefinitionData",
                         {
@@ -534,7 +664,11 @@
                         "capell-payments.form-builder.checkout",
                         "capell/payments/forms/{submission}/checkout",
                         ["GET", "HEAD"],
-                        ["web", "signed"],
+                        [
+                            "web",
+                            "throttle:capell-form-builder-checkout",
+                            "signed"
+                        ],
                         "Capell\\FormBuilder\\Http\\Controllers\\CreateFormPaymentCheckoutController",
                         {
                             "as": "capell-payments.form-builder.checkout",
@@ -551,8 +685,43 @@
                         null,
                         true,
                         null
+                    ],
+                    [
+                        "'<php>' 'artisan' capell:form-builder:recover-deliveries",
+                        "*/5 * * * *",
+                        null,
+                        true,
+                        null
                     ]
                 ],
+                "tagged-consumers": {
+                    "capell.layout_builder.public_layout_widget_availability": [
+                        "Capell\\FormBuilder\\Bridges\\LayoutBuilder\\FormWidgetAvailability"
+                    ],
+                    "capell.privacy.subject-eraser": [
+                        "Capell\\FormBuilder\\Support\\Privacy\\FormBuilderPrivacyContributor"
+                    ],
+                    "capell.privacy.subject-exporter": [
+                        "Capell\\FormBuilder\\Support\\Privacy\\FormBuilderPrivacyContributor"
+                    ],
+                    "capell.site-spec.applier": [
+                        "Capell\\FormBuilder\\Actions\\ApplyFormSiteSpecAction"
+                    ]
+                },
+                "tags": {
+                    "capell.layout_builder.public_layout_widget_availability": [
+                        "Capell\\FormBuilder\\Bridges\\LayoutBuilder\\FormWidgetAvailability"
+                    ],
+                    "capell.privacy.subject-eraser": [
+                        "Capell\\FormBuilder\\Support\\Privacy\\FormBuilderPrivacyContributor"
+                    ],
+                    "capell.privacy.subject-exporter": [
+                        "Capell\\FormBuilder\\Support\\Privacy\\FormBuilderPrivacyContributor"
+                    ],
+                    "capell.site-spec.applier": [
+                        "Capell\\FormBuilder\\Actions\\ApplyFormSiteSpecAction"
+                    ]
+                },
                 "vendor-assets": [
                     [
                         "Capell\\Core\\Data\\VendorAssetData",
@@ -594,7 +763,8 @@
                 "commands": {
                     "capell:form-builder-screenshot-fixture": "Capell\\FormBuilder\\Console\\Commands\\SeedFormBuilderScreenshotFixtureCommand",
                     "capell:form-builder:export-submissions": "Capell\\FormBuilder\\Console\\Commands\\ExportSubmissionsCommand",
-                    "capell:form-builder:prune": "Capell\\FormBuilder\\Console\\Commands\\PruneExpiredFormSubmissionsCommand"
+                    "capell:form-builder:prune": "Capell\\FormBuilder\\Console\\Commands\\PruneExpiredFormSubmissionsCommand",
+                    "capell:form-builder:recover-deliveries": "Capell\\FormBuilder\\Console\\Commands\\RecoverSubmissionDeliveriesCommand"
                 },
                 "config-defaults": {
                     "capell-form-builder.php": {
@@ -683,10 +853,10 @@
         },
         "retention-disabled": {
             "source": {
-                "ref": "c92ce184be4d91c372f35ca125ea25f6c1308599",
-                "commit": "c92ce184be4d91c372f35ca125ea25f6c1308599",
+                "ref": "HEAD",
+                "commit": "f1c031c0c3b1c26616a09e4b526a5785cab4549c",
                 "providers": {
-                    "Providers/FormBuilderServiceProvider.php": "0e5632fd0d232ed1f397e89bebdff4595b07953fa1706840c4f61042cf1ac3bb",
+                    "Providers/FormBuilderServiceProvider.php": "21a5524f4b03bd10f89f78b776daa29fef37997ebd5ba646707dbd8ad0b1a236",
                     "Providers/MigrationMetadataServiceProvider.php": "b7aa37fceb0646ec459c84f625b5ea88cd33156d1bade6cb9f40aa37c9a6e7dc"
                 },
                 "configure": "tests/Support/Fixtures/InstalledRuntime/form-builder-retention-disabled.php"
@@ -717,9 +887,32 @@
                             "tag": null,
                             "type": "resource"
                         }
+                    ],
+                    [
+                        "Capell\\Admin\\Data\\AdminSurfaceContributionData",
+                        {
+                            "class": "Capell\\FormBuilder\\Bridges\\LayoutBuilder\\FormBuilderFormWidgetConfigurator",
+                            "group": "Widgets",
+                            "key": "configurator:Widgets:FormBuilderForm",
+                            "name": "FormBuilderForm",
+                            "position": null,
+                            "tag": null,
+                            "type": "configurator"
+                        }
                     ]
                 ],
                 "bindings": {
+                    "Capell\\FormBuilder\\Bridges\\LayoutBuilder\\FormWidgetAvailability": {
+                        "concrete": [
+                            "<vendor>/laravel/framework/src/Illuminate/Container/Container.php",
+                            "Illuminate\\Container\\Container( $container,  $parameters): bound=Illuminate\\Foundation\\Application",
+                            {
+                                "abstract": "Capell\\FormBuilder\\Bridges\\LayoutBuilder\\FormWidgetAvailability",
+                                "concrete": "Capell\\FormBuilder\\Bridges\\LayoutBuilder\\FormWidgetAvailability"
+                            }
+                        ],
+                        "shared": true
+                    },
                     "Capell\\FormBuilder\\Contracts\\FormBuilderWebhookHostResolver": {
                         "concrete": [
                             "<vendor>/laravel/framework/src/Illuminate/Container/Container.php",
@@ -746,7 +939,8 @@
                 "commands": {
                     "capell:form-builder-screenshot-fixture": "Capell\\FormBuilder\\Console\\Commands\\SeedFormBuilderScreenshotFixtureCommand",
                     "capell:form-builder:export-submissions": "Capell\\FormBuilder\\Console\\Commands\\ExportSubmissionsCommand",
-                    "capell:form-builder:prune": "Capell\\FormBuilder\\Console\\Commands\\PruneExpiredFormSubmissionsCommand"
+                    "capell:form-builder:prune": "Capell\\FormBuilder\\Console\\Commands\\PruneExpiredFormSubmissionsCommand",
+                    "capell:form-builder:recover-deliveries": "Capell\\FormBuilder\\Console\\Commands\\RecoverSubmissionDeliveriesCommand"
                 },
                 "config-defaults": {
                     "capell-form-builder.php": {
@@ -816,6 +1010,22 @@
                             "static Capell\\FormBuilder\\Providers\\FormBuilderServiceProvider(string|int $siteId, string $formsPayload):void source=5e95ac712147138157dc03b821980ab7",
                             []
                         ]
+                    ],
+                    "eloquent.created: Capell\\FormBuilder\\Models\\Form": [
+                        "Capell\\FormBuilder\\LayoutBuilder\\InvalidateFormWidgetPagesObserver@created"
+                    ],
+                    "eloquent.deleted: Capell\\FormBuilder\\Models\\Form": [
+                        "Capell\\FormBuilder\\LayoutBuilder\\InvalidateFormWidgetPagesObserver@deleted"
+                    ],
+                    "eloquent.deleting: Capell\\FormBuilder\\Models\\Form": [
+                        [
+                            "<package>/src/Models/Form.php",
+                            "static Capell\\FormBuilder\\Models\\Form(self $form):void source=e2d7a8a393ff2af69fdd88b770e90a30",
+                            []
+                        ]
+                    ],
+                    "eloquent.updated: Capell\\FormBuilder\\Models\\Form": [
+                        "Capell\\FormBuilder\\LayoutBuilder\\InvalidateFormWidgetPagesObserver@updated"
                     ]
                 },
                 "livewire": {
@@ -976,6 +1186,30 @@
                         "Capell\\Admin\\Support\\CapellAdminManager",
                         "admin",
                         "context"
+                    ],
+                    [
+                        "content-widget",
+                        "renderable:layout-widget:capell-form-builder::widget.form",
+                        "Capell\\Core\\Data\\RenderableDefinitionData",
+                        "Capell\\Core\\Support\\Renderables\\RenderableRegistry",
+                        "runtime",
+                        "context"
+                    ],
+                    [
+                        "content-widget",
+                        "component:Widget:FormBuilderForm",
+                        "capell-form-builder::widget.form",
+                        "Capell\\Core\\Support\\CapellCoreManager",
+                        "runtime",
+                        "context"
+                    ],
+                    [
+                        "configurator",
+                        "configurator:Widgets:FormBuilderForm",
+                        "Capell\\FormBuilder\\Bridges\\LayoutBuilder\\FormBuilderFormWidgetConfigurator",
+                        "Capell\\Admin\\Support\\CapellAdminManager",
+                        "admin",
+                        "context"
                     ]
                 ],
                 "receipts": {
@@ -1003,6 +1237,13 @@
                             "Capell\\FormBuilder\\Filament\\Resources\\Submissions\\SubmissionResource"
                         ]
                     ],
+                    "configurator": [
+                        [
+                            "configurator",
+                            "configurator:Widgets:FormBuilderForm",
+                            "Capell\\FormBuilder\\Bridges\\LayoutBuilder\\FormBuilderFormWidgetConfigurator"
+                        ]
+                    ],
                     "content-widget": [
                         [
                             "content-widget",
@@ -1013,6 +1254,16 @@
                             "content-widget",
                             "renderable:form-field:capell-form-builder::element.form",
                             "Capell\\Core\\Data\\RenderableDefinitionData"
+                        ],
+                        [
+                            "content-widget",
+                            "renderable:layout-widget:capell-form-builder::widget.form",
+                            "Capell\\Core\\Data\\RenderableDefinitionData"
+                        ],
+                        [
+                            "content-widget",
+                            "component:Widget:FormBuilderForm",
+                            "capell-form-builder::widget.form"
                         ]
                     ],
                     "model": [
@@ -1031,6 +1282,20 @@
                 "registries": {
                     "Capell\\Admin\\Support\\AdminSurfaceContributionRegistry": {
                         "contributions": {
+                            "configurator": {
+                                "configurator:Widgets:FormBuilderForm": [
+                                    "Capell\\Admin\\Data\\AdminSurfaceContributionData",
+                                    {
+                                        "class": "Capell\\FormBuilder\\Bridges\\LayoutBuilder\\FormBuilderFormWidgetConfigurator",
+                                        "group": "Widgets",
+                                        "key": "configurator:Widgets:FormBuilderForm",
+                                        "name": "FormBuilderForm",
+                                        "position": null,
+                                        "tag": null,
+                                        "type": "configurator"
+                                    }
+                                ]
+                            },
                             "resource": {
                                 "resource:Forms:default": [
                                     "Capell\\Admin\\Data\\AdminSurfaceContributionData",
@@ -1129,6 +1394,13 @@
                             ]
                         }
                     },
+                    "Capell\\Core\\Support\\Components\\ComponentRegistry": {
+                        "components": {
+                            "Widget": {
+                                "FormBuilderForm": "capell-form-builder::widget.form"
+                            }
+                        }
+                    },
                     "Capell\\Core\\Support\\Migration\\MigrationRootRegistry": {
                         "roots": {
                             "capell-app/form-builder": [
@@ -1173,11 +1445,39 @@
                                         "viewDataResolver": null
                                     }
                                 ]
+                            },
+                            "layout-widget": {
+                                "capell-form-builder::widget.form": [
+                                    "Capell\\Core\\Data\\RenderableDefinitionData",
+                                    {
+                                        "adminPreview": null,
+                                        "assetComponent": null,
+                                        "blade": null,
+                                        "contribution": null,
+                                        "key": "capell-form-builder::widget.form",
+                                        "livewire": "Capell\\FormBuilder\\Livewire\\FormElementComponent",
+                                        "type": "layout-widget",
+                                        "viewDataResolver": null
+                                    }
+                                ]
                             }
                         }
                     }
                 },
                 "renderables": [
+                    [
+                        "Capell\\Core\\Data\\RenderableDefinitionData",
+                        {
+                            "adminPreview": null,
+                            "assetComponent": null,
+                            "blade": null,
+                            "contribution": null,
+                            "key": "capell-form-builder::widget.form",
+                            "livewire": "Capell\\FormBuilder\\Livewire\\FormElementComponent",
+                            "type": "layout-widget",
+                            "viewDataResolver": null
+                        }
+                    ],
                     [
                         "Capell\\Core\\Data\\RenderableDefinitionData",
                         {
@@ -1210,7 +1510,11 @@
                         "capell-payments.form-builder.checkout",
                         "capell/payments/forms/{submission}/checkout",
                         ["GET", "HEAD"],
-                        ["web", "signed"],
+                        [
+                            "web",
+                            "throttle:capell-form-builder-checkout",
+                            "signed"
+                        ],
                         "Capell\\FormBuilder\\Http\\Controllers\\CreateFormPaymentCheckoutController",
                         {
                             "as": "capell-payments.form-builder.checkout",
@@ -1220,6 +1524,43 @@
                         }
                     ]
                 ],
+                "schedule": [
+                    [
+                        "'<php>' 'artisan' capell:form-builder:recover-deliveries",
+                        "*/5 * * * *",
+                        null,
+                        true,
+                        null
+                    ]
+                ],
+                "tagged-consumers": {
+                    "capell.layout_builder.public_layout_widget_availability": [
+                        "Capell\\FormBuilder\\Bridges\\LayoutBuilder\\FormWidgetAvailability"
+                    ],
+                    "capell.privacy.subject-eraser": [
+                        "Capell\\FormBuilder\\Support\\Privacy\\FormBuilderPrivacyContributor"
+                    ],
+                    "capell.privacy.subject-exporter": [
+                        "Capell\\FormBuilder\\Support\\Privacy\\FormBuilderPrivacyContributor"
+                    ],
+                    "capell.site-spec.applier": [
+                        "Capell\\FormBuilder\\Actions\\ApplyFormSiteSpecAction"
+                    ]
+                },
+                "tags": {
+                    "capell.layout_builder.public_layout_widget_availability": [
+                        "Capell\\FormBuilder\\Bridges\\LayoutBuilder\\FormWidgetAvailability"
+                    ],
+                    "capell.privacy.subject-eraser": [
+                        "Capell\\FormBuilder\\Support\\Privacy\\FormBuilderPrivacyContributor"
+                    ],
+                    "capell.privacy.subject-exporter": [
+                        "Capell\\FormBuilder\\Support\\Privacy\\FormBuilderPrivacyContributor"
+                    ],
+                    "capell.site-spec.applier": [
+                        "Capell\\FormBuilder\\Actions\\ApplyFormSiteSpecAction"
+                    ]
+                },
                 "vendor-assets": [
                     [
                         "Capell\\Core\\Data\\VendorAssetData",
@@ -1261,7 +1602,8 @@
                 "commands": {
                     "capell:form-builder-screenshot-fixture": "Capell\\FormBuilder\\Console\\Commands\\SeedFormBuilderScreenshotFixtureCommand",
                     "capell:form-builder:export-submissions": "Capell\\FormBuilder\\Console\\Commands\\ExportSubmissionsCommand",
-                    "capell:form-builder:prune": "Capell\\FormBuilder\\Console\\Commands\\PruneExpiredFormSubmissionsCommand"
+                    "capell:form-builder:prune": "Capell\\FormBuilder\\Console\\Commands\\PruneExpiredFormSubmissionsCommand",
+                    "capell:form-builder:recover-deliveries": "Capell\\FormBuilder\\Console\\Commands\\RecoverSubmissionDeliveriesCommand"
                 },
                 "config-defaults": {
                     "capell-form-builder.php": {
@@ -1347,10 +1689,10 @@
         },
         "privacy-enabled": {
             "source": {
-                "ref": "c92ce184be4d91c372f35ca125ea25f6c1308599",
-                "commit": "c92ce184be4d91c372f35ca125ea25f6c1308599",
+                "ref": "HEAD",
+                "commit": "f1c031c0c3b1c26616a09e4b526a5785cab4549c",
                 "providers": {
-                    "Providers/FormBuilderServiceProvider.php": "0e5632fd0d232ed1f397e89bebdff4595b07953fa1706840c4f61042cf1ac3bb",
+                    "Providers/FormBuilderServiceProvider.php": "21a5524f4b03bd10f89f78b776daa29fef37997ebd5ba646707dbd8ad0b1a236",
                     "Providers/MigrationMetadataServiceProvider.php": "b7aa37fceb0646ec459c84f625b5ea88cd33156d1bade6cb9f40aa37c9a6e7dc"
                 },
                 "configure": "tests/Support/Fixtures/InstalledRuntime/privacy-enabled.php"
@@ -1381,9 +1723,32 @@
                             "tag": null,
                             "type": "resource"
                         }
+                    ],
+                    [
+                        "Capell\\Admin\\Data\\AdminSurfaceContributionData",
+                        {
+                            "class": "Capell\\FormBuilder\\Bridges\\LayoutBuilder\\FormBuilderFormWidgetConfigurator",
+                            "group": "Widgets",
+                            "key": "configurator:Widgets:FormBuilderForm",
+                            "name": "FormBuilderForm",
+                            "position": null,
+                            "tag": null,
+                            "type": "configurator"
+                        }
                     ]
                 ],
                 "bindings": {
+                    "Capell\\FormBuilder\\Bridges\\LayoutBuilder\\FormWidgetAvailability": {
+                        "concrete": [
+                            "<vendor>/laravel/framework/src/Illuminate/Container/Container.php",
+                            "Illuminate\\Container\\Container( $container,  $parameters): bound=Illuminate\\Foundation\\Application",
+                            {
+                                "abstract": "Capell\\FormBuilder\\Bridges\\LayoutBuilder\\FormWidgetAvailability",
+                                "concrete": "Capell\\FormBuilder\\Bridges\\LayoutBuilder\\FormWidgetAvailability"
+                            }
+                        ],
+                        "shared": true
+                    },
                     "Capell\\FormBuilder\\Contracts\\FormBuilderWebhookHostResolver": {
                         "concrete": [
                             "<vendor>/laravel/framework/src/Illuminate/Container/Container.php",
@@ -1410,7 +1775,8 @@
                 "commands": {
                     "capell:form-builder-screenshot-fixture": "Capell\\FormBuilder\\Console\\Commands\\SeedFormBuilderScreenshotFixtureCommand",
                     "capell:form-builder:export-submissions": "Capell\\FormBuilder\\Console\\Commands\\ExportSubmissionsCommand",
-                    "capell:form-builder:prune": "Capell\\FormBuilder\\Console\\Commands\\PruneExpiredFormSubmissionsCommand"
+                    "capell:form-builder:prune": "Capell\\FormBuilder\\Console\\Commands\\PruneExpiredFormSubmissionsCommand",
+                    "capell:form-builder:recover-deliveries": "Capell\\FormBuilder\\Console\\Commands\\RecoverSubmissionDeliveriesCommand"
                 },
                 "config-defaults": {
                     "capell-form-builder.php": {
@@ -1483,6 +1849,22 @@
                             "static Capell\\FormBuilder\\Providers\\FormBuilderServiceProvider(string|int $siteId, string $formsPayload):void source=5e95ac712147138157dc03b821980ab7",
                             []
                         ]
+                    ],
+                    "eloquent.created: Capell\\FormBuilder\\Models\\Form": [
+                        "Capell\\FormBuilder\\LayoutBuilder\\InvalidateFormWidgetPagesObserver@created"
+                    ],
+                    "eloquent.deleted: Capell\\FormBuilder\\Models\\Form": [
+                        "Capell\\FormBuilder\\LayoutBuilder\\InvalidateFormWidgetPagesObserver@deleted"
+                    ],
+                    "eloquent.deleting: Capell\\FormBuilder\\Models\\Form": [
+                        [
+                            "<package>/src/Models/Form.php",
+                            "static Capell\\FormBuilder\\Models\\Form(self $form):void source=e2d7a8a393ff2af69fdd88b770e90a30",
+                            []
+                        ]
+                    ],
+                    "eloquent.updated: Capell\\FormBuilder\\Models\\Form": [
+                        "Capell\\FormBuilder\\LayoutBuilder\\InvalidateFormWidgetPagesObserver@updated"
                     ]
                 },
                 "livewire": {
@@ -1643,6 +2025,30 @@
                         "Capell\\Admin\\Support\\CapellAdminManager",
                         "admin",
                         "context"
+                    ],
+                    [
+                        "content-widget",
+                        "renderable:layout-widget:capell-form-builder::widget.form",
+                        "Capell\\Core\\Data\\RenderableDefinitionData",
+                        "Capell\\Core\\Support\\Renderables\\RenderableRegistry",
+                        "runtime",
+                        "context"
+                    ],
+                    [
+                        "content-widget",
+                        "component:Widget:FormBuilderForm",
+                        "capell-form-builder::widget.form",
+                        "Capell\\Core\\Support\\CapellCoreManager",
+                        "runtime",
+                        "context"
+                    ],
+                    [
+                        "configurator",
+                        "configurator:Widgets:FormBuilderForm",
+                        "Capell\\FormBuilder\\Bridges\\LayoutBuilder\\FormBuilderFormWidgetConfigurator",
+                        "Capell\\Admin\\Support\\CapellAdminManager",
+                        "admin",
+                        "context"
                     ]
                 ],
                 "receipts": {
@@ -1670,6 +2076,13 @@
                             "Capell\\FormBuilder\\Filament\\Resources\\Submissions\\SubmissionResource"
                         ]
                     ],
+                    "configurator": [
+                        [
+                            "configurator",
+                            "configurator:Widgets:FormBuilderForm",
+                            "Capell\\FormBuilder\\Bridges\\LayoutBuilder\\FormBuilderFormWidgetConfigurator"
+                        ]
+                    ],
                     "content-widget": [
                         [
                             "content-widget",
@@ -1680,6 +2093,16 @@
                             "content-widget",
                             "renderable:form-field:capell-form-builder::element.form",
                             "Capell\\Core\\Data\\RenderableDefinitionData"
+                        ],
+                        [
+                            "content-widget",
+                            "renderable:layout-widget:capell-form-builder::widget.form",
+                            "Capell\\Core\\Data\\RenderableDefinitionData"
+                        ],
+                        [
+                            "content-widget",
+                            "component:Widget:FormBuilderForm",
+                            "capell-form-builder::widget.form"
                         ]
                     ],
                     "model": [
@@ -1698,6 +2121,20 @@
                 "registries": {
                     "Capell\\Admin\\Support\\AdminSurfaceContributionRegistry": {
                         "contributions": {
+                            "configurator": {
+                                "configurator:Widgets:FormBuilderForm": [
+                                    "Capell\\Admin\\Data\\AdminSurfaceContributionData",
+                                    {
+                                        "class": "Capell\\FormBuilder\\Bridges\\LayoutBuilder\\FormBuilderFormWidgetConfigurator",
+                                        "group": "Widgets",
+                                        "key": "configurator:Widgets:FormBuilderForm",
+                                        "name": "FormBuilderForm",
+                                        "position": null,
+                                        "tag": null,
+                                        "type": "configurator"
+                                    }
+                                ]
+                            },
                             "resource": {
                                 "resource:Forms:default": [
                                     "Capell\\Admin\\Data\\AdminSurfaceContributionData",
@@ -1796,6 +2233,13 @@
                             ]
                         }
                     },
+                    "Capell\\Core\\Support\\Components\\ComponentRegistry": {
+                        "components": {
+                            "Widget": {
+                                "FormBuilderForm": "capell-form-builder::widget.form"
+                            }
+                        }
+                    },
                     "Capell\\Core\\Support\\Migration\\MigrationRootRegistry": {
                         "roots": {
                             "capell-app/form-builder": [
@@ -1840,32 +2284,39 @@
                                         "viewDataResolver": null
                                     }
                                 ]
+                            },
+                            "layout-widget": {
+                                "capell-form-builder::widget.form": [
+                                    "Capell\\Core\\Data\\RenderableDefinitionData",
+                                    {
+                                        "adminPreview": null,
+                                        "assetComponent": null,
+                                        "blade": null,
+                                        "contribution": null,
+                                        "key": "capell-form-builder::widget.form",
+                                        "livewire": "Capell\\FormBuilder\\Livewire\\FormElementComponent",
+                                        "type": "layout-widget",
+                                        "viewDataResolver": null
+                                    }
+                                ]
                             }
-                        }
-                    },
-                    "Capell\\PrivacyCenter\\Support\\PrivacySubjectEraserRegistry": {
-                        "erasers": {
-                            "form-builder": [
-                                "<package>/src/Providers/FormBuilderServiceProvider.php",
-                                "static Capell\\FormBuilder\\Providers\\FormBuilderServiceProvider(Illuminate\\Database\\Eloquent\\Model $subject):int source=64b7ade3f0c078e9e933bcea0e29e10d",
-                                []
-                            ]
-                        },
-                        "retainedScopes": {
-                            "form-builder": false
-                        }
-                    },
-                    "Capell\\PrivacyCenter\\Support\\PrivacySubjectExporterRegistry": {
-                        "exporters": {
-                            "form-builder": [
-                                "<package>/src/Providers/FormBuilderServiceProvider.php",
-                                "static Capell\\FormBuilder\\Providers\\FormBuilderServiceProvider(Illuminate\\Database\\Eloquent\\Model $subject):array source=75d37103a4d3b98dee97810a21260dab",
-                                []
-                            ]
                         }
                     }
                 },
                 "renderables": [
+                    [
+                        "Capell\\Core\\Data\\RenderableDefinitionData",
+                        {
+                            "adminPreview": null,
+                            "assetComponent": null,
+                            "blade": null,
+                            "contribution": null,
+                            "key": "capell-form-builder::widget.form",
+                            "livewire": "Capell\\FormBuilder\\Livewire\\FormElementComponent",
+                            "type": "layout-widget",
+                            "viewDataResolver": null
+                        }
+                    ],
                     [
                         "Capell\\Core\\Data\\RenderableDefinitionData",
                         {
@@ -1898,7 +2349,11 @@
                         "capell-payments.form-builder.checkout",
                         "capell/payments/forms/{submission}/checkout",
                         ["GET", "HEAD"],
-                        ["web", "signed"],
+                        [
+                            "web",
+                            "throttle:capell-form-builder-checkout",
+                            "signed"
+                        ],
                         "Capell\\FormBuilder\\Http\\Controllers\\CreateFormPaymentCheckoutController",
                         {
                             "as": "capell-payments.form-builder.checkout",
@@ -1915,8 +2370,43 @@
                         null,
                         true,
                         null
+                    ],
+                    [
+                        "'<php>' 'artisan' capell:form-builder:recover-deliveries",
+                        "*/5 * * * *",
+                        null,
+                        true,
+                        null
                     ]
                 ],
+                "tagged-consumers": {
+                    "capell.layout_builder.public_layout_widget_availability": [
+                        "Capell\\FormBuilder\\Bridges\\LayoutBuilder\\FormWidgetAvailability"
+                    ],
+                    "capell.privacy.subject-eraser": [
+                        "Capell\\FormBuilder\\Support\\Privacy\\FormBuilderPrivacyContributor"
+                    ],
+                    "capell.privacy.subject-exporter": [
+                        "Capell\\FormBuilder\\Support\\Privacy\\FormBuilderPrivacyContributor"
+                    ],
+                    "capell.site-spec.applier": [
+                        "Capell\\FormBuilder\\Actions\\ApplyFormSiteSpecAction"
+                    ]
+                },
+                "tags": {
+                    "capell.layout_builder.public_layout_widget_availability": [
+                        "Capell\\FormBuilder\\Bridges\\LayoutBuilder\\FormWidgetAvailability"
+                    ],
+                    "capell.privacy.subject-eraser": [
+                        "Capell\\FormBuilder\\Support\\Privacy\\FormBuilderPrivacyContributor"
+                    ],
+                    "capell.privacy.subject-exporter": [
+                        "Capell\\FormBuilder\\Support\\Privacy\\FormBuilderPrivacyContributor"
+                    ],
+                    "capell.site-spec.applier": [
+                        "Capell\\FormBuilder\\Actions\\ApplyFormSiteSpecAction"
+                    ]
+                },
                 "vendor-assets": [
                     [
                         "Capell\\Core\\Data\\VendorAssetData",
@@ -1958,7 +2448,8 @@
                 "commands": {
                     "capell:form-builder-screenshot-fixture": "Capell\\FormBuilder\\Console\\Commands\\SeedFormBuilderScreenshotFixtureCommand",
                     "capell:form-builder:export-submissions": "Capell\\FormBuilder\\Console\\Commands\\ExportSubmissionsCommand",
-                    "capell:form-builder:prune": "Capell\\FormBuilder\\Console\\Commands\\PruneExpiredFormSubmissionsCommand"
+                    "capell:form-builder:prune": "Capell\\FormBuilder\\Console\\Commands\\PruneExpiredFormSubmissionsCommand",
+                    "capell:form-builder:recover-deliveries": "Capell\\FormBuilder\\Console\\Commands\\RecoverSubmissionDeliveriesCommand"
                 },
                 "config-defaults": {
                     "capell-form-builder.php": {
@@ -2047,10 +2538,10 @@
         },
         "companions-absent": {
             "source": {
-                "ref": "c92ce184be4d91c372f35ca125ea25f6c1308599",
-                "commit": "c92ce184be4d91c372f35ca125ea25f6c1308599",
+                "ref": "HEAD",
+                "commit": "f1c031c0c3b1c26616a09e4b526a5785cab4549c",
                 "providers": {
-                    "Providers/FormBuilderServiceProvider.php": "0e5632fd0d232ed1f397e89bebdff4595b07953fa1706840c4f61042cf1ac3bb",
+                    "Providers/FormBuilderServiceProvider.php": "21a5524f4b03bd10f89f78b776daa29fef37997ebd5ba646707dbd8ad0b1a236",
                     "Providers/MigrationMetadataServiceProvider.php": "b7aa37fceb0646ec459c84f625b5ea88cd33156d1bade6cb9f40aa37c9a6e7dc"
                 },
                 "configure": "tests/Support/Fixtures/InstalledRuntime/companions-absent.php"
@@ -2081,9 +2572,32 @@
                             "tag": null,
                             "type": "resource"
                         }
+                    ],
+                    [
+                        "Capell\\Admin\\Data\\AdminSurfaceContributionData",
+                        {
+                            "class": "Capell\\FormBuilder\\Bridges\\LayoutBuilder\\FormBuilderFormWidgetConfigurator",
+                            "group": "Widgets",
+                            "key": "configurator:Widgets:FormBuilderForm",
+                            "name": "FormBuilderForm",
+                            "position": null,
+                            "tag": null,
+                            "type": "configurator"
+                        }
                     ]
                 ],
                 "bindings": {
+                    "Capell\\FormBuilder\\Bridges\\LayoutBuilder\\FormWidgetAvailability": {
+                        "concrete": [
+                            "<vendor>/laravel/framework/src/Illuminate/Container/Container.php",
+                            "Illuminate\\Container\\Container( $container,  $parameters): bound=Illuminate\\Foundation\\Application",
+                            {
+                                "abstract": "Capell\\FormBuilder\\Bridges\\LayoutBuilder\\FormWidgetAvailability",
+                                "concrete": "Capell\\FormBuilder\\Bridges\\LayoutBuilder\\FormWidgetAvailability"
+                            }
+                        ],
+                        "shared": true
+                    },
                     "Capell\\FormBuilder\\Contracts\\FormBuilderWebhookHostResolver": {
                         "concrete": [
                             "<vendor>/laravel/framework/src/Illuminate/Container/Container.php",
@@ -2110,7 +2624,8 @@
                 "commands": {
                     "capell:form-builder-screenshot-fixture": "Capell\\FormBuilder\\Console\\Commands\\SeedFormBuilderScreenshotFixtureCommand",
                     "capell:form-builder:export-submissions": "Capell\\FormBuilder\\Console\\Commands\\ExportSubmissionsCommand",
-                    "capell:form-builder:prune": "Capell\\FormBuilder\\Console\\Commands\\PruneExpiredFormSubmissionsCommand"
+                    "capell:form-builder:prune": "Capell\\FormBuilder\\Console\\Commands\\PruneExpiredFormSubmissionsCommand",
+                    "capell:form-builder:recover-deliveries": "Capell\\FormBuilder\\Console\\Commands\\RecoverSubmissionDeliveriesCommand"
                 },
                 "config-defaults": {
                     "capell-form-builder.php": {
@@ -2183,6 +2698,22 @@
                             "static Capell\\FormBuilder\\Providers\\FormBuilderServiceProvider(string|int $siteId, string $formsPayload):void source=5e95ac712147138157dc03b821980ab7",
                             []
                         ]
+                    ],
+                    "eloquent.created: Capell\\FormBuilder\\Models\\Form": [
+                        "Capell\\FormBuilder\\LayoutBuilder\\InvalidateFormWidgetPagesObserver@created"
+                    ],
+                    "eloquent.deleted: Capell\\FormBuilder\\Models\\Form": [
+                        "Capell\\FormBuilder\\LayoutBuilder\\InvalidateFormWidgetPagesObserver@deleted"
+                    ],
+                    "eloquent.deleting: Capell\\FormBuilder\\Models\\Form": [
+                        [
+                            "<package>/src/Models/Form.php",
+                            "static Capell\\FormBuilder\\Models\\Form(self $form):void source=e2d7a8a393ff2af69fdd88b770e90a30",
+                            []
+                        ]
+                    ],
+                    "eloquent.updated: Capell\\FormBuilder\\Models\\Form": [
+                        "Capell\\FormBuilder\\LayoutBuilder\\InvalidateFormWidgetPagesObserver@updated"
                     ]
                 },
                 "livewire": {
@@ -2343,6 +2874,30 @@
                         "Capell\\Admin\\Support\\CapellAdminManager",
                         "admin",
                         "context"
+                    ],
+                    [
+                        "content-widget",
+                        "renderable:layout-widget:capell-form-builder::widget.form",
+                        "Capell\\Core\\Data\\RenderableDefinitionData",
+                        "Capell\\Core\\Support\\Renderables\\RenderableRegistry",
+                        "runtime",
+                        "context"
+                    ],
+                    [
+                        "content-widget",
+                        "component:Widget:FormBuilderForm",
+                        "capell-form-builder::widget.form",
+                        "Capell\\Core\\Support\\CapellCoreManager",
+                        "runtime",
+                        "context"
+                    ],
+                    [
+                        "configurator",
+                        "configurator:Widgets:FormBuilderForm",
+                        "Capell\\FormBuilder\\Bridges\\LayoutBuilder\\FormBuilderFormWidgetConfigurator",
+                        "Capell\\Admin\\Support\\CapellAdminManager",
+                        "admin",
+                        "context"
                     ]
                 ],
                 "receipts": {
@@ -2370,6 +2925,13 @@
                             "Capell\\FormBuilder\\Filament\\Resources\\Submissions\\SubmissionResource"
                         ]
                     ],
+                    "configurator": [
+                        [
+                            "configurator",
+                            "configurator:Widgets:FormBuilderForm",
+                            "Capell\\FormBuilder\\Bridges\\LayoutBuilder\\FormBuilderFormWidgetConfigurator"
+                        ]
+                    ],
                     "content-widget": [
                         [
                             "content-widget",
@@ -2380,6 +2942,16 @@
                             "content-widget",
                             "renderable:form-field:capell-form-builder::element.form",
                             "Capell\\Core\\Data\\RenderableDefinitionData"
+                        ],
+                        [
+                            "content-widget",
+                            "renderable:layout-widget:capell-form-builder::widget.form",
+                            "Capell\\Core\\Data\\RenderableDefinitionData"
+                        ],
+                        [
+                            "content-widget",
+                            "component:Widget:FormBuilderForm",
+                            "capell-form-builder::widget.form"
                         ]
                     ],
                     "model": [
@@ -2398,6 +2970,20 @@
                 "registries": {
                     "Capell\\Admin\\Support\\AdminSurfaceContributionRegistry": {
                         "contributions": {
+                            "configurator": {
+                                "configurator:Widgets:FormBuilderForm": [
+                                    "Capell\\Admin\\Data\\AdminSurfaceContributionData",
+                                    {
+                                        "class": "Capell\\FormBuilder\\Bridges\\LayoutBuilder\\FormBuilderFormWidgetConfigurator",
+                                        "group": "Widgets",
+                                        "key": "configurator:Widgets:FormBuilderForm",
+                                        "name": "FormBuilderForm",
+                                        "position": null,
+                                        "tag": null,
+                                        "type": "configurator"
+                                    }
+                                ]
+                            },
                             "resource": {
                                 "resource:Forms:default": [
                                     "Capell\\Admin\\Data\\AdminSurfaceContributionData",
@@ -2496,6 +3082,13 @@
                             ]
                         }
                     },
+                    "Capell\\Core\\Support\\Components\\ComponentRegistry": {
+                        "components": {
+                            "Widget": {
+                                "FormBuilderForm": "capell-form-builder::widget.form"
+                            }
+                        }
+                    },
                     "Capell\\Core\\Support\\Migration\\MigrationRootRegistry": {
                         "roots": {
                             "capell-app/form-builder": [
@@ -2540,11 +3133,39 @@
                                         "viewDataResolver": null
                                     }
                                 ]
+                            },
+                            "layout-widget": {
+                                "capell-form-builder::widget.form": [
+                                    "Capell\\Core\\Data\\RenderableDefinitionData",
+                                    {
+                                        "adminPreview": null,
+                                        "assetComponent": null,
+                                        "blade": null,
+                                        "contribution": null,
+                                        "key": "capell-form-builder::widget.form",
+                                        "livewire": "Capell\\FormBuilder\\Livewire\\FormElementComponent",
+                                        "type": "layout-widget",
+                                        "viewDataResolver": null
+                                    }
+                                ]
                             }
                         }
                     }
                 },
                 "renderables": [
+                    [
+                        "Capell\\Core\\Data\\RenderableDefinitionData",
+                        {
+                            "adminPreview": null,
+                            "assetComponent": null,
+                            "blade": null,
+                            "contribution": null,
+                            "key": "capell-form-builder::widget.form",
+                            "livewire": "Capell\\FormBuilder\\Livewire\\FormElementComponent",
+                            "type": "layout-widget",
+                            "viewDataResolver": null
+                        }
+                    ],
                     [
                         "Capell\\Core\\Data\\RenderableDefinitionData",
                         {
@@ -2577,7 +3198,11 @@
                         "capell-payments.form-builder.checkout",
                         "capell/payments/forms/{submission}/checkout",
                         ["GET", "HEAD"],
-                        ["web", "signed"],
+                        [
+                            "web",
+                            "throttle:capell-form-builder-checkout",
+                            "signed"
+                        ],
                         "Capell\\FormBuilder\\Http\\Controllers\\CreateFormPaymentCheckoutController",
                         {
                             "as": "capell-payments.form-builder.checkout",
@@ -2594,8 +3219,43 @@
                         null,
                         true,
                         null
+                    ],
+                    [
+                        "'<php>' 'artisan' capell:form-builder:recover-deliveries",
+                        "*/5 * * * *",
+                        null,
+                        true,
+                        null
                     ]
                 ],
+                "tagged-consumers": {
+                    "capell.layout_builder.public_layout_widget_availability": [
+                        "Capell\\FormBuilder\\Bridges\\LayoutBuilder\\FormWidgetAvailability"
+                    ],
+                    "capell.privacy.subject-eraser": [
+                        "Capell\\FormBuilder\\Support\\Privacy\\FormBuilderPrivacyContributor"
+                    ],
+                    "capell.privacy.subject-exporter": [
+                        "Capell\\FormBuilder\\Support\\Privacy\\FormBuilderPrivacyContributor"
+                    ],
+                    "capell.site-spec.applier": [
+                        "Capell\\FormBuilder\\Actions\\ApplyFormSiteSpecAction"
+                    ]
+                },
+                "tags": {
+                    "capell.layout_builder.public_layout_widget_availability": [
+                        "Capell\\FormBuilder\\Bridges\\LayoutBuilder\\FormWidgetAvailability"
+                    ],
+                    "capell.privacy.subject-eraser": [
+                        "Capell\\FormBuilder\\Support\\Privacy\\FormBuilderPrivacyContributor"
+                    ],
+                    "capell.privacy.subject-exporter": [
+                        "Capell\\FormBuilder\\Support\\Privacy\\FormBuilderPrivacyContributor"
+                    ],
+                    "capell.site-spec.applier": [
+                        "Capell\\FormBuilder\\Actions\\ApplyFormSiteSpecAction"
+                    ]
+                },
                 "vendor-assets": [
                     [
                         "Capell\\Core\\Data\\VendorAssetData",
@@ -2637,7 +3297,8 @@
                 "commands": {
                     "capell:form-builder-screenshot-fixture": "Capell\\FormBuilder\\Console\\Commands\\SeedFormBuilderScreenshotFixtureCommand",
                     "capell:form-builder:export-submissions": "Capell\\FormBuilder\\Console\\Commands\\ExportSubmissionsCommand",
-                    "capell:form-builder:prune": "Capell\\FormBuilder\\Console\\Commands\\PruneExpiredFormSubmissionsCommand"
+                    "capell:form-builder:prune": "Capell\\FormBuilder\\Console\\Commands\\PruneExpiredFormSubmissionsCommand",
+                    "capell:form-builder:recover-deliveries": "Capell\\FormBuilder\\Console\\Commands\\RecoverSubmissionDeliveriesCommand"
                 },
                 "config-defaults": {
                     "capell-form-builder.php": {

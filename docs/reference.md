@@ -6,10 +6,10 @@ Developer reference for `capell-app/form-builder`. Start with the [README](../RE
 
 ## Package Details
 
-Form Builder is an **Available**, **Schema-owning** Capell package in the **Capell Engagement & CRM** product group. It ships as `capell-app/form-builder` and extends these surfaces: admin, frontend.
+Form Builder is an **Available** Capell package in the **Capell Engagement & CRM** product group. It ships as `capell-app/form-builder` and extends these surfaces: admin, frontend.
 
 - Status: Available
-- Tier: premium
+- Tier: paid
 - Bundle: engagement-crm
 - Composer package: `capell-app/form-builder`
 - Namespace: `Capell\FormBuilder`
@@ -31,6 +31,7 @@ Form Builder is an **Available**, **Schema-owning** Capell package in the **Cape
 - `packages/form-builder/database/migrations/2026_05_10_190849_01_create_form-builder_table.php`
 - `packages/form-builder/database/migrations/2026_05_10_190849_02_create_submissions_table.php`
 - `packages/form-builder/database/migrations/2026_07_12_000001_add_retention_to_submissions_table.php`
+- `packages/form-builder/database/migrations/2026_11_12_000001_add_subject_and_delivery_to_submissions_table.php`
 
 ### Models
 
@@ -72,6 +73,7 @@ Form Builder is an **Available**, **Schema-owning** Capell package in the **Cape
 
 ### Actions
 
+- `ApplyFormSiteSpecAction`
 - `ArchiveSubmissionAction`
 - `BuildFormAgentToolManifestAction`
 - `BuildFormComponentValidationRulesAction`
@@ -89,16 +91,25 @@ Form Builder is an **Available**, **Schema-owning** Capell package in the **Cape
 - `CreateFormPaymentCheckoutSessionAction`
 - `CreateFormPaymentCheckoutUrlAction`
 - `CreateSubmissionAction`
+- `DeleteSubmissionAction`
+- `DeleteSubmissionUploadsAction`
+- `DeliverSubmissionMailAction`
 - `DispatchSubmissionWebhookAction`
 - `DispatchUnstoredFormSubmissionAction`
 - `EraseFormSubmissionPrivacyDataAction`
 - `EvaluateFormFieldVisibilityAction`
+- `FindActiveSiteFormAction`
 - `GuardFormSubmissionRateLimitAction`
 - `InstallThemeDemoFormsAction`
+- `InvalidateFormWidgetPagesAction`
 - `IsFormPaymentIntegrationAvailableAction`
+- `ListSubmissionUploadsAction`
 - `MarkSubmissionReadAction`
 - `MarkSubmissionSpamAction`
+- `ParseNotificationRecipientsAction`
+- `PlaceFormOnPageAction`
 - `PruneExpiredFormSubmissionsAction`
+- `RecoverPendingSubmissionDeliveriesAction`
 - `RedactSubmissionWebhookErrorMessageAction`
 - `ReplyToSubmissionAction`
 - `ResolveFormComponentFormAction`
@@ -107,7 +118,10 @@ Form Builder is an **Available**, **Schema-owning** Capell package in the **Cape
 - `ResolveFormPaymentCheckoutDataAction`
 - `ResolveFormRequestSiteAction`
 - `ResolveFormSubmissionPrivacyRecordIdsAction`
+- `ResolveFormWidgetPlacementAction`
+- `ResolveSafeSuccessRedirectUrlAction`
 - `ResolveSubmissionReplyAddressAction`
+- `ResolveSubmissionUploadDownloadAction`
 - `ResolveVisibleFormFieldsAction`
 - `SeedFormBuilderScreenshotFixtureAction`
 - `SendSubmissionAutoresponderAction`
@@ -127,7 +141,9 @@ Form Builder is an **Available**, **Schema-owning** Capell package in the **Cape
 - `FormStepData`
 - `FormSubmissionData`
 - `FormSubmissionPrivacyRecordIdsData`
+- `FormWidgetPlacementData`
 - `ResolvedFormWebhookEndpointData`
+- `SiteSpecFormData`
 - `SubmissionMetaData`
 - `SubmissionPayloadData`
 - `SubmissionSpamScoreData`
@@ -140,6 +156,7 @@ Form Builder is an **Available**, **Schema-owning** Capell package in the **Cape
 
 - `capell:form-builder:export-submissions`
 - `capell:form-builder:prune`
+- `capell:form-builder:recover-deliveries`
 
 ### Manifest action API
 
@@ -165,22 +182,26 @@ Form Builder is an **Available**, **Schema-owning** Capell package in the **Cape
 ### Scheduled commands
 
 - `capell:form-builder:prune (daily; package registered)`
+- `capell:form-builder:recover-deliveries (everyFiveMinutes; package registered)`
 
 ### Console command classes
 
 - `ExportSubmissionsCommand`
 - `PruneExpiredFormSubmissionsCommand`
+- `RecoverSubmissionDeliveriesCommand`
 - `SeedFormBuilderScreenshotFixtureCommand`
 
 ### Manifest contributions
 
 - `admin-resource: Capell\FormBuilder\Manifest\FormResourceContribution`
 - `admin-resource: Capell\FormBuilder\Manifest\SubmissionResourceContribution`
+- `configurator: Capell\FormBuilder\Manifest\FormBuilderWidgetConfiguratorContribution`
 - `console-command: Capell\FormBuilder\Manifest\FormBuilderConsoleCommandsContribution`
 - `frontend-component: Capell\FormBuilder\Manifest\FormElementComponentContribution`
 - `model: Capell\FormBuilder\Manifest\FormModelContribution`
 - `model: Capell\FormBuilder\Manifest\SubmissionModelContribution`
 - `route: Capell\FormBuilder\Manifest\FormBuilderPaymentRoutesContribution`
+- `scheduled-job: Capell\FormBuilder\Manifest\FormBuilderDeliveryRecoveryScheduleContribution`
 - `scheduled-job: Capell\FormBuilder\Manifest\FormBuilderPruneScheduleContribution`
 
 ### Health checks
@@ -207,7 +228,7 @@ Form Builder is an **Available**, **Schema-owning** Capell package in the **Cape
 - Required tables: `forms`, `submissions`.
 - Models: `Form`, `Submission`.
 - Core record references in migrations: `sites via site_id`.
-- Migration files: `2026_05_10_190849_01_create_form-builder_table.php`, `2026_05_10_190849_02_create_submissions_table.php`, `2026_07_12_000001_add_retention_to_submissions_table.php`.
+- Migration files: `2026_05_10_190849_01_create_form-builder_table.php`, `2026_05_10_190849_02_create_submissions_table.php`, `2026_07_12_000001_add_retention_to_submissions_table.php`, `2026_11_12_000001_add_subject_and_delivery_to_submissions_table.php`.
 - Migration impact: run host migrations through the package install flow before opening package surfaces.
 - Deletion/retention behaviour: migrations declare cascade-on-delete relationships; retention is scheduled through `capell:form-builder:prune` (daily; registered by the package provider).
 

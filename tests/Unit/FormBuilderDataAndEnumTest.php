@@ -25,6 +25,7 @@ it('declares enum labels components resources and health compatibility', functio
         ->and(LivewireComponentEnum::getComponents())->toBe([
             'capell-form-builder::form' => FormComponent::class,
             'capell-form-builder::element.form' => FormElementComponent::class,
+            'capell-form-builder::widget.form' => FormElementComponent::class,
             'public-form-fields' => FormComponent::class,
             'public-form' => FormElementComponent::class,
         ])

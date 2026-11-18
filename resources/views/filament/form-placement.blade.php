@@ -5,8 +5,13 @@
     @if ($placement->handle !== null)
         <p>{{ __('capell-form-builder::placement.introduction', ['site' => $placement->siteName]) }}</p>
         <ol class="list-decimal space-y-3 pl-5">
+            @if ($placement->layoutBuilderAvailable)
+                <li data-form-placement-layout-builder>
+                    {{ __('capell-form-builder::placement.layout_builder') }}
+                </li>
+            @endif
             <li>
-                {{ __('capell-form-builder::placement.developer') }}
+                {{ $placement->layoutBuilderAvailable ? __('capell-form-builder::placement.developer_alternative') : __('capell-form-builder::placement.developer') }}
                 <code data-form-placement-handle>{{ $placement->handle }}</code>
             </li>
             <li>{{ __('capell-form-builder::placement.preview') }}</li>

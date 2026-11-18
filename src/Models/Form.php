@@ -6,6 +6,7 @@ namespace Capell\FormBuilder\Models;
 
 use Capell\Core\Concerns\HasCapellTable;
 use Capell\Core\Models\Site;
+use Capell\FormBuilder\Actions\DeleteSubmissionUploadsAction;
 use Capell\FormBuilder\Data\FormFieldData;
 use Capell\FormBuilder\Data\FormSettingsData;
 use Capell\FormBuilder\Database\Factories\FormFactory;
@@ -55,6 +56,14 @@ class Form extends Model
     public function submissions(): HasMany
     {
         return $this->hasMany(Submission::class);
+    }
+
+    #[Override]
+    protected static function booted(): void
+    {
+        static::deleting(static function (self $form): void {
+            DeleteSubmissionUploadsAction::run($form->submissions()->getQuery());
+        });
     }
 
     /**

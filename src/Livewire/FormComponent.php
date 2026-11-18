@@ -16,7 +16,9 @@ use Capell\FormBuilder\Actions\GuardFormSubmissionRateLimitAction;
 use Capell\FormBuilder\Actions\ResolveFormComponentFormAction;
 use Capell\FormBuilder\Actions\ResolveFormComponentStepStateAction;
 use Capell\FormBuilder\Actions\ResolveFormInitialValuesAction;
+use Capell\FormBuilder\Actions\ResolveSafeSuccessRedirectUrlAction;
 use Capell\FormBuilder\Actions\ResolveVisibleFormFieldsAction;
+use Capell\FormBuilder\Contracts\SpamProtectionProvider;
 use Capell\FormBuilder\Data\FormComponentStepStateData;
 use Capell\FormBuilder\Data\FormFieldData;
 use Capell\FormBuilder\Data\FormSettingsData;
@@ -26,6 +28,7 @@ use Capell\FormBuilder\Enums\FormFieldType;
 use Capell\FormBuilder\Models\Form;
 use Capell\FormBuilder\Models\Submission;
 use Capell\FormBuilder\Support\FormRequestContext;
+use Capell\FormBuilder\Support\SpamProtection\TurnstileSpamProtectionProvider;
 use Capell\Frontend\Actions\Performance\RecordExtensionRenderContributionAction;
 use Capell\Frontend\Facades\Frontend;
 use Illuminate\Contracts\View\View;
@@ -137,7 +140,7 @@ final class FormComponent extends Component
 
         $metadata = $this->metadata();
         $settings = $this->settings();
-        GuardFormSubmissionRateLimitAction::run($form, $this->allFields(), $this->data, request()->ip());
+        GuardFormSubmissionRateLimitAction::run($form, $this->allFields(), $this->data, request());
 
         if (! $this->hasTriggeredHoneypot()) {
             try {
@@ -209,7 +212,31 @@ final class FormComponent extends Component
             'hasPaymentField' => $this->hasPaymentField(),
             'settings' => $this->settings(),
             'steps' => $this->stepState()->steps,
+            'turnstile' => $this->turnstileWidget(),
         ]);
+    }
+
+    /**
+     * @return array{site_key: string, token_field: string}|null
+     */
+    private function turnstileWidget(): ?array
+    {
+        if (! (bool) config('capell-form-builder.spam_protection.enabled', false)
+            || ! app(SpamProtectionProvider::class) instanceof TurnstileSpamProtectionProvider) {
+            return null;
+        }
+
+        $siteKey = config('capell-form-builder.spam_protection.turnstile.site_key');
+        $tokenField = config('capell-form-builder.spam_protection.token_field', 'cf-turnstile-response');
+
+        if (! is_string($siteKey) || trim($siteKey) === '') {
+            return null;
+        }
+
+        return [
+            'site_key' => trim($siteKey),
+            'token_field' => is_string($tokenField) && trim($tokenField) !== '' ? $tokenField : 'cf-turnstile-response',
+        ];
     }
 
     private function form(): ?Form
@@ -314,9 +341,9 @@ final class FormComponent extends Component
 
     private function redirectAfterSuccess(FormSettingsData $settings): void
     {
-        $redirectUrl = is_string($settings->successRedirectUrl) ? trim($settings->successRedirectUrl) : '';
+        $redirectUrl = ResolveSafeSuccessRedirectUrlAction::run($settings->successRedirectUrl);
 
-        if ($redirectUrl !== '') {
+        if ($redirectUrl !== null) {
             $this->redirect($redirectUrl);
         }
     }

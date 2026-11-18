@@ -93,7 +93,7 @@
                                             href="#capell-form-{{ $formInstanceId }}-{{ $field->key }}"
                                             class="underline underline-offset-2"
                                         >
-                                            {{ $field->label }}: {{ $message }}
+                                            {{ $field->displayLabel() }}: {{ $message }}
                                         </a>
                                     </li>
                                 @enderror
@@ -126,6 +126,7 @@
                             wire:model="data.{{ $field->key }}"
                             id="{{ $fieldId }}"
                             class="hidden"
+                            hidden
                             tabindex="-1"
                             autocomplete="off"
                             aria-hidden="true"
@@ -136,7 +137,7 @@
                                 for="{{ $fieldId }}"
                                 class="capell-form__label block text-sm font-medium text-gray-900 dark:text-gray-100"
                             >
-                                {{ $field->label }}
+                                {{ $field->displayLabel() }}
                             </label>
 
                             @if ($field->type === FormFieldType::Textarea)
@@ -255,6 +256,47 @@
                         </div>
                     @endif
                 @endforeach
+
+                @if ($turnstile !== null)
+                    <div
+                        wire:ignore
+                        class="capell-form__turnstile"
+                        x-data="{
+                            widgetId: null,
+                            render() {
+                                if (! window.turnstile || this.widgetId !== null) {
+                                    return
+                                }
+
+                                this.widgetId = window.turnstile.render(this.$refs.widget, {
+                                    sitekey: @js($turnstile['site_key']),
+                                    callback: (token) => $wire.set(@js('data.' . $turnstile['token_field']), token),
+                                    'expired-callback': () => $wire.set(@js('data.' . $turnstile['token_field']), ''),
+                                })
+                            },
+                        }"
+                        x-init="
+                            if (! window.turnstile && ! document.querySelector('script[data-capell-turnstile]')) {
+                                const script = document.createElement('script')
+                                script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'
+                                script.async = true
+                                script.dataset.capellTurnstile = '1'
+                                document.head.appendChild(script)
+                            }
+                            const wait = setInterval(() => {
+                                if (window.turnstile) {
+                                    clearInterval(wait)
+                                    render()
+                                }
+                            }, 100)
+                        "
+                    >
+                        <div
+                            x-ref="widget"
+                            data-turnstile-widget
+                        ></div>
+                    </div>
+                @endif
 
                 <div
                     class="capell-form__actions flex flex-wrap items-center gap-3"

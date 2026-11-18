@@ -5,8 +5,13 @@ declare(strict_types=1);
 namespace Capell\FormBuilder\Filament\Resources\Forms;
 
 use BackedEnum;
+use Capell\Admin\Enums\NavigationGroupEnum;
 use Capell\Admin\Filament\Components\Forms\SiteSelect;
 use Capell\Admin\Support\SiteScope;
+use Capell\FormBuilder\Actions\DispatchSubmissionWebhookAction;
+use Capell\FormBuilder\Actions\ParseNotificationRecipientsAction;
+use Capell\FormBuilder\Actions\ResolveSafeSuccessRedirectUrlAction;
+use Capell\FormBuilder\Data\FormFieldData;
 use Capell\FormBuilder\Enums\FormFieldConditionOperator;
 use Capell\FormBuilder\Enums\FormFieldType;
 use Capell\FormBuilder\Filament\Resources\Forms\Pages\CreateForm;
@@ -15,6 +20,7 @@ use Capell\FormBuilder\Filament\Resources\Forms\Pages\ListForms;
 use Capell\FormBuilder\Models\Form;
 use Capell\FormBuilder\Rules\ValidCalculationExpression;
 use Capell\FormBuilder\Support\CalculationExpression;
+use Closure;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\EditAction;
@@ -90,7 +96,7 @@ final class FormResource extends Resource
                             ->defaultItems(1)
                             ->reorderable()
                             ->collapsible()
-                            ->itemLabel(fn (array $state): ?string => is_string($state['label'] ?? null) ? $state['label'] : null)
+                            ->itemLabel(fn (array $state): ?string => is_string($state['label'] ?? null) ? FormFieldData::resolveLabel($state['label']) : null)
                             ->columnSpanFull(),
                     ])
                     ->columnSpanFull(),
@@ -103,8 +109,17 @@ final class FormResource extends Resource
                             ->default(true),
                         TextInput::make('settings.notification_email')
                             ->label(__('capell-form-builder::form.admin.fields.notification_email'))
-                            ->email()
-                            ->maxLength(255),
+                            ->helperText(__('capell-form-builder::form.admin.fields.notification_email_help'))
+                            ->rule(static fn (): Closure => static function (string $attribute, mixed $value, Closure $fail): void {
+                                foreach (ParseNotificationRecipientsAction::run(is_string($value) ? $value : null, validOnly: false) as $address) {
+                                    if (filter_var($address, FILTER_VALIDATE_EMAIL) === false) {
+                                        $fail(__('capell-form-builder::form.admin.notification_email_invalid', ['address' => $address]));
+
+                                        return;
+                                    }
+                                }
+                            })
+                            ->maxLength(1000),
                         Select::make('settings.visitor_email_field_key')
                             ->label(__('capell-form-builder::form.admin.fields.visitor_email_field_key'))
                             ->helperText(__('capell-form-builder::form.admin.fields.visitor_email_field_key_help'))
@@ -139,6 +154,7 @@ final class FormResource extends Resource
                                         if (! is_array($field) || ! in_array($field['type'] ?? null, [FormFieldType::Text, FormFieldType::Text->value], true)) {
                                             continue;
                                         }
+
                                         $key = $field['key'] ?? null;
                                         if (is_string($key) && $key !== '') {
                                             $label = is_string($field['label'] ?? null) && $field['label'] !== '' ? $field['label'] : $key;
@@ -159,11 +175,26 @@ final class FormResource extends Resource
                             ->columnSpanFull(),
                         TextInput::make('settings.success_redirect_url')
                             ->label(__('capell-form-builder::form.admin.fields.success_redirect_url'))
+                            ->helperText(__('capell-form-builder::form.admin.fields.success_redirect_url_help'))
+                            ->rule(static fn (): Closure => static function (string $attribute, mixed $value, Closure $fail): void {
+                                if (is_string($value) && trim($value) !== '' && ResolveSafeSuccessRedirectUrlAction::run($value) === null) {
+                                    $fail(__('capell-form-builder::form.admin.success_redirect_url_invalid'));
+                                }
+                            })
                             ->maxLength(2048),
                         TextInput::make('settings.webhook_url')
                             ->label(__('capell-form-builder::form.admin.fields.webhook_url'))
+                            ->helperText(__('capell-form-builder::form.admin.fields.webhook_url_help'))
                             ->url()
                             ->maxLength(2048),
+                        TextInput::make('webhook_signing_secret')
+                            ->label(__('capell-form-builder::form.admin.fields.webhook_signing_secret'))
+                            ->helperText(__('capell-form-builder::form.admin.fields.webhook_signing_secret_help'))
+                            ->readOnly()
+                            ->dehydrated(false)
+                            ->copyable()
+                            ->visible(fn (?Form $record): bool => $record instanceof Form && $record->exists)
+                            ->formatStateUsing(fn (?Form $record): ?string => $record instanceof Form && $record->exists ? DispatchSubmissionWebhookAction::signingSecret($record) : null),
                         Toggle::make('settings.collect_ip_address')
                             ->label(__('capell-form-builder::form.admin.fields.collect_ip_address'))
                             ->default(true),
@@ -265,9 +296,9 @@ final class FormResource extends Resource
     }
 
     #[Override]
-    public static function getNavigationGroup(): string
+    public static function getNavigationGroup(): NavigationGroupEnum
     {
-        return __('capell-admin::navigation.group_marketing');
+        return NavigationGroupEnum::Marketing;
     }
 
     #[Override]
@@ -328,6 +359,8 @@ final class FormResource extends Resource
                 ->maxLength(255),
             TextInput::make('label')
                 ->label(__('capell-form-builder::form.admin.fields.field_label'))
+                // A label kept as a translation key is shown, and saved once edited, in the editor's words.
+                ->formatStateUsing(fn (mixed $state): mixed => is_string($state) ? FormFieldData::resolveLabel($state) : $state)
                 ->required()
                 ->maxLength(255),
             Select::make('type')

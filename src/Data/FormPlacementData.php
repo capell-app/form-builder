@@ -11,5 +11,6 @@ final readonly class FormPlacementData
         public string $siteName,
         public ?string $submissionsUrl,
         public bool $storesSubmissions,
+        public bool $layoutBuilderAvailable = false,
     ) {}
 }

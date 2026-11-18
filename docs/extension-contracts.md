@@ -357,8 +357,8 @@ declare(strict_types=1);
 
 namespace App\CapellExamples\FormBuilder;
 
-function runSendSubmissionNotification(\Capell\FormBuilder\Models\Submission $submission): void
+function runSendSubmissionNotification(\Capell\FormBuilder\Models\Submission $submission): bool
 {
-    \Capell\FormBuilder\Actions\SendSubmissionNotificationAction::run($submission);
+    return \Capell\FormBuilder\Actions\SendSubmissionNotificationAction::run($submission);
 }
 ```

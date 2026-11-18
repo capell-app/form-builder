@@ -1,0 +1,77 @@
+[
+    {
+        "claim": "Answers arrive in an admin inbox",
+        "evidence": [
+            "src/Enums/SubmissionStatus.php",
+            "src/Filament/Resources/Submissions/Tables/SubmissionsTable.php"
+        ]
+    },
+    {
+        "claim": "Staff email and auto-reply",
+        "evidence": ["src/Data/FormSettingsData.php"]
+    },
+    {
+        "claim": "Questions change with earlier answers",
+        "evidence": [
+            "src/Enums/FormFieldConditionOperator.php",
+            "src/Actions/ResolveVisibleFormFieldsAction.php"
+        ]
+    },
+    {
+        "claim": "File uploads",
+        "evidence": [
+            "src/Enums/FormFieldType.php",
+            "src/Actions/BuildFormValidationRulesAction.php"
+        ]
+    },
+    {
+        "claim": "Split into steps",
+        "evidence": [
+            "resources/lang/en/form.php",
+            "src/Actions/BuildFormStepsAction.php"
+        ]
+    },
+    {
+        "claim": "Calculated field",
+        "evidence": [
+            "src/Support/CalculationExpression.php",
+            "src/Actions/CalculateFormFieldValuesAction.php"
+        ]
+    },
+    {
+        "claim": "Placed with the Form element or by a developer",
+        "evidence": ["resources/lang/en/placement.php"]
+    },
+    {
+        "claim": "Spam score from links, repeats, blocked words; high scorers to Spam",
+        "evidence": [
+            "src/Actions/CalculateSubmissionSpamScoreAction.php",
+            "src/Actions/CreateSubmissionAction.php",
+            "config/capell-form-builder.php"
+        ]
+    },
+    {
+        "claim": "Optional hidden trap field",
+        "evidence": [
+            "src/Enums/FormFieldType.php",
+            "src/Actions/CalculateSubmissionSpamScoreAction.php"
+        ]
+    },
+    {
+        "claim": "Typed answers stored encrypted",
+        "evidence": ["src/Models/Submission.php"]
+    },
+    {
+        "claim": "Deleted after a year unless on legal hold",
+        "evidence": [
+            "config/capell-form-builder.php",
+            "src/Actions/PruneExpiredFormSubmissionsAction.php"
+        ]
+    },
+    {
+        "claim": "Reply by email and archive",
+        "evidence": [
+            "src/Filament/Resources/Submissions/Tables/SubmissionsTable.php"
+        ]
+    }
+]

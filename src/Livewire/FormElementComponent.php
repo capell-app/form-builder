@@ -7,13 +7,15 @@ namespace Capell\FormBuilder\Livewire;
 use Capell\Core\Contracts\Extensions\RegistersExtensionFrontendComponent;
 use Capell\Core\Models\Site;
 use Capell\Core\Support\Security\PublicUrlSanitizer;
+use Capell\FormBuilder\Actions\FindActiveSiteFormAction;
 use Capell\FormBuilder\Actions\ResolveFormComponentFormAction;
 use Capell\FormBuilder\Actions\ResolveFormRequestSiteAction;
+use Capell\FormBuilder\Actions\ResolveFormWidgetPlacementAction;
+use Capell\FormBuilder\Data\FormWidgetPlacementData;
 use Capell\FormBuilder\Models\Form;
 use Capell\Frontend\Actions\Performance\RecordExtensionRenderContributionAction;
 use Capell\Frontend\Facades\Frontend;
 use Illuminate\Contracts\View\View;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Locked;
@@ -40,6 +42,16 @@ class FormElementComponent extends Component implements RegistersExtensionFronte
 
     public ?string $fallbackUrl = null;
 
+    /**
+     * A Layout Builder widget shows nothing at all when its form is missing,
+     * inactive or belongs to another site, instead of an unavailable notice.
+     */
+    #[Locked]
+    public bool $hideWhenUnavailable = false;
+
+    #[Locked]
+    public bool $loadAttempted = false;
+
     #[Override]
     public static function compatibleCapellApiVersion(): string
     {
@@ -49,9 +61,25 @@ class FormElementComponent extends Component implements RegistersExtensionFronte
     /**
      * @param  array<string, mixed>  $widgetData
      */
-    public function mount(array $widgetData = [], int|string|null $handle = null): void
-    {
+    public function mount(
+        array $widgetData = [],
+        int|string|null $handle = null,
+        string $widgetReference = '',
+        bool $hideWhenUnavailable = false,
+    ): void {
         $this->instanceId = $this->resolveInstanceId($widgetData);
+        $this->hideWhenUnavailable = $hideWhenUnavailable;
+
+        if ($widgetReference !== '') {
+            // Mounted by Layout Builder: the form comes from the widget's settings.
+            $this->hideWhenUnavailable = true;
+            $placement = ResolveFormWidgetPlacementAction::run($widgetReference);
+
+            if ($placement instanceof FormWidgetPlacementData) {
+                $handle = $placement->handle;
+                $this->instanceId = $placement->instanceId;
+            }
+        }
         $this->fallbackMessage = $this->stringValue($widgetData, 'fallback_message');
         $this->fallbackLabel = $this->stringValue($widgetData, 'fallback_label');
         $this->fallbackUrl = PublicUrlSanitizer::sanitize($widgetData['fallback_url'] ?? null);
@@ -75,6 +103,8 @@ class FormElementComponent extends Component implements RegistersExtensionFronte
         if ($this->formReference !== '' || $this->formHandle === '') {
             return;
         }
+
+        $this->loadAttempted = true;
 
         $form = $this->resolveFormForCurrentSite($this->formHandle);
 
@@ -128,17 +158,7 @@ class FormElementComponent extends Component implements RegistersExtensionFronte
             return null;
         }
 
-        return Form::query()
-            ->active()
-            ->where('site_id', $siteId)
-            ->where(function (Builder $builder) use ($handle): void {
-                if (is_numeric($handle)) {
-                    $builder->whereKey((int) $handle);
-                }
-
-                $builder->orWhere('handle', (string) $handle);
-            })
-            ->first();
+        return FindActiveSiteFormAction::run($siteId, $handle);
     }
 
     private function resolveSiteId(): ?int

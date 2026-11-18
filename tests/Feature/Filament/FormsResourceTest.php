@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Capell\Admin\Enums\NavigationGroupEnum;
 use Capell\Admin\Filament\Pages\SettingsPage;
 use Capell\Core\Models\Page;
 use Capell\Core\Models\Site;
@@ -45,7 +46,7 @@ beforeEach(function (): void {
 });
 
 it('places forms in the marketing navigation group', function (): void {
-    expect(FormResource::getNavigationGroup())->toBe((string) __('capell-admin::navigation.group_marketing'))
+    expect(FormResource::getNavigationGroup())->toBe(NavigationGroupEnum::Marketing)
         ->and(FormResource::getNavigationParentItem())->toBeNull()
         ->and(FormResource::getNavigationLabel())->toBe((string) __('capell-form-builder::navigation.forms'))
         ->and(FormResource::getPages())->toHaveKeys(['index', 'create', 'edit']);

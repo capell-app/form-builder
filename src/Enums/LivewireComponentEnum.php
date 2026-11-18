@@ -21,6 +21,10 @@ enum LivewireComponentEnum: string implements EnumAttributeInterface
     #[Component(FormElementComponent::class)]
     case FormElement = 'capell-form-builder::element.form';
 
+    /** The Layout Builder widget: Layout Builder mounts it with a widget reference. */
+    #[Component(FormElementComponent::class)]
+    case LayoutWidget = 'capell-form-builder::widget.form';
+
     #[Component(FormComponent::class)]
     case PublicFormFields = 'public-form-fields';
 

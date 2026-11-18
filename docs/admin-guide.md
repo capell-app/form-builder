@@ -26,7 +26,7 @@ This guide is for editors who build forms and owners deciding where submissions 
 ### How to embed a form on a page
 
 1. Open the saved form's **Put this form on a page** action. Keep **Store submissions** on if you need an inbox record of the test.
-2. If your page editor provides the Form element, choose this form's **Key** there on a page on the same site. Otherwise give the developer the key and site shown in the action; they must wire the supported public form component into the page or layout first.
+2. With Layout Builder, add a widget that uses the **Form** component to the page and choose this form in its **Form** setting. If other pages share the layout, copy the layout first so the form appears only on this page. Otherwise give the developer the key and site shown in the action; they must wire the supported public form component into the page or layout first.
 3. Save the page as a draft and preview it. Only an **active**, same-site form renders; inactive, missing and foreign-site keys show the unavailable fallback. Publish explicitly when ready.
 4. Open the public page and send a clearly labelled test enquiry. Use **View submissions** to inspect the stored fields and check any configured notification inbox. This link requires submission-view permission; ask an authorised colleague to check if you cannot view submissions.
 

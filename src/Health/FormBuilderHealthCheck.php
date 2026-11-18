@@ -54,6 +54,7 @@ final class FormBuilderHealthCheck implements ChecksExtensionHealth
             $check->spamScoringEnabledCheck(),
             $check->encryptedSubmissionsCheck(),
             $check->retentionLifecycleCheck(),
+            $check->pendingDeliveriesCheck(),
         ]);
     }
 
@@ -61,6 +62,28 @@ final class FormBuilderHealthCheck implements ChecksExtensionHealth
     {
         return self::runDiagnostics()
             ->every(static fn (DoctorCheckResultData $result): bool => $result->passed);
+    }
+
+    /**
+     * Submissions saved but whose notification or autoresponder could not be queued.
+     */
+    public function pendingDeliveriesCheck(): DoctorCheckResultData
+    {
+        $failing = Schema::hasColumn((new Submission)->getTable(), 'delivery_failed_at')
+            ? Submission::query()->whereNotNull('delivery_pending_at')->whereNotNull('delivery_failed_at')->count()
+            : 0;
+
+        return new DoctorCheckResultData(
+            label: 'Form Builder: submission mail delivered',
+            passed: $failing === 0,
+            message: $failing === 0
+                ? 'Every saved submission has its notification and autoresponder queued.'
+                : sprintf('%d saved submissions are waiting for their notification or autoresponder to be queued.', $failing),
+            remediation: $failing === 0
+                ? null
+                : 'Check the queue connection and mail settings, then run capell:form-builder:recover-deliveries. Each email is sent only once.',
+            id: 'form.builder.submission.delivery',
+        );
     }
 
     public function retentionLifecycleCheck(): DoctorCheckResultData

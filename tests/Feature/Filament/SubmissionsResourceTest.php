@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Capell\Admin\Enums\NavigationGroupEnum;
 use Capell\FormBuilder\Actions\BuildSubmissionPayloadEntriesAction;
 use Capell\FormBuilder\Enums\SubmissionStatus;
 use Capell\FormBuilder\Filament\Resources\Submissions\Pages\ListSubmissions;
@@ -31,14 +32,16 @@ beforeEach(function (): void {
     SubmissionSiteAccess::flushMemoizedPermissions();
 });
 
-it('denies direct creation and deletion of captured submissions at the policy boundary', function (): void {
+it('denies direct creation, and gates deletion and export on permission and legal hold', function (): void {
     $this->actingAsAdmin();
     $actor = capell_test_instance(auth()->user(), User::class);
     $policy = new SubmissionPolicy;
 
     expect($policy->create($actor))->toBeFalse()
-        ->and($policy->delete($actor, new Submission))->toBeFalse()
-        ->and($policy->deleteAny($actor))->toBeFalse();
+        ->and($policy->deleteAny($actor))->toBeTrue()
+        ->and($policy->export($actor))->toBeTrue()
+        ->and($policy->delete($actor, new Submission(['site_id' => 1])))->toBeTrue()
+        ->and($policy->delete($actor, (new Submission(['site_id' => 1]))->forceFill(['legal_hold' => true])))->toBeFalse();
 });
 
 it('can reply to a submission from the Filament table', function (): void {
@@ -140,7 +143,7 @@ it('allows users with submission view permission to access submissions', functio
 });
 
 it('places submissions in the marketing navigation group', function (): void {
-    expect(SubmissionResource::getNavigationGroup())->toBe((string) __('capell-admin::navigation.group_marketing'))
+    expect(SubmissionResource::getNavigationGroup())->toBe(NavigationGroupEnum::Marketing)
         ->and(SubmissionResource::getNavigationParentItem())->toBeNull()
         ->and(SubmissionResource::getNavigationSort())->toBe(10);
 });
@@ -234,6 +237,8 @@ it('hides and denies reply for spam submissions', function (): void {
 
     livewire(ListSubmissions::class)
         ->assertSuccessful()
+        ->assertCanNotSeeTableRecords([$submission])
+        ->filterTable('hide_spam', false)
         ->assertCanSeeTableRecords([$submission])
         ->assertActionHidden(TestAction::make('reply')->table($submission));
 });

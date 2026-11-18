@@ -13,6 +13,14 @@ use Lorisleiva\Actions\Concerns\AsFake;
 use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
+ * Finds the subject's form submissions.
+ *
+ * A submission belongs to the subject only when its recorded owner, taken from the form's visitor
+ * email field when it was submitted, is the subject's address. Any other submission whose answers
+ * contain the address, under whatever field key ("friend_email", "address", or a field since
+ * renamed), may be about someone else: it is reported for review and never erased or exported on
+ * that evidence alone. Submissions saved before ownership was recorded are always reviewed.
+ *
  * @method static FormSubmissionPrivacyRecordIdsData run(Model $subject)
  */
 final class ResolveFormSubmissionPrivacyRecordIdsAction
@@ -28,29 +36,43 @@ final class ResolveFormSubmissionPrivacyRecordIdsAction
             return new FormSubmissionPrivacyRecordIdsData([]);
         }
 
-        $submissionIds = [];
+        $hash = Submission::subjectEmailHash($email);
+        $ownedIds = [];
+        $reviewIds = [];
 
         Submission::query()
-            ->select(['id', 'payload'])
+            ->select(['id', 'site_id', 'payload', 'subject_email_hash'])
             ->lazyById(200)
-            ->each(function (Submission $submission) use ($email, &$submissionIds): void {
-                foreach (Arr::dot($submission->payload->values) as $key => $value) {
-                    if (! is_string($value) || ! str_contains(Str::lower((string) $key), 'email')) {
-                        continue;
-                    }
+            ->each(function (Submission $submission) use ($email, $hash, &$ownedIds, &$reviewIds): void {
+                $id = $submission->getKey();
 
-                    if (Str::lower(trim($value)) === $email) {
-                        $submissionKey = $submission->getKey();
-                        if (is_numeric($submissionKey)) {
-                            $submissionIds[] = (int) $submissionKey;
-                        }
+                if (! is_numeric($id)) {
+                    return;
+                }
 
-                        return;
-                    }
+                if ($submission->subject_email_hash === $hash) {
+                    $ownedIds[] = (int) $id;
+
+                    return;
+                }
+
+                if ($this->mentions($submission, $email)) {
+                    $reviewIds[(int) $id] = is_numeric($submission->site_id) ? (int) $submission->site_id : null;
                 }
             });
 
-        return new FormSubmissionPrivacyRecordIdsData($submissionIds);
+        return new FormSubmissionPrivacyRecordIdsData($ownedIds, $reviewIds);
+    }
+
+    private function mentions(Submission $submission, string $email): bool
+    {
+        foreach (Arr::dot($submission->payload->values ?? []) as $value) {
+            if (is_string($value) && str_contains(Str::lower($value), $email)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function subjectEmail(Model $subject): ?string

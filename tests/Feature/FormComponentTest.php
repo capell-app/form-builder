@@ -1154,21 +1154,6 @@ it('throttles repeated public form submissions for the configured email field ke
     expect(Submission::query()->count())->toBe(2);
 });
 
-function bindFormBuilderFrontendSite(Site $site): void
-{
-    $origin = parse_url(url('/'));
-    $site->siteDomains()->update([
-        'domain' => $origin['host'] ?? 'localhost',
-        'scheme' => $origin['scheme'] ?? 'http',
-        'path' => '/',
-        'port' => $origin['port'] ?? null,
-    ]);
-    $state = (new FrontendState)->withSite($site);
-
-    app()->instance(FrontendContextReader::class, $state);
-    Frontend::clearResolvedInstance(FrontendContextReader::class);
-}
-
 function formComponentSubmissionPayload(Submission $submission): SubmissionPayloadData
 {
     $payload = $submission->payload;

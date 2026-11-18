@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
+use Capell\Core\Contracts\Security\ResolvesHostAddresses;
 use Capell\FormBuilder\Actions\BuildSubmissionsCsvAction;
 use Capell\FormBuilder\Actions\CreateSubmissionAction;
 use Capell\FormBuilder\Actions\RedactSubmissionWebhookErrorMessageAction;
 use Capell\FormBuilder\Actions\SendSubmissionNotificationAction;
-use Capell\FormBuilder\Contracts\FormBuilderWebhookHostResolver;
 use Capell\FormBuilder\Data\SubmissionMetaData;
 use Capell\FormBuilder\Enums\SubmissionStatus;
 use Capell\FormBuilder\Events\FormSubmitted;
@@ -14,7 +14,7 @@ use Capell\FormBuilder\Jobs\DispatchSubmissionWebhookJob;
 use Capell\FormBuilder\Mail\FormSubmissionNotificationMail;
 use Capell\FormBuilder\Models\Form;
 use Capell\FormBuilder\Models\Submission;
-use Capell\FormBuilder\Tests\Fixtures\StaticFormBuilderWebhookHostResolver;
+use Capell\FormBuilder\Tests\Fixtures\StaticHostAddressResolver;
 use GuzzleHttp\Promise\PromiseInterface;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Event;
@@ -24,7 +24,7 @@ use Illuminate\Support\Facades\Queue;
 use Illuminate\Validation\ValidationException;
 
 beforeEach(function (): void {
-    app()->instance(FormBuilderWebhookHostResolver::class, new StaticFormBuilderWebhookHostResolver([
+    app()->instance(ResolvesHostAddresses::class, new StaticHostAddressResolver([
         'hooks.example.test' => ['93.184.216.34'],
     ]));
 });

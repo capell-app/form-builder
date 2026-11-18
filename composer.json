@@ -1,6 +1,6 @@
 {
     "name": "capell-app/form-builder",
-    "description": "Build site-scoped forms in Capell and capture spam-filtered, encrypted submissions into a per-site triage inbox with one-click email replies.",
+    "description": "Form builder for Capell with conditional fields, steps, uploads, totals, spam scoring, encrypted answers and an admin inbox for replies and archiving.",
     "keywords": [
         "capell",
         "form-builder",
@@ -20,11 +20,16 @@
     "require": {
         "php": "^8.4",
         "capell-app/admin": "^1.0.66",
-        "capell-app/core": "^1.0.75",
+        "capell-app/core": "^1.0.78",
         "capell-app/frontend": "^1.0"
     },
+    "conflict": {
+        "capell-app/privacy-center": "<1.1.10"
+    },
     "suggest": {
-        "capell-app/payments": "Enables payment fields and checkout for form submissions."
+        "capell-app/layout-builder": "Lets editors place a form on a page as a Layout Builder widget.",
+        "capell-app/payments": "Enables payment fields and checkout for form submissions.",
+        "capell-app/privacy-center": "Holds form submissions that only mention a person for review when they ask to be forgotten."
     },
     "require-dev": {
         "pestphp/pest": "^3.0 || ^4.0 || ^5.0",

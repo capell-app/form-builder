@@ -4,6 +4,11 @@ All notable changes to `capell-app/form-builder` will be documented in this file
 
 ## Unreleased
 
+- Throttle now keys on form, site and IP only, with a separate per-recipient cap across every email field, so rotating the address no longer earns a fresh budget.
+- The Turnstile widget now renders in the public form and its token is submitted; the provider also gates submissions when heuristic scoring is off.
+- Spam submissions no longer store uploads; privacy erasure, form deletion, pruning and admin deletion remove stored upload files.
+- Submissions table gains policy-gated Delete, bulk delete (skipping legal holds), CSV export and an authorised file download, with new `Delete:Submission`, `DeleteAny:Submission` and `Export:Submission` permissions. Spam is hidden by default and left out of exports; the CSV streams.
+- Webhooks are HMAC-signed and no longer include storage paths. Empty accepted file types fall back to a safe document and image allow-list. Success redirects must be relative or https. Notification email accepts several recipients.
 - Added submission CSV export via `capell:form-builder:export-submissions` and per-form outbound webhook dispatch for successful stored submissions.
 - Persisted uploaded form files to a configured disk and stored server-verified disk/path references in encrypted submission payloads.
 - Added form success redirect settings and queued submitter autoresponder emails for successful stored submissions.

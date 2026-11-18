@@ -16,7 +16,7 @@ it('registers form-builder package metadata', function (): void {
     expect($package->name)->toBe('capell-app/form-builder')
         ->and($package->serviceProviderClass)->toBe(FormBuilderServiceProvider::class)
         ->and($package->path)->toBe(realpath(__DIR__ . '/../../../'))
-        ->and($package->getDescription())->toBe('Build site-scoped forms in Capell and capture spam-filtered, encrypted submissions into a per-site triage inbox with one-click email replies.');
+        ->and($package->getDescription())->toBe('Build your own contact, quote and application forms, with answers arriving in an admin inbox you can reply from.');
 });
 
 it('registers form-builder models for Capell model enumeration', function (): void {

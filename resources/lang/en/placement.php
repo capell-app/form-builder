@@ -6,6 +6,8 @@ return [
     'title' => 'Put this form on a page',
     'introduction' => 'This saved form belongs to :site. Saving a form does not place it on a page or publish it.',
     'developer' => 'Ask your developer to place the form element on a compatible page or layout on this site. Use the public-form Livewire component with its handle parameter set to:',
+    'layout_builder' => 'In Layout Builder, open the page, add a widget that uses the Form Builder form component and choose this form in its Form setting. If other pages share the layout, copy the layout first so the form appears only on this page.',
+    'developer_alternative' => 'To place it outside Layout Builder, ask your developer to use the public-form Livewire component with its handle parameter set to:',
     'preview' => 'If your page editor already offers the Form element, choose this form key there. Otherwise your developer must wire the component first. Save the page as a draft and preview it; publish explicitly when ready.',
     'test' => 'Open the public page on the same site and send a clearly labelled test enquiry. Then check the stored submission and any configured notification inbox.',
     'storage_disabled' => 'Store submissions is off. Turn it on and save before testing if you need the enquiry in Form submissions.',

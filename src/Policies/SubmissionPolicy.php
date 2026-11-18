@@ -70,12 +70,27 @@ final class SubmissionPolicy
 
     public function delete(User $user, Submission $submission): bool
     {
-        return false;
+        // A legal hold means "keep indefinitely": release it first, deliberately.
+        if ($submission->legal_hold) {
+            return false;
+        }
+
+        return SubmissionSiteAccess::actorCanAccessSite(
+            $user,
+            $submission->site_id,
+            SubmissionSiteAccess::DELETE_ABILITIES,
+        );
     }
 
     public function deleteAny(User $user): bool
     {
-        return false;
+        return SubmissionSiteAccess::actorCanAccessAnySite($user, SubmissionSiteAccess::DELETE_ABILITIES);
+    }
+
+    public function export(User $user): bool
+    {
+        return $this->viewAny($user)
+            && SubmissionSiteAccess::actorCanAccessAnySite($user, SubmissionSiteAccess::EXPORT_ABILITIES);
     }
 
     private function hasPermission(User $user, string $ability): bool

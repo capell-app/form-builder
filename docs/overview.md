@@ -2,13 +2,21 @@
 
 <!-- prettier-ignore-start -->
 
+Every enquiry that reaches your site should land where your team will see it. You build your own contact and quote forms, and the answers arrive in an inbox inside your admin. Each form can also email your staff and send the visitor an automatic thank-you.
+
+Questions can change with earlier answers. On a kitchen fitter's quote form, choosing "Kitchen" brings up the worktop questions and lets the customer attach photos. Longer forms can be split into steps, and a field can work out a total from other answers. A saved form still has to be put on a page. With Layout Builder you add it as a widget and choose the form. Otherwise your developer places it.
+
+Each enquiry is scored for signs of spam such as too many links, repeated answers and blocked words. High scorers are moved to Spam, and you can add a hidden trap field to catch simple bots. The answers people type are stored encrypted, meaning your database holds them in scrambled form and not as plain text. They're deleted after a year, unless you put an enquiry on legal hold to keep it longer.
+
+From the inbox you reply to each enquiry by email, and archive it once it's dealt with.
+
 ## What it does
 
 Form Builder creates site-scoped public forms and a site-scoped submission inbox. Forms support conditional and multi-step fields, calculations, uploads, spam scoring, optional payment hand-off, notifications, autoresponders, and one outbound webhook.
 
 ## Setup requirements
 
-Install the package and run its migrations, then add the frontend Form element with an active form's Key. Public lookup requires both the current site and an active matching form; a key from another site does not render that form.
+Install the package and run its migrations, then place an active form with the Layout Builder **Form Builder form** widget or the frontend Form element and its Key. Public lookup requires both the current site and an active matching form; a key from another site does not render that form.
 
 Keep a queue worker running when staff notifications or submitter autoresponders are configured. Keep Laravel's scheduler running for retention. Configure a private upload disk and directory before accepting files; Form Builder stores uploaded binaries through that filesystem and does not encrypt the file itself. Payments is optional and must be installed and configured separately before Payment fields can redirect to checkout.
 
@@ -17,6 +25,8 @@ Form and Submission resources use separate generated permissions. Non-global adm
 ## Build and publish a form
 
 Open **Marketing > Forms**, select the Site, choose a unique Key for that site, and add fields in the required order. Available schema behaviour includes required and custom Laravel validation rules, conditional visibility, step keys, calculated values, file restrictions, a honeypot, and payment amounts/currency. Hidden conditional fields are not validated or stored.
+
+Guided setup and SiteSpec imports can create a form for you. A spec's `packageData.forms` entries name a key, a name, text, email, textarea or checkbox fields, an optional success message and an optional address for new messages. A spec can hold up to 10 forms of up to 30 fields each, and may not use the key `company_website`, which the hidden honeypot field uses. Each form is created active, keeps its submissions and gets that honeypot field; applying a changed spec updates the form with the same key on that site instead of adding another, and keeps settings the spec does not mention. When a spec changes where a form sends its messages, the activity log records who applied it, with both addresses masked. An entry's `placeOnPage` names a page in the same spec. With Layout Builder installed, the form is added to that page straight after its content as a widget. If other pages share the page's layout, the page gets its own copy first so the form appears only there. A `placeOnPage` that names a page the spec does not have is refused. Without Layout Builder the form is created but not placed, so place it as described in **Put this form on a page**.
 
 Only an active form renders publicly. Test the complete published form after changing keys, conditions, calculations, upload rules, or steps; stored payloads retain the field keys that existed when each visitor submitted.
 
@@ -53,11 +63,13 @@ Submission payload and metadata are encrypted with the application key. Keep `AP
 
 The daily `capell:form-builder:prune` schedule is enabled by default and uses 365 days unless configured otherwise. It permanently deletes expired rows and their recognised stored upload paths, while preserving legal holds and future `retention_until` values. Use `--dry-run` before changing the retention period. If scheduling is disabled or Laravel's scheduler is not running, nothing is pruned.
 
-When Privacy Centre is installed, Form Builder matches subjects by their email against payload keys containing `email`, exports matching submissions, and deletes matching rows on erasure. That matching is installation-wide and does not establish identity beyond the email value. The eraser does not run the retention action and therefore does not remove uploaded files referenced by those rows; include the upload disk in the site's erasure procedure.
+When Privacy Centre is installed, Form Builder exports and erases only the submissions a person sent themselves. The owner is recorded when the submission is saved, from the form's visitor email field (or its first email field), so renaming or retyping fields later does not change it. A submission that merely contains the person's address anywhere else, such as a "friend's email" field or an older submission saved before owners were recorded, is held as an `email_match` review candidate: the request waits until an operator resolves it, and only a `linked` resolution includes it. Erasure also deletes the recognised stored uploads of the erased rows.
+
+Notification and autoresponder emails are recorded as pending in the same save as the submission. If the queue is unavailable, the visitor still sees success, the Form Builder health check reports the waiting submissions, and `capell:form-builder:recover-deliveries` (every five minutes) retries them. Each email is queued at most once.
 
 ## After saving your first form
 
-Use **Put this form on a page** from the saved form. It explains same-site placement, activation, draft preview, explicit publication and a public test enquiry. If the page editor has no Form element, give the developer the displayed handle and site so they can wire the public component first. **View submissions** appears only with submission-view permission. Keep **Store submissions** on when testing the inbox.
+Use **Put this form on a page** from the saved form. It explains same-site placement, activation, draft preview, explicit publication and a public test enquiry. With Layout Builder installed, add a widget that uses the **Form Builder form** component and choose the form in its **Form** setting. The widget shows nothing on a site with no active form of that key. Without Layout Builder, give the developer the displayed handle and site so they can wire the public component first. **View submissions** appears only with submission-view permission. Keep **Store submissions** on when testing the inbox.
 
 ---
 

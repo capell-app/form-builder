@@ -51,17 +51,17 @@ class CreateSubmissionAction
             [],
             BuildFormValidationAttributesAction::run($form, $input),
         )->validate();
-        $payload = BuildSubmissionPayloadDataAction::run($form, $validated);
+        $isSpam = $spamScore->isSpam($this->spamThreshold());
+        $payload = BuildSubmissionPayloadDataAction::run($form, $validated, storeUploads: ! $isSpam);
 
-        if ($spamScore->isSpam($this->spamThreshold())) {
+        if ($isSpam) {
             return $this->createSubmission($form, $payload->values, $meta, SubmissionStatus::Spam);
         }
 
         $submission = $this->createSubmission($form, $payload->values, $meta, SubmissionStatus::New);
 
         event(new FormSubmitted($form, $submission, metadata: $submission->meta, payload: $payload->values));
-        SendSubmissionNotificationAction::run($submission);
-        SendSubmissionAutoresponderAction::run($submission);
+        DeliverSubmissionMailAction::run($submission);
         $submissionId = $submission->getKey();
         throw_unless(is_int($submissionId), RuntimeException::class, 'Form submission must have an integer key.');
         DispatchSubmissionWebhookJob::dispatch($submissionId)->afterCommit();
@@ -86,7 +86,21 @@ class CreateSubmissionAction
             'meta' => $meta,
             'status' => $status,
             'submitted_at' => now(),
-        ])->save();
+        ]);
+        $submission->setRelation('form', $form);
+
+        if ($status === SubmissionStatus::New) {
+            // Ownership is recorded from the form's visitor email field at submission time, so a
+            // later schema change or a field such as "friend_email" never decides whose data this is.
+            $subjectEmail = ResolveSubmissionReplyAddressAction::run($submission);
+            $submission->forceFill([
+                'subject_email_hash' => $subjectEmail === null ? null : Submission::subjectEmailHash($subjectEmail),
+                // The delivery intent is saved with the submission, so a queue failure is recoverable.
+                'delivery_pending_at' => now(),
+            ]);
+        }
+
+        $submission->save();
 
         return $submission;
     }

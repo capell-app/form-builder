@@ -2,22 +2,18 @@
 
 <!-- prettier-ignore-start -->
 
-## What It Does
+Every enquiry that reaches your site should land where your team will see it. You build your own contact and quote forms, and the answers arrive in an inbox inside your admin. Each form can also email your staff and send the visitor an automatic thank-you.
 
-Form Builder adds site-scoped form schemas, conditional and multi-step fields, calculations, spam checks, optional payment handoff, and encrypted submission records.
+Questions can change with earlier answers. On a kitchen fitter's quote form, choosing "Kitchen" brings up the worktop questions and lets the customer attach photos. Longer forms can be split into steps, and a field can work out a total from other answers. A saved form still has to be put on a page. With Layout Builder you add it as a widget and choose the form. Otherwise your developer places it.
+
+Each enquiry is scored for signs of spam such as too many links, repeated answers and blocked words. High scorers are moved to Spam, and you can add a hidden trap field to catch simple bots. The answers people type are stored encrypted, meaning your database holds them in scrambled form and not as plain text. They're deleted after a year, unless you put an enquiry on legal hold to keep it longer.
+
+From the inbox you reply to each enquiry by email, and archive it once it's dealt with.
 
 - **Price and availability:** Check current availability and price on the [Capell Marketplace listing](https://capell.app/extensions/form-builder).
 - **Licence:** Check the licence terms on the [Capell Marketplace listing](https://capell.app/extensions/form-builder).
-- **Requires:** `PHP ^8.4`, `capell-app/admin ^1.0.66`, `capell-app/core ^1.0.75`, `capell-app/frontend ^1.0`.
+- **Requires:** `PHP ^8.4`, `capell-app/admin ^1.0.66`, `capell-app/core ^1.0.78`, `capell-app/frontend ^1.0`.
 - **Install:** `composer require capell-app/form-builder`.
-
-Editors build forms and triage submissions in the admin, while visitors complete the published form through a Livewire frontend component.
-
-## Who It Is For
-
-**For developers:** Typed field data and Actions handle visibility, validation, calculations, spam scoring, rate limits, and persistence, with a contract for replacing the spam provider.
-
-**For teams:** Teams can publish structured forms, receive notifications, review or reply to submissions, and apply retention or legal-hold rules from one workflow.
 
 ## Quick Start
 
@@ -26,17 +22,21 @@ Editors build forms and triage submissions in the admin, while visitors complete
 3. Open `/admin/form-builder/forms`. Save an active enquiry form and follow Put this form on a page. Preview same-site placement, publish explicitly and send a labelled public test enquiry.
 4. Check the result: With Store submissions enabled, the enquiry appears in View submissions with the expected fields. Next: Check notifications and remove or archive the test enquiry according to your retention policy.
 
+## For Developers
+
+Typed field data and Actions handle visibility, validation, calculations, spam scoring, rate limits, and persistence, with a contract for replacing the spam provider.
+
 ## Configure
 
 - **Configuration files:** `config/capell-form-builder.php`.
-- **Commands:** `php artisan capell:form-builder:export-submissions`, `php artisan capell:form-builder:prune`.
+- **Commands:** `php artisan capell:form-builder:export-submissions`, `php artisan capell:form-builder:prune`, `php artisan capell:form-builder:recover-deliveries`.
 
 ## Limits And Pitfalls
 
-- Install the required Capell packages at the versions in `composer.json`: `capell-app/admin ^1.0.66`, `capell-app/core ^1.0.75`, `capell-app/frontend ^1.0`.
+- Install the required Capell packages at the versions in `composer.json`: `capell-app/admin ^1.0.66`, `capell-app/core ^1.0.78`, `capell-app/frontend ^1.0`.
 - Run migrations before opening package resources or public routes.
 - Review middleware, throttling, signatures, and public-output safety in `routes/payments.php` before exposing routes.
-- Keep the host Laravel scheduler running so package-registered schedules can execute: `capell:form-builder:prune (daily; package registered)`.
+- Keep the host Laravel scheduler running so package-registered schedules can execute: `capell:form-builder:prune (daily; package registered)`, `capell:form-builder:recover-deliveries (everyFiveMinutes; package registered)`.
 - Keep public Blade and cached HTML free of authoring markers, model IDs, permissions, signed editor URLs, and lazy database queries.
 - Custom write integrations must preserve invalidation for `form-builder` cache tags.
 
@@ -57,15 +57,15 @@ Editors build forms and triage submissions in the admin, while visitors complete
 
 - Required packages: `capell-app/admin`, `capell-app/core`, `capell-app/frontend`.
 - Admin navigation: declares `admin-resource: FormResourceContribution`, `admin-resource: SubmissionResourceContribution`; each Filament page or resource controls its own navigation visibility.
-- Admin/editor extensions: none declared.
-- Permissions: `ViewAny:Form`, `View:Form`, `Create:Form`, `Update:Form`, `Delete:Form`, `DeleteAny:Form`, `Restore:Form`, `RestoreAny:Form`, `ForceDelete:Form`, `ForceDeleteAny:Form`, `Reorder:Form`, `ViewAny:Submission`, `View:Submission`, `Reply:Submission`, `Update:Submission`; access also governed by package policies: `FormPolicy`, `SubmissionPolicy`.
+- Admin/editor extensions: `configurator: FormBuilderWidgetConfiguratorContribution`.
+- Permissions: `ViewAny:Form`, `View:Form`, `Create:Form`, `Update:Form`, `Delete:Form`, `DeleteAny:Form`, `Restore:Form`, `RestoreAny:Form`, `ForceDelete:Form`, `ForceDeleteAny:Form`, `Reorder:Form`, `ViewAny:Submission`, `View:Submission`, `Reply:Submission`, `Update:Submission`, `Delete:Submission`, `DeleteAny:Submission`, `Export:Submission`; access also governed by package policies: `FormPolicy`, `SubmissionPolicy`.
 - Public routes: loads `routes/payments.php`; registers `FormBuilderPaymentRoutesContribution`.
 - Database changes: package migrations are declared.
 - Config: `config/capell-form-builder.php`.
 - Settings: no package settings declared.
-- Queues or schedules: scheduled commands `capell:form-builder:prune (daily; package registered)`; queue jobs `DispatchSubmissionWebhookJob`.
+- Queues or schedules: scheduled commands `capell:form-builder:prune (daily; package registered)`, `capell:form-builder:recover-deliveries (everyFiveMinutes; package registered)`; queue jobs `DispatchSubmissionWebhookJob`.
 - Cache tags: `form-builder`.
-- Commands: `capell:form-builder:export-submissions`, `capell:form-builder:prune`.
+- Commands: `capell:form-builder:export-submissions`, `capell:form-builder:prune`, `capell:form-builder:recover-deliveries`.
 
 ## Troubleshooting
 
@@ -97,6 +97,6 @@ Read [CHANGELOG.md](CHANGELOG.md) before upgrading.
 - [Capell content language plan](../../docs/CONTENT_LANGUAGE_PLAN.md)
 - [Capell documentation design system](../../docs/DESIGN_SYSTEM.md)
 - [Capell and package ERD notes](../../docs/erd/capell-and-package-erds.md)
-- Related packages: [Payments](../payments/README.md).
+- Related packages: [Layout Builder](../layout-builder/README.md), [Payments](../payments/README.md).
 
 <!-- prettier-ignore-end -->

@@ -11,7 +11,7 @@ use Lorisleiva\Actions\Concerns\AsFake;
 use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
- * @method static array<string, mixed> run(Model $subject)
+ * @method static array<string, mixed> run(Model $subject, list<int> $linkedSubmissionIds = [])
  */
 final class BuildFormSubmissionPrivacyExportAction
 {
@@ -19,17 +19,19 @@ final class BuildFormSubmissionPrivacyExportAction
     use AsObject;
 
     /**
+     * @param  list<int>  $linkedSubmissionIds  submissions an operator confirmed belong to the subject
      * @return array<string, mixed>
      */
-    public function handle(Model $subject): array
+    public function handle(Model $subject, array $linkedSubmissionIds = []): array
     {
         $recordIds = ResolveFormSubmissionPrivacyRecordIdsAction::run($subject);
         $submissions = Submission::query()
-            ->whereKey($recordIds->submissionIds)
+            ->whereKey(array_values(array_unique([...$recordIds->submissionIds, ...$linkedSubmissionIds])))
             ->oldest('id')
             ->get()
             ->map(static fn (Submission $submission): array => Arr::except($submission->toArray(), [
-                'id', 'form_id',
+                'id', 'form_id', 'subject_email_hash', 'delivery_pending_at', 'delivery_failed_at',
+                'delivery_attempts', 'notification_queued_at', 'autoresponder_queued_at',
             ]))
             ->values()
             ->all();

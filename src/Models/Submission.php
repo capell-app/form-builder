@@ -24,6 +24,12 @@ use Override;
  * @property SubmissionMetaData $meta
  * @property SubmissionStatus $status
  * @property Carbon $submitted_at
+ * @property string|null $subject_email_hash
+ * @property Carbon|null $delivery_pending_at
+ * @property Carbon|null $delivery_failed_at
+ * @property int $delivery_attempts
+ * @property Carbon|null $notification_queued_at
+ * @property Carbon|null $autoresponder_queued_at
  * @property Form $form
  */
 class Submission extends Model
@@ -46,6 +52,12 @@ class Submission extends Model
     ];
 
     protected static string $factory = SubmissionFactory::class;
+
+    /** A stable index of the submitter's address; the encrypted payload already holds the address itself. */
+    public static function subjectEmailHash(string $email): string
+    {
+        return hash('sha256', mb_strtolower(trim($email)));
+    }
 
     /**
      * @return BelongsTo<Form, $this>
@@ -76,6 +88,11 @@ class Submission extends Model
             'submitted_at' => 'datetime',
             'legal_hold' => 'boolean',
             'retention_until' => 'datetime',
+            'delivery_pending_at' => 'datetime',
+            'delivery_failed_at' => 'datetime',
+            'delivery_attempts' => 'integer',
+            'notification_queued_at' => 'datetime',
+            'autoresponder_queued_at' => 'datetime',
         ];
     }
 }

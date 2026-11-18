@@ -15,6 +15,10 @@ return [
     'reply_recipient' => 'This reply will be sent to :email.',
     'reply_recipient_missing' => 'This submission does not include a valid email address to reply to.',
     'reply_sent' => 'Reply sent.',
+    'legal_hold_applied' => 'Legal hold applied. This submission will not be deleted automatically.',
+    'legal_hold_released' => 'Legal hold released.',
+    'submissions_delete_skipped' => 'Submissions kept: :count. They are under legal hold or you cannot delete them. Release the legal hold first to delete one.',
+    'submission_deleted' => 'Submission deleted.',
     'status_updated' => 'Submission status updated.',
     'too_many_submissions' => 'Too many submissions. Please wait a moment and try again.',
 ];

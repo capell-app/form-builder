@@ -58,7 +58,7 @@ final class BuildSubmissionPayloadEntriesAction
 
         foreach ($fields as $field) {
             if ($field instanceof FormFieldData) {
-                $labels[$field->key] = $field->label;
+                $labels[$field->key] = $field->displayLabel();
 
                 continue;
             }
@@ -82,9 +82,7 @@ final class BuildSubmissionPayloadEntriesAction
         if ($storedFileReference !== null) {
             return (string) __('capell-form-builder::table.file_reference', [
                 'name' => $storedFileReference['original_name'],
-                'disk' => $storedFileReference['disk'],
-                'path' => $storedFileReference['path'],
-                'size' => (string) Number::format((int) $storedFileReference['size'], precision: 0, locale: app()->getLocale()),
+                'size' => (string) Number::fileSize((int) $storedFileReference['size'], precision: 1),
             ]);
         }
 

@@ -10,18 +10,23 @@ use Lorisleiva\Actions\Concerns\AsFake;
 use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
- * @method static int run(Model $subject)
+ * @method static int run(Model $subject, list<int> $linkedSubmissionIds = [])
  */
 final class EraseFormSubmissionPrivacyDataAction
 {
     use AsFake;
     use AsObject;
 
-    public function handle(Model $subject): int
+    /** @param  list<int>  $linkedSubmissionIds  submissions an operator confirmed belong to the subject */
+    public function handle(Model $subject, array $linkedSubmissionIds = []): int
     {
         $recordIds = ResolveFormSubmissionPrivacyRecordIdsAction::run($subject);
 
-        $deleted = Submission::query()->whereKey($recordIds->submissionIds)->delete();
+        $submissions = Submission::query()->whereKey(array_values(array_unique([...$recordIds->submissionIds, ...$linkedSubmissionIds])));
+
+        DeleteSubmissionUploadsAction::run($submissions);
+
+        $deleted = $submissions->delete();
 
         return is_int($deleted) ? $deleted : 0;
     }

@@ -5,22 +5,31 @@ declare(strict_types=1);
 namespace Capell\FormBuilder\Filament\Resources\Submissions\Tables;
 
 use Capell\FormBuilder\Actions\ArchiveSubmissionAction;
+use Capell\FormBuilder\Actions\BuildSubmissionsCsvAction;
+use Capell\FormBuilder\Actions\DeleteSubmissionAction;
+use Capell\FormBuilder\Actions\ListSubmissionUploadsAction;
 use Capell\FormBuilder\Actions\MarkSubmissionReadAction;
 use Capell\FormBuilder\Actions\MarkSubmissionSpamAction;
 use Capell\FormBuilder\Actions\ReplyToSubmissionAction;
 use Capell\FormBuilder\Actions\ResolveSubmissionReplyAddressAction;
+use Capell\FormBuilder\Actions\ResolveSubmissionUploadDownloadAction;
 use Capell\FormBuilder\Enums\SubmissionStatus;
 use Capell\FormBuilder\Models\Submission;
 use Capell\FormBuilder\Support\SubmissionSiteAccess;
 use Filament\Actions\Action;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Gate;
 
 final class SubmissionsTable
@@ -59,6 +68,11 @@ final class SubmissionsTable
                         'name',
                         modifyQueryUsing: fn (Builder $query): Builder => SubmissionSiteAccess::applyToSiteScopedQuery($query),
                     ),
+                Filter::make('hide_spam')
+                    ->label(__('capell-form-builder::table.hide_spam'))
+                    ->toggle()
+                    ->default()
+                    ->query(fn (Builder $query): Builder => $query->where('status', '!=', SubmissionStatus::Spam->value)),
                 SelectFilter::make('status')
                     ->label(__('capell-form-builder::table.status'))
                     ->options(collect(SubmissionStatus::cases())
@@ -103,6 +117,8 @@ final class SubmissionsTable
                     ->icon('heroicon-o-archive-box')
                     ->color('warning')
                     ->requiresConfirmation()
+                    ->modalHeading(__('capell-form-builder::table.archive_heading'))
+                    ->modalDescription(__('capell-form-builder::table.archive_description'))
                     ->visible(fn (Submission $record): bool => $record->status !== SubmissionStatus::Archived
                         && Gate::allows('update', $record))
                     ->action(function (Submission $record): void {
@@ -121,16 +137,52 @@ final class SubmissionsTable
                         ? __('capell-form-builder::table.release_legal_hold')
                         : __('capell-form-builder::table.apply_legal_hold'))
                     ->icon('heroicon-o-lock-closed')
+                    ->requiresConfirmation()
+                    ->modalHeading(fn (Submission $record): string => $record->legal_hold
+                        ? __('capell-form-builder::table.release_legal_hold_heading')
+                        : __('capell-form-builder::table.apply_legal_hold_heading'))
+                    ->modalDescription(fn (Submission $record): string => $record->legal_hold
+                        ? __('capell-form-builder::table.release_legal_hold_description')
+                        : __('capell-form-builder::table.apply_legal_hold_description'))
                     ->visible(fn (Submission $record): bool => Gate::allows('update', $record))
                     ->action(function (Submission $record): void {
                         Gate::authorize('update', $record);
                         $record->forceFill(['legal_hold' => ! $record->legal_hold])->save();
+
+                        Notification::make('form-builder-submission-legal-hold-updated')
+                            ->title($record->legal_hold
+                                ? __('capell-form-builder::message.legal_hold_applied')
+                                : __('capell-form-builder::message.legal_hold_released'))
+                            ->icon('heroicon-o-check-circle')
+                            ->iconColor('success')
+                            ->send();
+                    }),
+                Action::make('download_upload')
+                    ->label(__('capell-form-builder::table.download_upload'))
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->color('gray')
+                    ->visible(fn (Submission $record): bool => Gate::allows('view', $record)
+                        && ListSubmissionUploadsAction::run($record) !== [])
+                    ->schema(fn (Submission $record): array => [
+                        Select::make('upload')
+                            ->label(__('capell-form-builder::table.download_upload_choose'))
+                            ->options(ListSubmissionUploadsAction::run($record))
+                            ->default(array_key_first(ListSubmissionUploadsAction::run($record)))
+                            ->required()
+                            ->native(false),
+                    ])
+                    ->action(function (Submission $record, array $data) {
+                        Gate::authorize('view', $record);
+
+                        return ResolveSubmissionUploadDownloadAction::run($record, (string) $data['upload']);
                     }),
                 Action::make('mark_spam')
                     ->label(__('capell-form-builder::table.mark_spam'))
                     ->icon('heroicon-o-no-symbol')
                     ->color('danger')
                     ->requiresConfirmation()
+                    ->modalHeading(__('capell-form-builder::table.mark_spam_heading'))
+                    ->modalDescription(__('capell-form-builder::table.mark_spam_description'))
                     ->visible(fn (Submission $record): bool => $record->status !== SubmissionStatus::Spam
                         && Gate::allows('update', $record))
                     ->action(function (Submission $record): void {
@@ -140,6 +192,25 @@ final class SubmissionsTable
 
                         Notification::make('form-builder-submission-status-updated')
                             ->title(__('capell-form-builder::message.status_updated'))
+                            ->icon('heroicon-o-check-circle')
+                            ->iconColor('success')
+                            ->send();
+                    }),
+                Action::make('delete')
+                    ->label(__('capell-form-builder::table.delete'))
+                    ->icon('heroicon-o-trash')
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->modalHeading(__('capell-form-builder::table.delete_heading'))
+                    ->modalDescription(__('capell-form-builder::table.delete_description'))
+                    ->visible(fn (Submission $record): bool => ! $record->legal_hold && Gate::allows('delete', $record))
+                    ->action(function (Submission $record): void {
+                        Gate::authorize('delete', $record);
+
+                        DeleteSubmissionAction::run($record);
+
+                        Notification::make('form-builder-submission-deleted')
+                            ->title(__('capell-form-builder::message.submission_deleted'))
                             ->icon('heroicon-o-check-circle')
                             ->iconColor('success')
                             ->send();
@@ -176,6 +247,61 @@ final class SubmissionsTable
                             ->icon('heroicon-o-check-circle')
                             ->iconColor('success')
                             ->send();
+                    }),
+            ])
+            ->headerActions([
+                Action::make('export')
+                    ->label(__('capell-form-builder::table.export'))
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->color('gray')
+                    ->visible(fn (): bool => Gate::allows('export', Submission::class))
+                    ->action(function () {
+                        Gate::authorize('export', Submission::class);
+
+                        /** @var Builder<Model> $base */
+                        $base = Submission::query();
+                        /** @var Builder<Submission> $scope */
+                        $scope = SubmissionSiteAccess::applyToQuery(
+                            SubmissionSiteAccess::applyToQuery($base),
+                            null,
+                            SubmissionSiteAccess::EXPORT_ABILITIES,
+                        );
+
+                        return response()->streamDownload(static function () use ($scope): void {
+                            $stream = fopen('php://output', 'w');
+
+                            if ($stream === false) {
+                                return;
+                            }
+
+                            BuildSubmissionsCsvAction::make()->writeTo($stream, null, $scope);
+                            fclose($stream);
+                        }, 'form-submissions-' . now()->format('Y-m-d') . '.csv', ['Content-Type' => 'text/csv']);
+                    }),
+            ])
+            ->toolbarActions([
+                DeleteBulkAction::make()
+                    ->label(__('capell-form-builder::table.delete_selected'))
+                    ->modalHeading(__('capell-form-builder::table.delete_selected_heading'))
+                    ->modalDescription(__('capell-form-builder::table.delete_selected_description'))
+                    ->visible(fn (): bool => Gate::allows('deleteAny', Submission::class))
+                    ->action(static function (Collection $records): void {
+                        $skipped = 0;
+
+                        foreach ($records as $submission) {
+                            // A refusal (legal hold, no permission) must not stop the rest of the selection.
+                            if (! $submission instanceof Submission || ! Gate::allows('delete', $submission) || ! DeleteSubmissionAction::run($submission)) {
+                                $skipped++;
+                            }
+                        }
+
+                        if ($skipped > 0) {
+                            Notification::make('form-builder-submissions-delete-skipped')
+                                ->title(__('capell-form-builder::message.submissions_delete_skipped', ['count' => $skipped]))
+                                ->icon('heroicon-o-exclamation-triangle')
+                                ->iconColor('warning')
+                                ->send();
+                        }
                     }),
             ]);
     }

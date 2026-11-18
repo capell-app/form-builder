@@ -6,7 +6,7 @@
     "kind": "package",
     "capellApiVersion": "^1.0",
     "version": "1.0.0",
-    "description": "Build site-scoped forms in Capell and capture spam-filtered, encrypted submissions into a per-site triage inbox with one-click email replies.",
+    "description": "Build your own contact, quote and application forms, with answers arriving in an admin inbox you can reply from.",
     "product": {
         "group": "Capell Engagement & CRM",
         "tier": "premium",
@@ -20,7 +20,7 @@
             "capell-app/core",
             "capell-app/frontend"
         ],
-        "supports": ["capell-app/payments"],
+        "supports": ["capell-app/layout-builder", "capell-app/payments"],
         "conflicts": []
     },
     "providers": {
@@ -52,6 +52,14 @@
             "surface": "frontend"
         },
         {
+            "type": "configurator",
+            "class": "Capell\\FormBuilder\\Manifest\\FormBuilderWidgetConfiguratorContribution",
+            "configuratorClasses": [
+                "Capell\\FormBuilder\\Bridges\\LayoutBuilder\\FormBuilderFormWidgetConfigurator"
+            ],
+            "groups": ["Widget"]
+        },
+        {
             "type": "route",
             "class": "Capell\\FormBuilder\\Manifest\\FormBuilderPaymentRoutesContribution",
             "routes": ["capell-payments.form-builder.checkout"]
@@ -74,15 +82,24 @@
             "frequency": "daily"
         },
         {
+            "type": "scheduled-job",
+            "class": "Capell\\FormBuilder\\Manifest\\FormBuilderDeliveryRecoveryScheduleContribution",
+            "key": "form-builder-delivery-recovery",
+            "command": "capell:form-builder:recover-deliveries",
+            "frequency": "everyFiveMinutes"
+        },
+        {
             "type": "console-command",
             "class": "Capell\\FormBuilder\\Manifest\\FormBuilderConsoleCommandsContribution",
             "commands": [
                 "capell:form-builder:export-submissions",
-                "capell:form-builder:prune"
+                "capell:form-builder:prune",
+                "capell:form-builder:recover-deliveries"
             ],
             "commandClasses": [
                 "Capell\\FormBuilder\\Console\\Commands\\ExportSubmissionsCommand",
-                "Capell\\FormBuilder\\Console\\Commands\\PruneExpiredFormSubmissionsCommand"
+                "Capell\\FormBuilder\\Console\\Commands\\PruneExpiredFormSubmissionsCommand",
+                "Capell\\FormBuilder\\Console\\Commands\\RecoverSubmissionDeliveriesCommand"
             ],
             "excludedCommands": {
                 "capell:form-builder-screenshot-fixture": "Seeds disposable screenshot data only; not an operational command."
@@ -100,7 +117,8 @@
         "demo": null,
         "doctor": null,
         "prune": "capell:form-builder:prune",
-        "exportSubmissions": "capell:form-builder:export-submissions"
+        "exportSubmissions": "capell:form-builder:export-submissions",
+        "recoverDeliveries": "capell:form-builder:recover-deliveries"
     },
     "actions": {
         "archiveSubmission": "Capell\\FormBuilder\\Actions\\ArchiveSubmissionAction",
@@ -138,21 +156,16 @@
         "ViewAny:Submission",
         "View:Submission",
         "Reply:Submission",
-        "Update:Submission"
+        "Update:Submission",
+        "Delete:Submission",
+        "DeleteAny:Submission",
+        "Export:Submission"
     ],
     "capabilities": [
         "form-builder",
         "form-builder-admin",
         "form-builder-frontend",
         "public-form",
-        "form-builder-conditional-logic",
-        "form-builder-multi-step",
-        "form-builder-calculations",
-        "form-builder-file-upload-rules",
-        "form-builder-spam-scoring",
-        "form-builder-spam-provider",
-        "form-builder-payment-fields",
-        "form-builder-submission-workflows",
         "requires-livewire",
         "cache-blocking"
     ],
@@ -200,11 +213,27 @@
             ],
             "tokenizedRoutes": [],
             "webhookRoutes": [],
-            "throttledRoutes": []
+            "throttledRoutes": [
+                "GET /capell/payments/forms/{submission}/checkout (capell-payments.form-builder.checkout)"
+            ]
+        },
+        "throttles": {
+            "capell-form-builder-submit": {
+                "maxAttempts": 12,
+                "decaySeconds": 60,
+                "routes": []
+            },
+            "capell-form-builder-checkout": {
+                "maxAttempts": 10,
+                "decaySeconds": 60,
+                "routes": [
+                    "GET /capell/payments/forms/{submission}/checkout (capell-payments.form-builder.checkout)"
+                ]
+            }
         },
         "sensitiveData": {
             "encryptedFields": [],
-            "hashedTokenFields": [],
+            "hashedTokenFields": ["submissions.subject_email_hash"],
             "redactedOutputClasses": [
                 "Capell\\FormBuilder\\Actions\\DispatchSubmissionWebhookAction",
                 "Capell\\FormBuilder\\Actions\\RedactSubmissionWebhookErrorMessageAction"
@@ -242,7 +271,10 @@
                 "ViewAny:Submission",
                 "View:Submission",
                 "Reply:Submission",
-                "Update:Submission"
+                "Update:Submission",
+                "Delete:Submission",
+                "DeleteAny:Submission",
+                "Export:Submission"
             ]
         }
     },
@@ -306,49 +338,97 @@
         "privateDocsRequested": true
     },
     "marketplace": {
-        "summary": "Build site-scoped forms in Capell and capture spam-filtered, encrypted submissions into a per-site triage inbox with one-click email replies.",
-        "description": "Form Builder gives each Capell site its own forms with conditional fields, calculated values, honeypot + heuristic spam scoring, and configurable file-upload rules. Every submission is encrypted at rest and lands in a site-scoped admin inbox where staff can read, archive, mark spam, and reply by email without leaving the panel. Frontend forms render through a cache-safe Livewire component with built-in throttling and accessible markup. Pairs with Email Studio and Public Actions to turn submissions into automated workflows.",
-        "problem": "Our team loses track of enquiries submitted through site forms.",
-        "outcome": "The site has structured forms and a site-specific submission inbox.",
+        "summary": "Forms with questions that change with earlier answers, steps, file uploads, auto-replies and an inbox that sorts spam.",
+        "description": "Make the contact, quote and application forms your business needs, and read every answer in an inbox in your admin. A form can email your team and thank the visitor automatically. Questions can appear after a certain answer, visitors can attach files, and a long form can run over several steps. Each enquiry gets a spam score, and the worst are moved to Spam, with a hidden trap field available for basic bots. Typed answers are stored encrypted and removed after a year unless held for legal reasons. Place a form with the Form element in the page editor, then reply from the inbox.",
+        "problem": "Enquiries go missing in someone's inbox, spam fills the form, and one-size forms ask the wrong questions.",
+        "outcome": "Every enquiry lands in one inbox, spam is set aside, and you reply by email from the admin.",
         "faq": [
             {
-                "question": "Can forms adapt to answers?",
-                "answer": "Forms support conditional and multi-step fields as well as calculations."
+                "question": "Where do the answers people send end up?",
+                "answer": "In an inbox inside your admin, where you reply to each enquiry by email and archive it once it's dealt with. Each form can also email your staff and send the visitor an automatic thank-you."
             },
             {
-                "question": "Where do submissions go?",
-                "answer": "Encrypted submission records are available for editors to triage in the admin."
+                "question": "Does a saved form appear on my site by itself?",
+                "answer": "No. A saved form still has to be put on a page. With Layout Builder you add it as a widget and choose the form, and otherwise your developer places it."
             },
             {
-                "question": "How is sensitive submission retention managed?",
-                "answer": "Teams can apply retention or legal-hold rules to submissions."
+                "question": "Can a form ask different questions depending on earlier answers?",
+                "answer": "Yes. Choosing Kitchen on a quote form can bring up the worktop questions, longer forms can be split into steps, and a field can work out a total from other answers."
+            },
+            {
+                "question": "How does it deal with spam?",
+                "answer": "Each enquiry is scored for signs of spam such as too many links, repeated answers and blocked words. High scorers are moved to Spam, and you can add a hidden trap field to catch simple bots."
+            },
+            {
+                "question": "How long are enquiries kept?",
+                "answer": "Answers are stored encrypted and deleted after a year, unless you put an enquiry on legal hold to keep it longer."
             }
         ],
         "screenshots": [
             {
                 "path": "docs/assets/marketplace/extension-card.jpg",
-                "alt": "Form Builder extension preview image",
-                "caption": "Form Builder extension preview"
+                "alt": "Marketplace card titled Form Builder with a blank site page and an empty list of form mappings beside a three-step diagram",
+                "caption": "The card that represents Form Builder on its Marketplace listing."
             },
             {
                 "path": "docs/screenshots/create-edit-form-schema-screen.png",
-                "alt": "Form Builder schema editor with configurable fields and validation",
-                "caption": "Build real form schemas with field, validation, and notification settings."
+                "alt": "Edit page for a form called Product feedback with site, name, active switch and description above a section for its fields",
+                "caption": "Each form has its own page where you name it, switch it on and set up its fields."
             },
             {
                 "path": "docs/screenshots/submissions-index.png",
-                "alt": "Form Builder submissions inbox showing captured form responses",
-                "caption": "Triage captured submissions from the site-scoped admin inbox."
+                "alt": "Submissions inbox with four project enquiries marked New, Read or Archived, each with actions such as Archive and Mark spam",
+                "caption": "Mark enquiries read, archive them, put one on legal hold or flag it as spam."
             },
             {
                 "path": "docs/screenshots/frontend-form-output.png",
-                "alt": "A published Form Builder form rendered on the public website",
-                "caption": "Publish accessible, cache-safe forms on the public frontend."
+                "alt": "Demo page with a filled-in enquiry form and a Send enquiry button beside a panel of notes written for developers",
+                "caption": "Visitors fill in the fields and press Send enquiry."
             }
         ],
         "categories": ["admin", "form-builder", "frontend"]
     },
     "contributionTraceability": {
-        "deferredContributions": []
+        "deferredContributions": [],
+        "contributions": [
+            {
+                "type": "admin-action-extender",
+                "key": "marketing-action:form-builder.forms",
+                "providerBucket": "runtime"
+            },
+            {
+                "type": "admin-action-extender",
+                "key": "marketing-action:form-builder.submissions",
+                "providerBucket": "runtime"
+            },
+            {
+                "type": "content-widget",
+                "key": "component:Widget:FormBuilderForm",
+                "providerBucket": "runtime"
+            },
+            {
+                "type": "content-widget",
+                "key": "renderable:form-field:capell-form-builder::element.form",
+                "providerBucket": "runtime"
+            },
+            {
+                "type": "content-widget",
+                "key": "renderable:layout-block:capell-form-builder::block.form",
+                "providerBucket": "runtime"
+            },
+            {
+                "type": "content-widget",
+                "key": "renderable:layout-widget:capell-form-builder::widget.form",
+                "providerBucket": "runtime"
+            }
+        ]
+    },
+    "install": {
+        "tips": [
+            {
+                "variant": "package_form_builder",
+                "priority": 20
+            }
+        ]
     }
 }

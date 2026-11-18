@@ -26,6 +26,12 @@ final class SubmissionSiteAccess
     /** @var list<string> */
     public const array UPDATE_ABILITIES = ['update'];
 
+    /** @var list<string> */
+    public const array DELETE_ABILITIES = ['delete'];
+
+    /** @var list<string> */
+    public const array EXPORT_ABILITIES = ['export'];
+
     private const string SUBJECT = 'Submission';
 
     private const string GLOBAL_ACTOR_CACHE_KEY = 'capell.form-builder.submission-site-access.global-actors';

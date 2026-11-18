@@ -151,7 +151,7 @@ it('does not expose forms when external spam protection needs an unsupported tok
     expect(BuildFormAgentToolManifestAction::run($steps, $steps->firstOrFail()->fields, 'capell-form-contact'))->toBeNull();
 });
 
-it('guards repeated form submissions by form email and IP address', function (): void {
+it('guards repeated form submissions by form and IP address however the email rotates', function (): void {
     config()->set('capell-form-builder.throttle.max_attempts', 2);
     config()->set('capell-form-builder.throttle.decay_seconds', 60);
 
@@ -167,15 +167,36 @@ it('guards repeated form submissions by form email and IP address', function ():
     ]);
     $fields = formBuilderBoundaryFields($form);
 
-    GuardFormSubmissionRateLimitAction::run($form, $fields, ['email' => 'ben@example.com'], '203.0.113.10');
-    GuardFormSubmissionRateLimitAction::run($form, $fields, ['email' => 'ben@example.com'], '203.0.113.10');
+    GuardFormSubmissionRateLimitAction::run($form, $fields, ['email' => 'ben@example.com'], formSubmissionRequestFrom('203.0.113.10'));
+    GuardFormSubmissionRateLimitAction::run($form, $fields, ['email' => 'ben@example.com'], formSubmissionRequestFrom('203.0.113.10'));
 
     expect(function () use ($fields, $form): void {
-        GuardFormSubmissionRateLimitAction::run($form, $fields, ['email' => 'ben@example.com'], '203.0.113.10');
+        GuardFormSubmissionRateLimitAction::run($form, $fields, ['email' => 'ben@example.com'], formSubmissionRequestFrom('203.0.113.10'));
     })
         ->toThrow(ValidationException::class);
 
-    GuardFormSubmissionRateLimitAction::run($form, $fields, ['email' => 'other@example.com'], '203.0.113.10');
+    expect(fn () => GuardFormSubmissionRateLimitAction::run($form, $fields, ['email' => 'other@example.com'], formSubmissionRequestFrom('203.0.113.10')))
+        ->toThrow(ValidationException::class);
+
+    GuardFormSubmissionRateLimitAction::run($form, $fields, ['email' => 'other@example.com'], formSubmissionRequestFrom('203.0.113.11'));
+});
+
+it('caps submissions per recipient address across different IP addresses', function (): void {
+    config()->set('capell-form-builder.throttle.max_attempts', 50);
+    config()->set('capell-form-builder.throttle.max_attempts_per_email', 2);
+
+    $form = Form::factory()->create([
+        'schema' => [['key' => 'email', 'label' => 'Email', 'type' => FormFieldType::Email->value, 'required' => true]],
+    ]);
+    $fields = formBuilderBoundaryFields($form);
+
+    GuardFormSubmissionRateLimitAction::run($form, $fields, ['email' => 'Victim@example.com'], formSubmissionRequestFrom('198.51.100.1'));
+    GuardFormSubmissionRateLimitAction::run($form, $fields, ['email' => 'victim@example.com'], formSubmissionRequestFrom('198.51.100.2'));
+
+    expect(fn () => GuardFormSubmissionRateLimitAction::run($form, $fields, ['email' => 'victim@example.com'], formSubmissionRequestFrom('198.51.100.3')))
+        ->toThrow(ValidationException::class);
+
+    GuardFormSubmissionRateLimitAction::run($form, $fields, ['email' => 'someone@example.com'], formSubmissionRequestFrom('198.51.100.3'));
 });
 
 it('resolves form component step state and adjacent steps', function (): void {
@@ -264,4 +285,28 @@ function formBuilderBoundaryFields(Form $form): Collection
     }
 
     return collect();
+}
+
+it('caps every email field and treats plus-tag and Gmail dot aliases as one recipient', function (): void {
+    config()->set('capell-form-builder.throttle.max_attempts', 50);
+    config()->set('capell-form-builder.throttle.max_attempts_per_email', 2);
+
+    $form = Form::factory()->create([
+        'schema' => [
+            ['key' => 'email', 'label' => 'Email', 'type' => FormFieldType::Email->value],
+            ['key' => 'reply_to', 'label' => 'Reply to', 'type' => FormFieldType::Email->value],
+        ],
+    ]);
+    $fields = formBuilderBoundaryFields($form);
+
+    GuardFormSubmissionRateLimitAction::run($form, $fields, ['email' => 'a@example.com', 'reply_to' => 'v.ictim@gmail.com'], formSubmissionRequestFrom('198.51.100.1'));
+    GuardFormSubmissionRateLimitAction::run($form, $fields, ['email' => '', 'reply_to' => 'victim+x@gmail.com'], formSubmissionRequestFrom('198.51.100.2'));
+
+    expect(fn () => GuardFormSubmissionRateLimitAction::run($form, $fields, ['email' => 'b@example.com', 'reply_to' => 'VICTIM+y@googlemail.com'], formSubmissionRequestFrom('198.51.100.3')))
+        ->toThrow(ValidationException::class);
+});
+
+function formSubmissionRequestFrom(string $address): Request
+{
+    return Request::create('/livewire/update', 'POST', server: ['REMOTE_ADDR' => $address]);
 }

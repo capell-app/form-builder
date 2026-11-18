@@ -19,6 +19,9 @@ class BuildFormValidationRulesAction
     use AsFake;
     use AsObject;
 
+    /** @var list<string> */
+    private const array DEFAULT_FILE_TYPES = ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'txt', 'csv', 'doc', 'docx', 'xls', 'xlsx'];
+
     private const int DEFAULT_FILE_MAX_KILOBYTES = 10240;
 
     private const int MAX_FILE_MAX_KILOBYTES = 51200;
@@ -72,9 +75,8 @@ class BuildFormValidationRulesAction
 
             $fileTypes = $this->safeFileTypes($field);
 
-            if ($fileTypes !== []) {
-                $rules[] = 'mimes:' . implode(',', $fileTypes);
-            }
+            // An empty list never means "any file": fall back to a conservative document and image allow-list.
+            $rules[] = 'mimes:' . implode(',', $fileTypes === [] ? self::DEFAULT_FILE_TYPES : $fileTypes);
         }
 
         if ($field->type === FormFieldType::Payment) {

@@ -5,17 +5,18 @@ declare(strict_types=1);
 namespace Capell\FormBuilder\Actions;
 
 use Capell\FormBuilder\Data\FormFieldData;
+use Capell\FormBuilder\Enums\SubmissionStatus;
 use Capell\FormBuilder\Models\Form;
 use Capell\FormBuilder\Models\Submission;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Collection;
 use Lorisleiva\Actions\Concerns\AsFake;
 use Lorisleiva\Actions\Concerns\AsObject;
 use RuntimeException;
 use Spatie\LaravelData\DataCollection;
 
 /**
- * @method static string run(?Form $form = null)
+ * @method static string run(?Form $form = null, Builder<Submission>|null $scope = null)
  */
 final class BuildSubmissionsCsvAction
 {
@@ -34,27 +35,50 @@ final class BuildSubmissionsCsvAction
         'submitted_at',
     ];
 
-    public function handle(?Form $form = null): string
+    /**
+     * @param  Builder<Submission>|null  $scope  Extra constraints, such as the actor's site access.
+     */
+    public function handle(?Form $form = null, ?Builder $scope = null): string
     {
-        $query = Submission::query()
+        $stream = fopen('php://temp', 'r+');
+
+        throw_if($stream === false, RuntimeException::class, 'Unable to open temporary CSV stream.');
+
+        $this->writeTo($stream, $form, $scope);
+        rewind($stream);
+
+        $csv = stream_get_contents($stream);
+        fclose($stream);
+
+        throw_if($csv === false, RuntimeException::class, 'Unable to read temporary CSV stream.');
+
+        return $csv;
+    }
+
+    /**
+     * Streams rows to the given resource one submission at a time, so memory stays flat however many submissions exist.
+     *
+     * @param  resource  $stream
+     * @param  Builder<Submission>|null  $scope
+     */
+    public function writeTo($stream, ?Form $form = null, ?Builder $scope = null): void
+    {
+        $query = ($scope ?? Submission::query())
             ->with('form')
-            ->oldest('submitted_at')
-            ->orderBy('id');
+            ->where('status', '!=', SubmissionStatus::Spam->value);
 
         if ($form instanceof Form) {
             $query->where('form_id', $form->getKey());
         }
 
-        $submissions = $query->get();
+        $fieldKeys = $this->fieldKeys($query->clone());
 
-        $fieldKeys = $this->fieldKeys($submissions);
-        $rows = [];
-        $rows[] = [...self::BASE_COLUMNS, ...$fieldKeys];
+        $this->writeRow($stream, [...self::BASE_COLUMNS, ...$fieldKeys]);
 
-        foreach ($submissions as $submission) {
+        foreach ($query->lazyById() as $submission) {
             $values = $submission->payload->values ?? [];
 
-            $rows[] = [
+            $this->writeRow($stream, [
                 $this->modelKey($submission),
                 (string) $submission->form_id,
                 $submission->form->name,
@@ -62,10 +86,8 @@ final class BuildSubmissionsCsvAction
                 $submission->status->value,
                 $submission->submitted_at->toIso8601String(),
                 ...array_map(fn (string $fieldKey): string => $this->stringValue($values[$fieldKey] ?? null), $fieldKeys),
-            ];
+            ]);
         }
-
-        return $this->writeCsv($rows);
     }
 
     private static function csvValue(string|int|float|bool|null $value): string|int|float|bool|null
@@ -77,22 +99,22 @@ final class BuildSubmissionsCsvAction
     }
 
     /**
-     * @param  Collection<int, Submission>  $submissions
+     * @param  Builder<Submission>  $query
      * @return array<int, string>
      */
-    private function fieldKeys(Collection $submissions): array
+    private function fieldKeys(Builder $query): array
     {
-        return $submissions
-            ->flatMap(function (Submission $submission): array {
-                $schemaKeys = $this->schemaKeys($submission->form);
-                $payloadKeys = array_keys($submission->payload->values ?? []);
+        $keys = [];
 
-                return [...$schemaKeys, ...$payloadKeys];
-            })
-            ->filter(fn (mixed $key): bool => is_string($key) && $key !== '')
-            ->unique()
-            ->values()
-            ->all();
+        foreach ($query->lazyById() as $submission) {
+            foreach ([...$this->schemaKeys($submission->form), ...array_keys($submission->payload->values ?? [])] as $key) {
+                if (is_string($key) && $key !== '') {
+                    $keys[$key] = true;
+                }
+            }
+        }
+
+        return array_keys($keys);
     }
 
     /**
@@ -135,6 +157,11 @@ final class BuildSubmissionsCsvAction
             return (string) $value;
         }
 
+        // Stored upload references export as the file name only, never the storage disk or path.
+        if (is_array($value) && is_string($value['original_name'] ?? null) && array_key_exists('path', $value)) {
+            return $value['original_name'];
+        }
+
         $json = json_encode($value, JSON_THROW_ON_ERROR);
 
         return is_string($json) ? $json : '';
@@ -148,25 +175,11 @@ final class BuildSubmissionsCsvAction
     }
 
     /**
-     * @param  array<int, array<int, string>>  $rows
+     * @param  resource  $stream
+     * @param  array<int, string>  $row
      */
-    private function writeCsv(array $rows): string
+    private function writeRow($stream, array $row): void
     {
-        $stream = fopen('php://temp', 'r+');
-
-        throw_if($stream === false, RuntimeException::class, 'Unable to open temporary CSV stream.');
-
-        foreach ($rows as $row) {
-            fputcsv($stream, array_map(self::csvValue(...), $row), escape: '');
-        }
-
-        rewind($stream);
-
-        $csv = stream_get_contents($stream);
-        fclose($stream);
-
-        throw_if($csv === false, RuntimeException::class, 'Unable to read temporary CSV stream.');
-
-        return $csv;
+        fputcsv($stream, array_map(self::csvValue(...), $row), escape: '');
     }
 }

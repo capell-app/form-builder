@@ -24,7 +24,7 @@ final class BuildFormValidationAttributesAction
     public function handle(Form $form, array $input = [], string $prefix = ''): array
     {
         return ResolveVisibleFormFieldsAction::run($form, $input)
-            ->mapWithKeys(static fn (FormFieldData $field): array => [$prefix . $field->key => $field->label])
+            ->mapWithKeys(static fn (FormFieldData $field): array => [$prefix . $field->key => $field->displayLabel()])
             ->all();
     }
 }

@@ -9,17 +9,22 @@ use Capell\Admin\Data\MarketingStudioActionData;
 use Capell\Admin\Enums\MarketingStudioSectionEnum;
 use Capell\Admin\Facades\CapellAdmin;
 use Capell\Core\Actions\RegisterBlazeOptimizedViewsAction;
+use Capell\Core\Contracts\SiteSpec\SiteSpecApplier;
 use Capell\Core\Data\RenderableDefinitionData;
 use Capell\Core\Data\VendorAssetData;
 use Capell\Core\Facades\CapellCore;
 use Capell\Core\Support\Packages\AbstractPackageServiceProvider;
+use Capell\Core\Support\Packages\PackageSurfaceRegistrar;
 use Capell\Core\Support\Packages\RouteGroupIsolation;
+use Capell\Core\Support\Privacy\PrivacySubjectRegistry;
 use Capell\Core\Support\Renderables\RenderableRegistry;
-use Capell\FormBuilder\Actions\BuildFormSubmissionPrivacyExportAction;
-use Capell\FormBuilder\Actions\EraseFormSubmissionPrivacyDataAction;
+use Capell\FormBuilder\Actions\ApplyFormSiteSpecAction;
 use Capell\FormBuilder\Actions\InstallThemeDemoFormsAction;
+use Capell\FormBuilder\Bridges\LayoutBuilder\FormBuilderFormWidgetConfigurator;
+use Capell\FormBuilder\Bridges\LayoutBuilder\FormWidgetAvailability;
 use Capell\FormBuilder\Console\Commands\ExportSubmissionsCommand;
 use Capell\FormBuilder\Console\Commands\PruneExpiredFormSubmissionsCommand;
+use Capell\FormBuilder\Console\Commands\RecoverSubmissionDeliveriesCommand;
 use Capell\FormBuilder\Console\Commands\SeedFormBuilderScreenshotFixtureCommand;
 use Capell\FormBuilder\Contracts\FormBuilderWebhookHostResolver;
 use Capell\FormBuilder\Contracts\SpamProtectionProvider;
@@ -27,6 +32,7 @@ use Capell\FormBuilder\Enums\LivewireComponentEnum;
 use Capell\FormBuilder\Enums\ResourceEnum;
 use Capell\FormBuilder\Filament\Resources\Forms\FormResource;
 use Capell\FormBuilder\Filament\Resources\Submissions\SubmissionResource;
+use Capell\FormBuilder\LayoutBuilder\InvalidateFormWidgetPagesObserver;
 use Capell\FormBuilder\Livewire\FormComponent;
 use Capell\FormBuilder\Livewire\FormElementComponent;
 use Capell\FormBuilder\Models\Form;
@@ -35,10 +41,14 @@ use Capell\FormBuilder\Policies\FormPolicy;
 use Capell\FormBuilder\Policies\SubmissionPolicy;
 use Capell\FormBuilder\Support\DnsFormBuilderWebhookHostResolver;
 use Capell\FormBuilder\Support\FormRequestContext;
+use Capell\FormBuilder\Support\FormSubmissionThrottle;
+use Capell\FormBuilder\Support\Privacy\FormBuilderPrivacyContributor;
 use Capell\FormBuilder\Support\SpamProtection\NullSpamProtectionProvider;
+use Capell\LayoutBuilder\Contracts\PublicLayoutWidgetAvailability;
+use Capell\LayoutBuilder\Enums\ComponentTypeEnum as LayoutBuilderComponentTypeEnum;
+use Capell\LayoutBuilder\Enums\ConfiguratorTypeEnum as LayoutBuilderConfiguratorTypeEnum;
 use Composer\InstalledVersions;
 use Illuminate\Console\Scheduling\Schedule;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Blade;
@@ -67,11 +77,13 @@ final class FormBuilderServiceProvider extends AbstractPackageServiceProvider
             ->hasTranslations()
             ->hasCommand(ExportSubmissionsCommand::class)
             ->hasCommand(PruneExpiredFormSubmissionsCommand::class)
+            ->hasCommand(RecoverSubmissionDeliveriesCommand::class)
             ->hasCommand(SeedFormBuilderScreenshotFixtureCommand::class)
             ->hasMigrations([
                 '2026_05_10_190849_01_create_form-builder_table',
                 '2026_05_10_190849_02_create_submissions_table',
                 '2026_07_12_000001_add_retention_to_submissions_table',
+                '2026_11_12_000001_add_subject_and_delivery_to_submissions_table',
             ]);
     }
 
@@ -121,6 +133,7 @@ final class FormBuilderServiceProvider extends AbstractPackageServiceProvider
         });
         Gate::policy(Form::class, FormPolicy::class);
         Gate::policy(Submission::class, SubmissionPolicy::class);
+        $this->app->tag([ApplyFormSiteSpecAction::class], SiteSpecApplier::TAG);
         Relation::morphMap([
             'form' => Form::class,
             'form_submission' => Submission::class,
@@ -132,17 +145,69 @@ final class FormBuilderServiceProvider extends AbstractPackageServiceProvider
             });
         }
 
+        $this->registerSchedule(static function (Schedule $schedule): void {
+            $schedule->command('capell:form-builder:recover-deliveries')->everyFiveMinutes()->withoutOverlapping();
+        });
+
         $this
             ->registerModels()
+            ->registerThrottles()
             ->registerPackageAssets()
             ->registerBlazeComponents()
             ->registerRenderables()
             ->registerResources()
             ->registerMarketingStudioActions()
-            ->registerPrivacyCenterContributors()
+            ->registerPrivacyContributors()
             ->registerPackageLivewireComponents()
             ->registerBladeComponents()
+            ->registerLayoutBuilderWidget()
             ->registerThemeDemoForms();
+    }
+
+    /**
+     * With Layout Builder installed, editors can add a widget that shows a
+     * chosen form; without it, nothing here loads a Layout Builder class.
+     */
+    private function registerThrottles(): self
+    {
+        FormSubmissionThrottle::register();
+
+        return $this;
+    }
+
+    private function registerLayoutBuilderWidget(): self
+    {
+        if (! CapellCore::isPackageAvailable('capell-app/layout-builder')) {
+            return $this;
+        }
+
+        if (! CapellCore::isPackageInstalled('capell-app/layout-builder')) {
+            return $this;
+        }
+
+        resolve(RenderableRegistry::class)->register(new RenderableDefinitionData(
+            key: LivewireComponentEnum::LayoutWidget->value,
+            type: 'layout-widget',
+            livewire: FormElementComponent::class,
+        ));
+
+        resolve(PackageSurfaceRegistrar::class)->components(
+            LayoutBuilderComponentTypeEnum::Widget->name,
+            ['FormBuilderForm' => LivewireComponentEnum::LayoutWidget->value],
+        );
+
+        CapellAdmin::contributeToAdminSurface(AdminSurfaceContributionData::configurator(
+            class: FormBuilderFormWidgetConfigurator::class,
+            group: LayoutBuilderConfiguratorTypeEnum::Widget->value,
+            name: FormBuilderFormWidgetConfigurator::getKey(),
+        ));
+
+        // One instance per request, so its per-render lookups never outlive the request.
+        $this->app->scoped(FormWidgetAvailability::class);
+        $this->app->tag([FormWidgetAvailability::class], PublicLayoutWidgetAvailability::TAG);
+        Form::observe(InvalidateFormWidgetPagesObserver::class);
+
+        return $this;
     }
 
     private function registerThemeDemoForms(): self
@@ -160,26 +225,10 @@ final class FormBuilderServiceProvider extends AbstractPackageServiceProvider
         return $this;
     }
 
-    private function registerPrivacyCenterContributors(): self
+    private function registerPrivacyContributors(): self
     {
-        $eraserRegistryClass = implode('\\', ['Capell', 'PrivacyCenter', 'Support', 'PrivacySubjectEraserRegistry']);
-        $exporterRegistryClass = implode('\\', ['Capell', 'PrivacyCenter', 'Support', 'PrivacySubjectExporterRegistry']);
-
-        if (class_exists($eraserRegistryClass) && $this->app->bound($eraserRegistryClass)) {
-            $registry = $this->app->make($eraserRegistryClass);
-
-            if (is_object($registry) && method_exists($registry, 'register')) {
-                $registry->register('form-builder', static fn (Model $subject): int => EraseFormSubmissionPrivacyDataAction::run($subject));
-            }
-        }
-
-        if (class_exists($exporterRegistryClass) && $this->app->bound($exporterRegistryClass)) {
-            $registry = $this->app->make($exporterRegistryClass);
-
-            if (is_object($registry) && method_exists($registry, 'register')) {
-                $registry->register('form-builder', static fn (Model $subject): array => BuildFormSubmissionPrivacyExportAction::run($subject));
-            }
-        }
+        $this->app->tag([FormBuilderPrivacyContributor::class], PrivacySubjectRegistry::EXPORTER_TAG);
+        $this->app->tag([FormBuilderPrivacyContributor::class], PrivacySubjectRegistry::ERASER_TAG);
 
         return $this;
     }

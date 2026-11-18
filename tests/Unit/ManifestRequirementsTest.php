@@ -54,16 +54,7 @@ describe('form-builder capell.json manifest', function (): void {
     it('declares implemented advanced form features and payment integration', function (): void {
         $manifest = formBuilderManifest();
 
-        expect($manifest['capabilities'])->toContain(
-            'form-builder-conditional-logic',
-            'form-builder-multi-step',
-            'form-builder-calculations',
-            'form-builder-file-upload-rules',
-            'form-builder-spam-scoring',
-            'form-builder-spam-provider',
-            'form-builder-payment-fields',
-            'form-builder-submission-workflows',
-        )
+        expect($manifest['capabilities'])->toBe(['form-builder', 'form-builder-admin', 'form-builder-frontend', 'public-form', 'requires-livewire', 'cache-blocking'])
             ->and($manifest['actions'])->toHaveKey('buildFormSteps', BuildFormStepsAction::class)
             ->and($manifest['actions'])->toHaveKey('buildFormValidationRules', BuildFormValidationRulesAction::class)
             ->and($manifest['actions'])->toHaveKey('buildSubmissionPayloadData', BuildSubmissionPayloadDataAction::class)
@@ -133,6 +124,9 @@ describe('form-builder capell.json manifest', function (): void {
                 'View:Submission',
                 'Reply:Submission',
                 'Update:Submission',
+                'Delete:Submission',
+                'DeleteAny:Submission',
+                'Export:Submission',
             ])
             ->and($manifest['contributionTraceability']['deferredContributions'])->not->toContain('admin-resource', 'model');
     });

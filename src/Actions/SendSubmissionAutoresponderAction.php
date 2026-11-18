@@ -17,8 +17,15 @@ class SendSubmissionAutoresponderAction
     use AsFake;
     use AsObject;
 
-    public function handle(Submission $submission): void
+    /**
+     * Queues the autoresponder once. Returns false only when queueing failed, so the delivery stays pending for recovery.
+     */
+    public function handle(Submission $submission): bool
     {
+        if ($submission->autoresponder_queued_at !== null) {
+            return true;
+        }
+
         $submission->loadMissing('form');
 
         $settings = $submission->form->settings;
@@ -26,13 +33,13 @@ class SendSubmissionAutoresponderAction
         $body = is_string($settings?->autoresponderBody) ? trim($settings->autoresponderBody) : '';
 
         if ($subject === '' || $body === '') {
-            return;
+            return true;
         }
 
         $recipient = ResolveSubmissionReplyAddressAction::run($submission);
 
         if ($recipient === null) {
-            return;
+            return true;
         }
 
         try {
@@ -46,6 +53,13 @@ class SendSubmissionAutoresponderAction
                 'form_id' => $submission->form_id,
                 'exception' => $throwable::class,
             ]);
+
+            return false;
         }
+
+        // Recorded outside the try, so a failed save is never mistaken for a failed enqueue and sent twice.
+        $submission->forceFill(['autoresponder_queued_at' => now()])->save();
+
+        return true;
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Capell\FormBuilder\Filament\Resources\Submissions;
 
 use BackedEnum;
+use Capell\Admin\Enums\NavigationGroupEnum;
 use Capell\FormBuilder\Filament\Resources\Submissions\Pages\ListSubmissions;
 use Capell\FormBuilder\Filament\Resources\Submissions\Tables\SubmissionsTable;
 use Capell\FormBuilder\Models\Submission;
@@ -77,9 +78,9 @@ final class SubmissionResource extends Resource
     }
 
     #[Override]
-    public static function getNavigationGroup(): string
+    public static function getNavigationGroup(): NavigationGroupEnum
     {
-        return __('capell-admin::navigation.group_marketing');
+        return NavigationGroupEnum::Marketing;
     }
 
     #[Override]

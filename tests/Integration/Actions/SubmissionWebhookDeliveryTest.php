@@ -32,3 +32,16 @@ it('retries webhook connection failures without losing the submission', function
         ->toThrow(RuntimeException::class, 'webhook delivery failed');
     expect($submission->fresh())->not->toBeNull();
 });
+
+it('never delivers webhooks to internal addresses that PHP treats as public', function (string $webhookUrl): void {
+    Http::fake();
+    $form = Form::factory()->create(['settings' => ['webhook_url' => $webhookUrl]]);
+    $submission = Submission::factory()->for($form)->create();
+
+    rescue(fn () => new DispatchSubmissionWebhookJob((int) $submission->getKey())->handle(), report: false);
+
+    Http::assertNothingSent();
+})->with([
+    'carrier-grade NAT' => 'https://100.64.0.10/form',
+    'benchmarking range' => 'https://198.18.0.10/form',
+]);

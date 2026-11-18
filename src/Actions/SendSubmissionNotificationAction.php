@@ -18,22 +18,27 @@ class SendSubmissionNotificationAction
     use AsFake;
     use AsObject;
 
-    public function handle(Submission $submission): void
+    /**
+     * Queues the notification once. Returns false only when queueing failed, so the delivery stays pending for recovery.
+     */
+    public function handle(Submission $submission): bool
     {
-        if ($submission->status === SubmissionStatus::Spam) {
-            return;
+        if ($submission->status === SubmissionStatus::Spam || $submission->notification_queued_at !== null) {
+            return true;
         }
 
         $submission->loadMissing('form');
 
         $notificationEmail = $submission->form->settings?->notificationEmail;
 
-        if (! is_string($notificationEmail) || trim($notificationEmail) === '') {
-            return;
+        $recipients = ParseNotificationRecipientsAction::run(is_string($notificationEmail) ? $notificationEmail : null);
+
+        if ($recipients === []) {
+            return true;
         }
 
         try {
-            Mail::to($notificationEmail)->queue(new FormSubmissionNotificationMail(
+            Mail::to($recipients)->queue(new FormSubmissionNotificationMail(
                 submission: $submission,
                 replyToAddress: ResolveSubmissionReplyAddressAction::run($submission),
             ));
@@ -42,6 +47,13 @@ class SendSubmissionNotificationAction
                 'submission_id' => $submission->getKey(),
                 'exception' => $throwable::class,
             ]);
+
+            return false;
         }
+
+        // Recorded outside the try, so a failed save is never mistaken for a failed enqueue and sent twice.
+        $submission->forceFill(['notification_queued_at' => now()])->save();
+
+        return true;
     }
 }

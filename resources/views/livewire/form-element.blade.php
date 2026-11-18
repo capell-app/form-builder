@@ -1,10 +1,21 @@
+@php
+    $awaitingForm = $formReference === '' && $formHandle !== '' && ! $loadAttempted;
+@endphp
+
 <div
-    class="capell-form-element capell-form-element"
-    @if ($formReference === '' && $formHandle !== '') wire:init="loadForm" @endif
+    class="capell-form-element"
+    @if ($awaitingForm) wire:init="loadForm" @endif
+    @if ($awaitingForm && $hideWhenUnavailable) wire:loading.attr="aria-busy" @endif
 >
+    @if ($awaitingForm && $hideWhenUnavailable)
+        <noscript>
+            <p>{{ __('capell-form-builder::widget.requires_javascript') }}</p>
+        </noscript>
+    @endif
+
     @if ($formReference !== '')
         @livewire('public-form-fields', ['formReference' => $formReference, 'instanceId' => $instanceId], key('public-form-' . $instanceId))
-    @else
+    @elseif (! $hideWhenUnavailable)
         <div
             class="capell-form-element__fallback"
             role="status"

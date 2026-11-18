@@ -27,7 +27,10 @@ final class CalculateSubmissionSpamScoreAction
     public function handle(Form $form, array $input, SubmissionMetaData $meta): SubmissionSpamScoreData
     {
         if (! (bool) config('capell-form-builder.spam_scoring.enabled', true)) {
-            return new SubmissionSpamScoreData;
+            // Heuristic scoring is off, but a configured provider (Turnstile) must still gate submissions.
+            return $this->spamProviderFailed($form, $input, $meta)
+                ? new SubmissionSpamScoreData(score: 100, reasons: ['spam_provider:' . app(SpamProtectionProvider::class)->key() . '_failed'])
+                : new SubmissionSpamScoreData;
         }
 
         $score = 0;

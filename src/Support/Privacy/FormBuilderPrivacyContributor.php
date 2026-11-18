@@ -1,0 +1,114 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Capell\FormBuilder\Support\Privacy;
+
+use Capell\Core\Contracts\Privacy\PrivacyReviewResolutions;
+use Capell\Core\Contracts\Privacy\PrivacySubjectEraser;
+use Capell\Core\Contracts\Privacy\PrivacySubjectExporter;
+use Capell\Core\Contracts\Privacy\ReviewsPrivacyErasure;
+use Capell\Core\Data\Privacy\PrivacyErasureReceiptData;
+use Capell\Core\Data\Privacy\PrivacyExportSectionData;
+use Capell\Core\Data\Privacy\PrivacyReviewCandidateData;
+use Capell\Core\Data\Privacy\PrivacySubject;
+use Capell\Core\Enums\PrivacyErasureMode;
+use Capell\FormBuilder\Actions\BuildFormSubmissionPrivacyExportAction;
+use Capell\FormBuilder\Actions\EraseFormSubmissionPrivacyDataAction;
+use Capell\FormBuilder\Actions\ResolveFormSubmissionPrivacyRecordIdsAction;
+use Illuminate\Database\Eloquent\Model;
+use Override;
+
+/**
+ * Exports and erases form submissions through Core's privacy registry.
+ *
+ * Submissions recorded as the subject's own are erased and exported directly. A submission that
+ * only mentions the subject's address becomes an `email_match` review candidate, which holds the
+ * request until an operator resolves it: `linked` includes it, anything else leaves it alone.
+ */
+final readonly class FormBuilderPrivacyContributor implements PrivacySubjectEraser, PrivacySubjectExporter, ReviewsPrivacyErasure
+{
+    public const string KEY = 'form-builder';
+
+    public const string CANDIDATE_TYPE = 'form_submission';
+
+    public function __construct(private PrivacyReviewResolutions $reviewResolutions) {}
+
+    #[Override]
+    public function contributor(): string
+    {
+        return self::KEY;
+    }
+
+    #[Override]
+    public function supports(PrivacySubject $subject): bool
+    {
+        return $subject->model instanceof Model;
+    }
+
+    #[Override]
+    public function export(PrivacySubject $subject): PrivacyExportSectionData
+    {
+        return new PrivacyExportSectionData($subject->model instanceof Model
+            ? BuildFormSubmissionPrivacyExportAction::run($subject->model, $this->linkedIds($subject))
+            : []);
+    }
+
+    #[Override]
+    public function erase(PrivacySubject $subject, PrivacyErasureMode $mode): PrivacyErasureReceiptData
+    {
+        // Submissions and their uploads are deleted outright whichever mode is asked for.
+        $affectedRecords = $subject->model instanceof Model
+            ? EraseFormSubmissionPrivacyDataAction::run($subject->model, $this->linkedIds($subject))
+            : 0;
+
+        return new PrivacyErasureReceiptData(self::KEY, PrivacyErasureMode::Delete, $affectedRecords);
+    }
+
+    #[Override]
+    public function reviewCandidates(PrivacySubject $subject): array
+    {
+        if (! $subject->model instanceof Model) {
+            return [];
+        }
+
+        $candidates = [];
+
+        foreach (ResolveFormSubmissionPrivacyRecordIdsAction::run($subject->model)->reviewSubmissionIds as $submissionId => $siteId) {
+            $candidates[] = new PrivacyReviewCandidateData(self::KEY, self::CANDIDATE_TYPE, $submissionId, PrivacyReviewCandidateData::REASON_EMAIL_MATCH, $siteId);
+        }
+
+        return $candidates;
+    }
+
+    /** A submission a reviewer marked as retained keeps holding the request until it is resolved another way. */
+    #[Override]
+    public function honoursRetainedScopes(): bool
+    {
+        return false;
+    }
+
+    #[Override]
+    public function retainsSuppressionMarker(): bool
+    {
+        return false;
+    }
+
+    /**
+     * Submissions an operator has confirmed belong to the subject.
+     *
+     * @return list<int>
+     */
+    private function linkedIds(PrivacySubject $subject): array
+    {
+        $ids = [];
+
+        foreach ($this->reviewResolutions->for($subject, self::KEY, self::CANDIDATE_TYPE) as $submissionId => $resolution) {
+            if ($resolution === 'linked') {
+                $ids[] = $submissionId;
+            }
+        }
+
+        return $ids;
+    }
+}

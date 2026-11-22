@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Capell\FormBuilder\Actions;
 
+use Capell\Core\Facades\CapellCore;
 use Capell\FormBuilder\Models\Submission;
 use Capell\Payments\Actions\ValidateFormPaymentReturnUrlAction;
 use Illuminate\Support\Facades\URL;
@@ -25,6 +26,10 @@ final class CreateFormPaymentCheckoutUrlAction
         ?string $cancelUrl = null,
         ?int $ttlMinutes = null,
     ): string {
+        if (! CapellCore::isPackageAvailable('capell-app/payments')) {
+            throw new LogicException('The Payments integration is not available.');
+        }
+
         if (! IsFormPaymentIntegrationAvailableAction::run()) {
             throw new LogicException('The Payments integration is not available.');
         }

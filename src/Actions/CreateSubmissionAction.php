@@ -59,11 +59,12 @@ class CreateSubmissionAction
         }
 
         $submission = $this->createSubmission($form, $payload->values, $meta, SubmissionStatus::New);
-
-        event(new FormSubmitted($form, $submission, metadata: $submission->meta, payload: $payload->values));
-        DeliverSubmissionMailAction::run($submission);
         $submissionId = $submission->getKey();
         throw_unless(is_int($submissionId), RuntimeException::class, 'Form submission must have an integer key.');
+
+        event(new FormSubmitted($form, $submission, metadata: $submission->meta, payload: $payload->values));
+        DispatchCoreFormSubmissionEventAction::run($form, $payload->values, $meta, $submission);
+        DeliverSubmissionMailAction::run($submission);
         DispatchSubmissionWebhookJob::dispatch($submissionId)->afterCommit();
 
         return $submission;

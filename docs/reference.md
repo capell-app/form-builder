@@ -94,6 +94,7 @@ Form Builder is an **Available** Capell package in the **Capell Engagement & CRM
 - `DeleteSubmissionAction`
 - `DeleteSubmissionUploadsAction`
 - `DeliverSubmissionMailAction`
+- `DispatchCoreFormSubmissionEventAction`
 - `DispatchSubmissionWebhookAction`
 - `DispatchUnstoredFormSubmissionAction`
 - `EraseFormSubmissionPrivacyDataAction`

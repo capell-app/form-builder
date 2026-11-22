@@ -1006,7 +1006,7 @@ it('honours public metadata collection settings', function (): void {
     );
 });
 
-it('records honeypot submissions as spam through the Livewire form', function (): void {
+it('records honeypot submissions as spam regardless of public field validity', function (?string $email): void {
     Event::fake([FormSubmitted::class]);
 
     $form = Form::factory()->create([
@@ -1028,46 +1028,13 @@ it('records honeypot submissions as spam through the Livewire form', function ()
     ]);
     bindFormBuilderFrontendSite($form->site);
 
-    livewire(FormComponent::class, ['handle' => 'lead-form'])
-        ->set('data.email', 'bot@example.com')
-        ->set('data.company_website', 'https://spam.example')
-        ->call('submit')
-        ->assertSet('submitted', true);
+    $component = livewire(FormComponent::class, ['handle' => 'lead-form']);
 
-    $submission = Submission::query()->firstOrFail();
-    $payload = formComponentSubmissionPayload($submission);
+    if ($email !== null) {
+        $component->set('data.email', $email);
+    }
 
-    expect($submission->form_id)->toBe($form->getKey())
-        ->and($submission->status)->toBe(SubmissionStatus::Spam)
-        ->and($payload->values)->toBe([]);
-
-    Event::assertNotDispatched(FormSubmitted::class);
-});
-
-it('records honeypot submissions as spam before validating public fields', function (): void {
-    Event::fake([FormSubmitted::class]);
-
-    $form = Form::factory()->create([
-        'name' => 'Lead form',
-        'handle' => 'lead-form',
-        'schema' => [
-            [
-                'key' => 'email',
-                'label' => 'Email',
-                'type' => FormFieldType::Email->value,
-                'required' => true,
-            ],
-            [
-                'key' => 'company_website',
-                'label' => 'Company website',
-                'type' => FormFieldType::Honeypot->value,
-            ],
-        ],
-    ]);
-    bindFormBuilderFrontendSite($form->site);
-
-    livewire(FormComponent::class, ['handle' => 'lead-form'])
-        ->set('data.company_website', 'https://spam.example')
+    $component->set('data.company_website', 'https://spam.example')
         ->call('submit')
         ->assertHasNoErrors()
         ->assertSet('submitted', true);
@@ -1080,7 +1047,10 @@ it('records honeypot submissions as spam before validating public fields', funct
         ->and($payload->values)->toBe([]);
 
     Event::assertNotDispatched(FormSubmitted::class);
-});
+})->with([
+    'valid email' => ['bot@example.com'],
+    'missing required email' => [null],
+]);
 
 it('silently swallows honeypot submissions when submissions are not stored', function (): void {
     Event::fake([FormSubmitted::class]);

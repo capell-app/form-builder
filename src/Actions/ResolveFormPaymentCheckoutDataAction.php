@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Capell\FormBuilder\Actions;
 
+use Capell\Core\Facades\CapellCore;
 use Capell\FormBuilder\Data\FormFieldData;
 use Capell\FormBuilder\Data\FormPaymentCheckoutData;
 use Capell\FormBuilder\Enums\FormFieldType;
@@ -28,6 +29,10 @@ final class ResolveFormPaymentCheckoutDataAction
 
     public function handle(Submission $submission, ?string $successUrl = null, ?string $cancelUrl = null): FormPaymentCheckoutData
     {
+        if (! CapellCore::isPackageAvailable('capell-app/payments')) {
+            throw new LogicException('The Payments integration is not available.');
+        }
+
         if (! IsFormPaymentIntegrationAvailableAction::run()) {
             throw new LogicException('The Payments integration is not available.');
         }

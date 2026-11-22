@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Capell\FormBuilder\Bridges\LayoutBuilder;
 
+use Capell\Core\Models\Site;
 use Capell\FormBuilder\Actions\FindActiveSiteFormAction;
 use Capell\FormBuilder\Enums\LivewireComponentEnum;
 use Capell\FormBuilder\Models\Form;
@@ -22,10 +23,11 @@ use WeakMap;
 final class FormWidgetAvailability implements PublicLayoutWidgetAvailability
 {
     /**
-     * Per page render, whether each site and handle has an active form, so a form
-     * used by several widgets on one page is looked up once.
+     * Per page render, whether each site and handle has an active form. The
+     * render context stays the same while its public render data is built and
+     * attached, so both phases share the lookup.
      *
-     * @var WeakMap<object, array<string, bool>>
+     * @var WeakMap<FrontendRenderContextData, array<string, bool>>
      */
     private WeakMap $lookups;
 
@@ -44,17 +46,16 @@ final class FormWidgetAvailability implements PublicLayoutWidgetAvailability
         $handle = $widget->getMeta('form_handle');
         $site = $context->site;
 
-        if (! is_string($handle) || trim($handle) === '' || $site === null) {
+        if (! is_string($handle) || trim($handle) === '' || ! $site instanceof Site) {
             return false;
         }
 
-        $render = $context->publicRenderData ?? $context;
         $lookup = $site->id . "\0" . trim($handle);
-        $known = $this->lookups[$render] ?? [];
+        $known = $this->lookups[$context] ?? [];
 
         if (! array_key_exists($lookup, $known)) {
             $known[$lookup] = FindActiveSiteFormAction::run($site->id, $handle) instanceof Form;
-            $this->lookups[$render] = $known;
+            $this->lookups[$context] = $known;
         }
 
         return $known[$lookup];

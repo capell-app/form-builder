@@ -55,6 +55,7 @@ final class DispatchUnstoredFormSubmissionAction
         $submissionData = FormSubmissionData::fromUnstored($form, $payload, $meta);
 
         event(new FormSubmitted($form, metadata: $meta, payload: $payload->values, submissionData: $submissionData));
+        DispatchCoreFormSubmissionEventAction::run($form, $payload->values, $meta);
 
         return $submissionData;
     }

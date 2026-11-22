@@ -10,9 +10,9 @@ Each enquiry is scored for signs of spam such as too many links, repeated answer
 
 From the inbox you reply to each enquiry by email, and archive it once it's dealt with.
 
-- **Price and availability:** Check current availability and price on the [Capell Marketplace listing](https://capell.app/extensions/form-builder).
-- **Licence:** Check the licence terms on the [Capell Marketplace listing](https://capell.app/extensions/form-builder).
-- **Requires:** `PHP ^8.4`, `capell-app/admin ^1.0.66`, `capell-app/core ^1.0.78`, `capell-app/frontend ^1.0`.
+- **Price and availability:** Check current availability and price on the [Capell Marketplace listing](https://capell.app/marketplace/extensions/form-builder).
+- **Licence:** Check the licence terms on the [Capell Marketplace listing](https://capell.app/marketplace/extensions/form-builder).
+- **Requires:** `PHP ^8.4`, `capell-app/admin ^1.0.78`, `capell-app/core ^1.0.79`, `capell-app/frontend ^1.0`.
 - **Install:** `composer require capell-app/form-builder`.
 
 ## Quick Start
@@ -33,7 +33,7 @@ Typed field data and Actions handle visibility, validation, calculations, spam s
 
 ## Limits And Pitfalls
 
-- Install the required Capell packages at the versions in `composer.json`: `capell-app/admin ^1.0.66`, `capell-app/core ^1.0.78`, `capell-app/frontend ^1.0`.
+- Install the required Capell packages at the versions in `composer.json`: `capell-app/admin ^1.0.78`, `capell-app/core ^1.0.79`, `capell-app/frontend ^1.0`.
 - Run migrations before opening package resources or public routes.
 - Review middleware, throttling, signatures, and public-output safety in `routes/payments.php` before exposing routes.
 - Keep the host Laravel scheduler running so package-registered schedules can execute: `capell:form-builder:prune (daily; package registered)`, `capell:form-builder:recover-deliveries (everyFiveMinutes; package registered)`.
@@ -97,6 +97,6 @@ Read [CHANGELOG.md](CHANGELOG.md) before upgrading.
 - [Capell content language plan](../../docs/CONTENT_LANGUAGE_PLAN.md)
 - [Capell documentation design system](../../docs/DESIGN_SYSTEM.md)
 - [Capell and package ERD notes](../../docs/erd/capell-and-package-erds.md)
-- Related packages: [Layout Builder](../layout-builder/README.md), [Payments](../payments/README.md).
+- Related packages: [Layout Builder](../layout-builder/README.md), [Payments](../payments/README.md), [Privacy Centre](../privacy-center/README.md).
 
 <!-- prettier-ignore-end -->

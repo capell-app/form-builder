@@ -4,6 +4,10 @@ All notable changes to `capell-app/form-builder` will be documented in this file
 
 ## Unreleased
 
+- A site whose submissions, or whose forms' submissions, are under legal hold can no longer be permanently deleted, because the database would delete those submissions with it. Release the hold first. Requires `capell-app/core` 1.0.80.
+
+- Privacy erasure now keeps the subject's submissions under legal hold, with their uploads, and names them on the erasure receipt. `EraseFormSubmissionPrivacyDataAction` returns `FormSubmissionPrivacyErasureResultData` (deleted count and held ids) instead of an int. A form that keeps a submission under legal hold can no longer be deleted, because its submissions would be deleted with it; release the hold first.
+- A submission that fails validation no longer spends the hourly per-recipient budget, so three mistakes no longer lock a visitor out for an hour. The per-address limit (12 a minute) still counts every attempt, and valid submissions to one address are still capped at three an hour.
 - Throttle now keys on form, site and IP only, with a separate per-recipient cap across every email field, so rotating the address no longer earns a fresh budget.
 - The Turnstile widget now renders in the public form and its token is submitted; the provider also gates submissions when heuristic scoring is off.
 - Spam submissions no longer store uploads; privacy erasure, form deletion, pruning and admin deletion remove stored upload files.

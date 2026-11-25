@@ -7,15 +7,20 @@ namespace Capell\FormBuilder\Actions;
 use Capell\FormBuilder\Data\FormFieldData;
 use Capell\FormBuilder\Data\SubmissionMetaData;
 use Capell\FormBuilder\Data\SubmissionPayloadData;
+use Capell\FormBuilder\Enums\FormFieldType;
 use Capell\FormBuilder\Enums\SubmissionStatus;
 use Capell\FormBuilder\Events\FormSubmitted;
 use Capell\FormBuilder\Jobs\DispatchSubmissionWebhookJob;
 use Capell\FormBuilder\Models\Form;
 use Capell\FormBuilder\Models\Submission;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsFake;
 use Lorisleiva\Actions\Concerns\AsObject;
 use RuntimeException;
+use Throwable;
 
 /**
  * @method static Submission run(Form $form, array<string, mixed> $input, SubmissionMetaData $meta)
@@ -51,31 +56,29 @@ class CreateSubmissionAction
             [],
             BuildFormValidationAttributesAction::run($form, $input),
         )->validate();
-        $isSpam = $spamScore->isSpam($this->spamThreshold());
-        $payload = BuildSubmissionPayloadDataAction::run($form, $validated, storeUploads: ! $isSpam);
-
-        if ($isSpam) {
-            return $this->createSubmission($form, $payload->values, $meta, SubmissionStatus::Spam);
+        if ($spamScore->isSpam($this->spamThreshold())) {
+            return $this->createSubmission($form, $validated, $meta, SubmissionStatus::Spam);
         }
 
-        $submission = $this->createSubmission($form, $payload->values, $meta, SubmissionStatus::New);
+        $submission = $this->createSubmission($form, $validated, $meta, SubmissionStatus::New);
         $submissionId = $submission->getKey();
         throw_unless(is_int($submissionId), RuntimeException::class, 'Form submission must have an integer key.');
+        $values = $submission->payload->values;
 
-        event(new FormSubmitted($form, $submission, metadata: $submission->meta, payload: $payload->values));
-        DispatchCoreFormSubmissionEventAction::run($form, $payload->values, $meta, $submission);
+        event(new FormSubmitted($form, $submission, metadata: $submission->meta, payload: $values));
+        DispatchCoreFormSubmissionEventAction::run($form, $values, $meta, $submission);
         DeliverSubmissionMailAction::run($submission);
-        DispatchSubmissionWebhookJob::dispatch($submissionId)->afterCommit();
+        dispatch(new DispatchSubmissionWebhookJob($submissionId))->afterCommit();
 
         return $submission;
     }
 
     /**
-     * @param  array<string, mixed>  $payload
+     * @param  array<string, mixed>  $validated  the validated input, or an empty array for a honeypot rejection
      */
     private function createSubmission(
         Form $form,
-        array $payload,
+        array $validated,
         SubmissionMetaData $meta,
         SubmissionStatus $status,
     ): Submission {
@@ -83,14 +86,24 @@ class CreateSubmissionAction
         $submission->forceFill([
             'form_id' => $form->getKey(),
             'site_id' => $form->site_id,
-            'payload' => new SubmissionPayloadData($payload),
             'meta' => $meta,
             'status' => $status,
             'submitted_at' => now(),
         ]);
         $submission->setRelation('form', $form);
 
-        if ($status === SubmissionStatus::New) {
+        $accepted = $status === SubmissionStatus::New;
+        if ($accepted) {
+            $this->selectPaymentRail($submission, $form, $validated);
+        }
+
+        $submission->forceFill([
+            'payload' => $validated === []
+                ? new SubmissionPayloadData([])
+                : BuildSubmissionPayloadDataAction::run($form, $validated, storeUploads: $accepted),
+        ]);
+
+        if ($accepted) {
             // Ownership is recorded from the form's visitor email field at submission time, so a
             // later schema change or a field such as "friend_email" never decides whose data this is.
             $subjectEmail = ResolveSubmissionReplyAddressAction::run($submission);
@@ -101,9 +114,56 @@ class CreateSubmissionAction
             ]);
         }
 
-        $submission->save();
+        try {
+            $submission->save();
+        } catch (Throwable $throwable) {
+            // The files were written while the payload was built, so a row that never saved would leave them
+            // stored with nothing pointing at them.
+            $this->discardStoredUploads($submission->payload->values);
+
+            throw $throwable;
+        }
 
         return $submission;
+    }
+
+    /** @param array<string, mixed> $values */
+    private function discardStoredUploads(array $values): void
+    {
+        foreach ($values as $value) {
+            if (is_array($value) && is_string($value['disk'] ?? null) && is_string($value['path'] ?? null)) {
+                Storage::disk($value['disk'])->delete($value['path']);
+            }
+        }
+    }
+
+    /** @param array<string, mixed> $validated */
+    private function selectPaymentRail(Submission $submission, Form $form, array $validated): void
+    {
+        if (! $this->hasPaymentField($form, $validated)) {
+            return;
+        }
+
+        $rail = ResolveFormPaymentCheckoutRailAction::run();
+        if ($rail === null) {
+            return;
+        }
+
+        // The optional rail may inspect the accepted fields, but has no need to write their files.
+        $submission->forceFill([
+            'payload' => BuildSubmissionPayloadDataAction::run($form, $validated, storeUploads: false),
+        ]);
+        if (! $rail->selects($submission)) {
+            return;
+        }
+
+        if (! Route::has('capell-payments.form-builder.selected-checkout')) {
+            throw ValidationException::withMessages([
+                'payment' => __('capell-form-builder::generic.payment_checkout_unavailable'),
+            ]);
+        }
+
+        $submission->forceFill(['payment_rail' => $rail->key()]);
     }
 
     /**
@@ -126,6 +186,14 @@ class CreateSubmissionAction
         }
 
         return false;
+    }
+
+    /** @param array<string, mixed> $payload */
+    private function hasPaymentField(Form $form, array $payload): bool
+    {
+        return ResolveVisibleFormFieldsAction::run($form, $payload)
+            ->contains(static fn (FormFieldData $field): bool => $field->type === FormFieldType::Payment
+                && (isset($payload[$field->key]) || ($field->paymentAmountCents ?? 0) > 0));
     }
 
     private function spamThreshold(): int

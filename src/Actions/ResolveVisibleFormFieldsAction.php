@@ -25,10 +25,29 @@ final class ResolveVisibleFormFieldsAction
      */
     public function handle(Form $form, array $input = []): Collection
     {
-        return $this->fields($form)
-            ->filter(
-                fn (FormFieldData $field): bool => EvaluateFormFieldVisibilityAction::run($field, $input),
-            )
+        $fields = $this->fields($form);
+        $hidden = [];
+
+        // A field hidden by its own condition has no answer, whatever the browser still holds for it, so a
+        // field that depends on it is judged without that stale value. Resolving that to a fixed point makes a
+        // chain (A shows B, B shows C) give validation, storage and rendering the same answer.
+        for ($pass = 0; $pass <= $fields->count(); $pass++) {
+            $effective = array_diff_key($input, array_flip($hidden));
+            $nowHidden = $fields
+                ->reject(fn (FormFieldData $field): bool => EvaluateFormFieldVisibilityAction::run($field, $effective))
+                ->map(static fn (FormFieldData $field): string => $field->key)
+                ->values()
+                ->all();
+
+            if ($nowHidden === $hidden) {
+                break;
+            }
+
+            $hidden = $nowHidden;
+        }
+
+        return $fields
+            ->reject(static fn (FormFieldData $field): bool => in_array($field->key, $hidden, true))
             ->values();
     }
 

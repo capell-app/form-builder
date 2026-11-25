@@ -348,7 +348,7 @@ handle(Submission $submission, ?string $successUrl = null, ?string $cancelUrl = 
 ## Create a form payment checkout session
 
 The `createFormPaymentCheckout` manifest key maps to
-`Capell\FormBuilder\Actions\CreateFormPaymentCheckoutSessionAction`. Its
+`Capell\FormBuilder\Bridges\Payments\CreateFormPaymentCheckoutSessionAction`. Its
 static `run()` entrypoint and instance `handle()` method accept a `Submission`,
 optional success and cancel URLs, and return a
 `Capell\Payments\Models\CheckoutSession`.
@@ -358,7 +358,7 @@ optional success and cancel URLs, and return a
 ```php
 <?php
 
-use Capell\FormBuilder\Actions\CreateFormPaymentCheckoutSessionAction;
+use Capell\FormBuilder\Bridges\Payments\CreateFormPaymentCheckoutSessionAction;
 use Capell\FormBuilder\Models\Submission;
 
 /** @var Submission $submission */

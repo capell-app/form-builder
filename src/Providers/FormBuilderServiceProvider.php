@@ -9,19 +9,18 @@ use Capell\Admin\Data\MarketingStudioActionData;
 use Capell\Admin\Enums\MarketingStudioSectionEnum;
 use Capell\Admin\Facades\CapellAdmin;
 use Capell\Core\Actions\RegisterBlazeOptimizedViewsAction;
+use Capell\Core\Contracts\Privacy\RetainsSiteRecords;
 use Capell\Core\Contracts\SiteSpec\SiteSpecApplier;
 use Capell\Core\Data\RenderableDefinitionData;
 use Capell\Core\Data\VendorAssetData;
 use Capell\Core\Facades\CapellCore;
 use Capell\Core\Support\Packages\AbstractPackageServiceProvider;
-use Capell\Core\Support\Packages\PackageSurfaceRegistrar;
 use Capell\Core\Support\Packages\RouteGroupIsolation;
 use Capell\Core\Support\Privacy\PrivacySubjectRegistry;
 use Capell\Core\Support\Renderables\RenderableRegistry;
 use Capell\FormBuilder\Actions\ApplyFormSiteSpecAction;
 use Capell\FormBuilder\Actions\InstallThemeDemoFormsAction;
-use Capell\FormBuilder\Bridges\LayoutBuilder\FormBuilderFormWidgetConfigurator;
-use Capell\FormBuilder\Bridges\LayoutBuilder\FormWidgetAvailability;
+use Capell\FormBuilder\Bridges\LayoutBuilder\FormBuilderLayoutBuilderBridge;
 use Capell\FormBuilder\Console\Commands\ExportSubmissionsCommand;
 use Capell\FormBuilder\Console\Commands\PruneExpiredFormSubmissionsCommand;
 use Capell\FormBuilder\Console\Commands\RecoverSubmissionDeliveriesCommand;
@@ -32,7 +31,6 @@ use Capell\FormBuilder\Enums\LivewireComponentEnum;
 use Capell\FormBuilder\Enums\ResourceEnum;
 use Capell\FormBuilder\Filament\Resources\Forms\FormResource;
 use Capell\FormBuilder\Filament\Resources\Submissions\SubmissionResource;
-use Capell\FormBuilder\LayoutBuilder\InvalidateFormWidgetPagesObserver;
 use Capell\FormBuilder\Livewire\FormComponent;
 use Capell\FormBuilder\Livewire\FormElementComponent;
 use Capell\FormBuilder\Models\Form;
@@ -43,10 +41,8 @@ use Capell\FormBuilder\Support\DnsFormBuilderWebhookHostResolver;
 use Capell\FormBuilder\Support\FormRequestContext;
 use Capell\FormBuilder\Support\FormSubmissionThrottle;
 use Capell\FormBuilder\Support\Privacy\FormBuilderPrivacyContributor;
+use Capell\FormBuilder\Support\Privacy\FormBuilderSiteRecordRetainer;
 use Capell\FormBuilder\Support\SpamProtection\NullSpamProtectionProvider;
-use Capell\LayoutBuilder\Contracts\PublicLayoutWidgetAvailability;
-use Capell\LayoutBuilder\Enums\ComponentTypeEnum as LayoutBuilderComponentTypeEnum;
-use Capell\LayoutBuilder\Enums\ConfiguratorTypeEnum as LayoutBuilderConfiguratorTypeEnum;
 use Composer\InstalledVersions;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -84,6 +80,7 @@ final class FormBuilderServiceProvider extends AbstractPackageServiceProvider
                 '2026_05_10_190849_02_create_submissions_table',
                 '2026_07_12_000001_add_retention_to_submissions_table',
                 '2026_11_12_000001_add_subject_and_delivery_to_submissions_table',
+                '2026_11_19_000001_add_payment_rail_to_submissions_table',
             ]);
     }
 
@@ -185,27 +182,7 @@ final class FormBuilderServiceProvider extends AbstractPackageServiceProvider
             return $this;
         }
 
-        resolve(RenderableRegistry::class)->register(new RenderableDefinitionData(
-            key: LivewireComponentEnum::LayoutWidget->value,
-            type: 'layout-widget',
-            livewire: FormElementComponent::class,
-        ));
-
-        resolve(PackageSurfaceRegistrar::class)->components(
-            LayoutBuilderComponentTypeEnum::Widget->name,
-            ['FormBuilderForm' => LivewireComponentEnum::LayoutWidget->value],
-        );
-
-        CapellAdmin::contributeToAdminSurface(AdminSurfaceContributionData::configurator(
-            class: FormBuilderFormWidgetConfigurator::class,
-            group: LayoutBuilderConfiguratorTypeEnum::Widget->value,
-            name: FormBuilderFormWidgetConfigurator::getKey(),
-        ));
-
-        // One instance per request, so its per-render lookups never outlive the request.
-        $this->app->scoped(FormWidgetAvailability::class);
-        $this->app->tag([FormWidgetAvailability::class], PublicLayoutWidgetAvailability::TAG);
-        Form::observe(InvalidateFormWidgetPagesObserver::class);
+        FormBuilderLayoutBuilderBridge::register($this->app);
 
         return $this;
     }
@@ -229,6 +206,7 @@ final class FormBuilderServiceProvider extends AbstractPackageServiceProvider
     {
         $this->app->tag([FormBuilderPrivacyContributor::class], PrivacySubjectRegistry::EXPORTER_TAG);
         $this->app->tag([FormBuilderPrivacyContributor::class], PrivacySubjectRegistry::ERASER_TAG);
+        $this->app->tag([FormBuilderSiteRecordRetainer::class], RetainsSiteRecords::TAG);
 
         return $this;
     }

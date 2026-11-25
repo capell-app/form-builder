@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 return [
+    'retained_site_submissions' => 'form submission under legal hold|form submissions under legal hold',
     'contact_instead' => 'Contact us instead',
     'form_submitted' => 'Form submitted.',
     'form_unavailable' => 'Online enquiries are temporarily unavailable.',
@@ -16,6 +17,7 @@ return [
     'reply_recipient_missing' => 'This submission does not include a valid email address to reply to.',
     'reply_sent' => 'Reply sent.',
     'legal_hold_applied' => 'Legal hold applied. This submission will not be deleted automatically.',
+    'form_delete_blocked_by_legal_hold' => 'This form keeps submissions under legal hold, and deleting it would delete them too. Release each legal hold first, then delete the form.',
     'legal_hold_released' => 'Legal hold released.',
     'submissions_delete_skipped' => 'Submissions kept: :count. They are under legal hold or you cannot delete them. Release the legal hold first to delete one.',
     'submission_deleted' => 'Submission deleted.',

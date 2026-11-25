@@ -41,7 +41,8 @@ final class FormPolicy
     public function delete(User $user, Form $form): bool
     {
         return $this->hasPermission($user, 'delete')
-            && $this->canUseFormSite($user, $form);
+            && $this->canUseFormSite($user, $form)
+            && ! $form->hasSubmissionsUnderLegalHold();
     }
 
     public function deleteAny(User $user): bool
@@ -63,7 +64,8 @@ final class FormPolicy
     public function forceDelete(User $user, Form $form): bool
     {
         return $this->hasPermission($user, 'force_delete')
-            && $this->canUseFormSite($user, $form);
+            && $this->canUseFormSite($user, $form)
+            && ! $form->hasSubmissionsUnderLegalHold();
     }
 
     public function forceDeleteAny(User $user): bool

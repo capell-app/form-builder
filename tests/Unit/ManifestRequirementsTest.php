@@ -12,12 +12,12 @@ use Capell\FormBuilder\Actions\BuildSubmissionPayloadDataAction;
 use Capell\FormBuilder\Actions\CalculateFormFieldValuesAction;
 use Capell\FormBuilder\Actions\CalculateSubmissionSpamScoreAction;
 use Capell\FormBuilder\Actions\CreateFormPaymentCheckoutRedirectUrlAction;
-use Capell\FormBuilder\Actions\CreateFormPaymentCheckoutSessionAction;
 use Capell\FormBuilder\Actions\CreateFormPaymentCheckoutUrlAction;
 use Capell\FormBuilder\Actions\CreateSubmissionAction;
 use Capell\FormBuilder\Actions\DispatchUnstoredFormSubmissionAction;
 use Capell\FormBuilder\Actions\EvaluateFormFieldVisibilityAction;
 use Capell\FormBuilder\Actions\ResolveVisibleFormFieldsAction;
+use Capell\FormBuilder\Bridges\Payments\CreateFormPaymentCheckoutSessionAction;
 use Capell\FormBuilder\Filament\Resources\Forms\FormResource;
 use Capell\FormBuilder\Filament\Resources\Submissions\SubmissionResource;
 use Capell\FormBuilder\Livewire\FormElementComponent;
@@ -92,7 +92,7 @@ describe('form-builder capell.json manifest', function (): void {
             ->and($manifest['contributes'])->toContain([
                 'type' => 'route',
                 'class' => FormBuilderPaymentRoutesContribution::class,
-                'routes' => ['capell-payments.form-builder.checkout'],
+                'routes' => ['capell-payments.form-builder.checkout', 'capell-payments.form-builder.selected-checkout'],
             ])
             ->and($manifest['contributes'])->toContain([
                 'type' => 'model',

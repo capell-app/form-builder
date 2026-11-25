@@ -2,8 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Capell\FormBuilder\Actions;
+namespace Capell\FormBuilder\Bridges\Payments;
 
+use Capell\Core\Facades\CapellCore;
+use Capell\FormBuilder\Actions\ResolveFormPaymentCheckoutDataAction;
 use Capell\FormBuilder\Models\Submission;
 use Capell\Payments\Actions\CreateCheckoutSessionAction;
 use Capell\Payments\Data\CheckoutLineItemData;
@@ -25,7 +27,11 @@ final class CreateFormPaymentCheckoutSessionAction
 
     public function handle(Submission $submission, ?string $successUrl = null, ?string $cancelUrl = null): CheckoutSession
     {
-        if (! IsFormPaymentIntegrationAvailableAction::run()) {
+        if ($submission->paymentRail() !== null) {
+            throw new LogicException('This submission selected a different payment rail.');
+        }
+
+        if (! CapellCore::isPackageAvailable('capell-app/payments') || ! IsFormPaymentIntegrationAvailableAction::run()) {
             throw new LogicException('The Payments integration is not available.');
         }
 

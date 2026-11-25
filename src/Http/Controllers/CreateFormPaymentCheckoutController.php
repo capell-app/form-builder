@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Capell\FormBuilder\Http\Controllers;
 
-use Capell\FormBuilder\Actions\CreateFormPaymentCheckoutSessionAction;
-use Capell\FormBuilder\Actions\IsFormPaymentIntegrationAvailableAction;
+use Capell\FormBuilder\Bridges\Payments\CreateFormPaymentCheckoutSessionAction;
+use Capell\FormBuilder\Bridges\Payments\IsFormPaymentIntegrationAvailableAction;
 use Capell\FormBuilder\Models\Submission;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -14,6 +14,8 @@ final class CreateFormPaymentCheckoutController
 {
     public function __invoke(Request $request, Submission $submission): RedirectResponse
     {
+        abort_if($submission->paymentRail() !== null, 404);
+
         abort_unless(IsFormPaymentIntegrationAvailableAction::run() === true, 404);
 
         $checkoutSession = CreateFormPaymentCheckoutSessionAction::run(

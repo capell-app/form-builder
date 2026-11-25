@@ -3,11 +3,13 @@
 declare(strict_types=1);
 
 use Capell\Core\Models\Site;
+use Capell\FormBuilder\Contracts\FormPaymentCheckoutRail;
 use Capell\FormBuilder\Data\SubmissionMetaData;
 use Capell\FormBuilder\Data\SubmissionPayloadData;
 use Capell\FormBuilder\Enums\FormFieldType;
 use Capell\FormBuilder\Enums\SubmissionStatus;
 use Capell\FormBuilder\Events\FormSubmitted;
+use Capell\FormBuilder\Jobs\DispatchSubmissionWebhookJob;
 use Capell\FormBuilder\Livewire\FormComponent;
 use Capell\FormBuilder\Livewire\FormElementComponent;
 use Capell\FormBuilder\Mail\FormSubmissionAutoresponderMail;
@@ -20,9 +22,11 @@ use Capell\Frontend\Facades\Frontend;
 use Capell\Frontend\Support\State\FrontendState;
 use Capell\Tests\Support\RenderedHtml;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Routing\RouteCollection;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
@@ -84,6 +88,7 @@ it('keeps public form workflow buttons at the primary touch target size', functi
         if ($action === 'previous') {
             $component->call('nextStep')->assertHasNoErrors();
         }
+
         $html = (new RenderedHtml($component->html()));
         $button = $html->element('//button[contains(concat(" ", normalize-space(@class), " "), " capell-form__' . $action . ' ")]');
         // This single Tailwind safety token gives each rendered workflow control a 44px minimum touch target.
@@ -769,6 +774,71 @@ it('redirects payment form submissions to a signed Payments checkout URL when Pa
     ]);
 });
 
+it('keeps retries from storing or delivering a payment submission when the selected route is missing', function (): void {
+    config()->set('capell-form-builder.uploads.disk', 'form-selected-route-test');
+    $disk = Storage::fake('form-selected-route-test');
+    Queue::fake();
+    Mail::fake();
+    Event::fake([FormSubmitted::class]);
+    app()->instance(FormPaymentCheckoutRail::class, new class implements FormPaymentCheckoutRail
+    {
+        #[Override]
+        public function key(): string
+        {
+            return 'fixture-checkout';
+        }
+
+        #[Override]
+        public function selects(Submission $submission): bool
+        {
+            return true;
+        }
+
+        #[Override]
+        public function checkoutUrl(Submission $submission): ?string
+        {
+            throw new LogicException('Checkout must stay unavailable.');
+        }
+    });
+    $form = Form::factory()->create([
+        'handle' => 'selected-route-missing',
+        'settings' => ['store_submissions' => true, 'notification_email' => 'operator@example.test'],
+        'schema' => [
+            [
+                'key' => 'amount', 'label' => 'Amount', 'type' => FormFieldType::Payment->value,
+                'required' => true, 'payment_amount_cents' => 2500, 'payment_currency' => 'GBP',
+            ],
+            [
+                'key' => 'brief', 'label' => 'Brief', 'type' => FormFieldType::File->value,
+                'required' => true, 'accepted_file_types' => ['pdf'],
+            ],
+        ],
+    ]);
+    bindFormBuilderFrontendSite($form->site);
+    $routes = new RouteCollection;
+    foreach (Route::getRoutes()->getRoutes() as $route) {
+        if ($route->getName() !== 'capell-payments.form-builder.selected-checkout') {
+            $routes->add($route);
+        }
+    }
+
+    Route::setRoutes($routes);
+    expect(Route::has('capell-payments.form-builder.selected-checkout'))->toBeFalse();
+
+    $component = livewire(FormComponent::class, ['handle' => 'selected-route-missing'])
+        ->set('data.brief', UploadedFile::fake()->create('brief.pdf', 12, 'application/pdf'));
+    for ($attempt = 0; $attempt < 2; $attempt++) {
+        $component->call('submit')->assertHasErrors(['data.payment'])->assertSet('submitted', false);
+    }
+
+    expect($disk->allFiles())->toBe([]);
+    expect(Submission::query()->where('form_id', $form->getKey())->count())->toBe(0);
+    Event::assertNotDispatched(FormSubmitted::class);
+    Mail::assertNothingSent();
+    Mail::assertNothingQueued();
+    Queue::assertNotPushed(DispatchSubmissionWebhookJob::class);
+});
+
 it('displays calculation validation errors on the public field without accepting a submission', function (bool $storeSubmissions): void {
     Event::fake([FormSubmitted::class]);
     $form = Form::factory()->create([
@@ -1124,6 +1194,47 @@ it('throttles repeated public form submissions for the configured email field ke
     expect(Submission::query()->count())->toBe(2);
 });
 
+it('does not spend the hourly per-address budget on submissions that fail validation, but still caps valid ones', function (): void {
+    config()->set('capell-form-builder.throttle.max_attempts_per_email', 3);
+
+    $form = Form::factory()->create([
+        'handle' => 'typo-form',
+        'schema' => [
+            ['key' => 'email', 'label' => 'Email', 'type' => FormFieldType::Email->value, 'required' => true],
+            ['key' => 'message', 'label' => 'Message', 'type' => FormFieldType::Textarea->value, 'required' => true],
+        ],
+    ]);
+    bindFormBuilderFrontendSite($form->site);
+
+    // Three attempts that forget the message are corrected, not locked out.
+    foreach (range(1, 3) as $attempt) {
+        livewire(FormComponent::class, ['handle' => 'typo-form'])
+            ->set('data.email', 'visitor@example.com')
+            ->call('submit')
+            ->assertHasErrors(['data.message'])
+            ->assertSet('submitted', false);
+    }
+
+    foreach (range(1, 3) as $attempt) {
+        livewire(FormComponent::class, ['handle' => 'typo-form'])
+            ->set('data.email', 'visitor@example.com')
+            ->set('data.message', 'Hello')
+            ->call('submit')
+            ->assertHasNoErrors()
+            ->assertSet('submitted', true);
+    }
+
+    // A fourth valid submission to the same address within the hour is still refused.
+    livewire(FormComponent::class, ['handle' => 'typo-form'])
+        ->set('data.email', 'visitor@example.com')
+        ->set('data.message', 'Hello again')
+        ->call('submit')
+        ->assertHasErrors(['data'])
+        ->assertSee(__('capell-form-builder::message.too_many_submissions'));
+
+    expect(Submission::query()->count())->toBe(3);
+});
+
 function formComponentSubmissionPayload(Submission $submission): SubmissionPayloadData
 {
     $payload = $submission->payload;
@@ -1190,6 +1301,7 @@ it('renders contact form controls with light and dark treatments', function (str
         $element = $dom->element('//*[contains(concat(" ", normalize-space(@class), " "), " capell-form__' . $part . ' ")]');
         expect(explode(' ', $element->getAttribute('class')))->toContain(...$classes);
     }
+
     expect($html)->not->toContain('capell-app/form-builder', 'data-model', 'data-field-path');
 })->with(['text', 'textarea', 'select', 'file', 'payment']);
 
@@ -1209,4 +1321,43 @@ it('renders dark contact step navigation without losing touch targets', function
     $component->call('nextStep')->assertHasNoErrors();
     $dom = new RenderedHtml($component->html());
     expect(explode(' ', $dom->element('//button[contains(@class, "capell-form__previous")]')->getAttribute('class')))->toContain('min-h-11', 'dark:border-white/20', 'dark:bg-transparent', 'dark:text-gray-100', 'dark:hover:bg-white/10');
+});
+
+it('lists an earlier step\'s error in the final summary, takes the visitor back to it and announces errors once', function (): void {
+    $form = Form::factory()->create([
+        'handle' => 'summary-steps',
+        'schema' => [
+            ['key' => 'email', 'label' => 'Email', 'type' => FormFieldType::Email->value, 'required' => true, 'step_key' => 'Contact'],
+            ['key' => 'budget', 'label' => 'Budget', 'type' => FormFieldType::Number->value, 'required' => true, 'step_key' => 'Project'],
+        ],
+    ]);
+    bindFormBuilderFrontendSite($form->site);
+
+    $component = livewire(FormComponent::class, ['handle' => 'summary-steps', 'instanceId' => 'summary-steps'])
+        ->set('data.email', 'ben@example.com')
+        ->call('nextStep')
+        ->set('data.email', 'not-an-email')
+        ->set('data.budget', 100)
+        ->call('submit')
+        ->assertHasErrors(['data.email'])
+        ->assertSet('currentStepKey', 'project')
+        ->assertElementExists('button[wire\\:click="goToStep(\'contact\')"]');
+
+    expect(substr_count($component->html(), 'role="alert"'))->toBe(1);
+
+    $component->call('goToStep', 'contact')
+        ->assertSet('currentStepKey', 'contact')
+        ->assertElementExists('a[href="#capell-form-summary-steps-email"]');
+});
+
+it('says a variable payment amount is entered in the smallest currency unit', function (): void {
+    $form = Form::factory()->create([
+        'handle' => 'variable-payment',
+        'schema' => [['key' => 'amount', 'label' => 'Amount', 'type' => FormFieldType::Payment->value, 'required' => true]],
+    ]);
+    bindFormBuilderFrontendSite($form->site);
+
+    livewire(FormComponent::class, ['handle' => 'variable-payment', 'instanceId' => 'pay'])
+        ->assertSee(__('capell-form-builder::form.payment_amount_unit_hint'))
+        ->assertElementExists('input[aria-describedby="capell-form-pay-amount-unit"]');
 });

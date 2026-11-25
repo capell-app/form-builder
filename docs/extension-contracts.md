@@ -41,6 +41,46 @@ function registerFormBuilderWebhookHostResolverAdapter(\Capell\FormBuilder\Contr
 }
 ```
 
+## Contract `Capell\FormBuilder\Contracts\FormPaymentCheckoutRail`
+
+<!-- example: contract Capell\FormBuilder\Contracts\FormPaymentCheckoutRail -->
+
+```php
+<?php
+declare(strict_types=1);
+
+namespace App\CapellExamples\FormBuilder;
+
+final class FormPaymentCheckoutRailAdapter implements \Capell\FormBuilder\Contracts\FormPaymentCheckoutRail
+{
+    public function __construct(private readonly \Capell\FormBuilder\Contracts\FormPaymentCheckoutRail $backend) {}
+
+    #[\Override]
+    public function checkoutUrl(\Capell\FormBuilder\Models\Submission $submission): ?string
+    {
+        return $this->backend->checkoutUrl($submission);
+    }
+
+    #[\Override]
+    public function key(): string
+    {
+        return $this->backend->key();
+    }
+
+    #[\Override]
+    public function selects(\Capell\FormBuilder\Models\Submission $submission): bool
+    {
+        return $this->backend->selects($submission);
+    }
+}
+
+function registerFormPaymentCheckoutRailAdapter(\Capell\FormBuilder\Contracts\FormPaymentCheckoutRail $backend): void
+{
+    app()->bind(FormPaymentCheckoutRailAdapter::class, static fn (): FormPaymentCheckoutRailAdapter => new FormPaymentCheckoutRailAdapter($backend));
+    app()->bind(\Capell\FormBuilder\Contracts\FormPaymentCheckoutRail::class, FormPaymentCheckoutRailAdapter::class);
+}
+```
+
 ## Contract `Capell\FormBuilder\Contracts\SpamProtectionProvider`
 
 <!-- example: contract Capell\FormBuilder\Contracts\SpamProtectionProvider -->
@@ -199,7 +239,7 @@ namespace App\CapellExamples\FormBuilder;
 
 function runCreateFormPaymentCheckout(\Capell\FormBuilder\Models\Submission $submission, ?string $successUrl = null, ?string $cancelUrl = null): \Capell\Payments\Models\CheckoutSession
 {
-    return \Capell\FormBuilder\Actions\CreateFormPaymentCheckoutSessionAction::run($submission, $successUrl, $cancelUrl);
+    return \Capell\FormBuilder\Bridges\Payments\CreateFormPaymentCheckoutSessionAction::run($submission, $successUrl, $cancelUrl);
 }
 ```
 

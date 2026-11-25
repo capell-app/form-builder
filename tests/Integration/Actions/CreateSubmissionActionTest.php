@@ -17,10 +17,12 @@ use Capell\FormBuilder\Models\Submission;
 use Capell\FormBuilder\Tests\Fixtures\StaticHostAddressResolver;
 use GuzzleHttp\Promise\PromiseInterface;
 use Illuminate\Http\Client\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
 beforeEach(function (): void {
@@ -424,4 +426,25 @@ it('redacts secret-like values from submission webhook error messages', function
         ->and($message)->not->toContain('bearer-token-secret')
         ->and($message)->not->toContain('form-webhook-secret')
         ->and($message)->not->toContain('query-token-secret');
+});
+
+it('removes an uploaded file again when the submission row fails to save', function (): void {
+    $disk = config('capell-form-builder.uploads.disk');
+    Storage::fake(is_string($disk) ? $disk : 'local');
+    Submission::saving(static function (): never {
+        throw new RuntimeException('Database unavailable');
+    });
+    $form = Form::factory()->create([
+        'schema' => [
+            ['key' => 'brief', 'label' => 'Brief', 'type' => 'file', 'required' => true, 'accepted_file_types' => ['pdf']],
+        ],
+    ]);
+
+    expect(fn (): Submission => CreateSubmissionAction::run(
+        form: $form,
+        input: ['brief' => UploadedFile::fake()->create('brief.pdf', 12, 'application/pdf')],
+        meta: new SubmissionMetaData,
+    ))->toThrow(RuntimeException::class, 'Database unavailable');
+
+    expect(Storage::disk(is_string($disk) ? $disk : 'local')->allFiles())->toBe([]);
 });

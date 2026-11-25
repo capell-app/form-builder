@@ -26,7 +26,6 @@ use Capell\FormBuilder\Data\FormStepData;
 use Capell\FormBuilder\Data\SubmissionMetaData;
 use Capell\FormBuilder\Enums\FormFieldType;
 use Capell\FormBuilder\Models\Form;
-use Capell\FormBuilder\Models\Submission;
 use Capell\FormBuilder\Support\FormRequestContext;
 use Capell\FormBuilder\Support\SpamProtection\TurnstileSpamProtectionProvider;
 use Capell\Frontend\Actions\Performance\RecordExtensionRenderContributionAction;
@@ -115,6 +114,33 @@ final class FormComponent extends Component
         }
     }
 
+    /**
+     * Lets the error summary take a visitor back to a step whose answer needs fixing.
+     */
+    public function goToStep(string $stepKey): void
+    {
+        $step = $this->stepState()->steps->first(static fn (FormStepData $step): bool => $step->key === $stepKey);
+
+        $form = $this->form();
+
+        if (! $step instanceof FormStepData || ! $form instanceof Form) {
+            return;
+        }
+
+        $this->currentStepKey = $step->key;
+
+        // Arriving from the summary, the visitor still needs to see what is wrong on this step.
+        try {
+            $this->validate(
+                BuildFormComponentValidationRulesAction::run($form, $this->data, $step->fields),
+                [],
+                BuildFormValidationAttributesAction::run($form, $this->data, 'data.'),
+            );
+        } catch (ValidationException) {
+            // The errors are now on the error bag for this step's fields.
+        }
+    }
+
     public function previousStep(): void
     {
         $previousStep = $this->stepState()->stepBefore($this->currentStepKey);
@@ -140,7 +166,8 @@ final class FormComponent extends Component
 
         $metadata = $this->metadata();
         $settings = $this->settings();
-        GuardFormSubmissionRateLimitAction::run($form, $this->allFields(), $this->data, request());
+        $rateLimit = GuardFormSubmissionRateLimitAction::make();
+        $rateLimit->guardAddress($form, request());
 
         if (! $this->hasTriggeredHoneypot()) {
             try {
@@ -154,6 +181,10 @@ final class FormComponent extends Component
                 [],
                 BuildFormValidationAttributesAction::run($form, $this->data, 'data.'),
             );
+
+            // Only a valid submission can send mail, so only it spends the recipients' hourly budget. A honeypot
+            // hit sends nothing, and counting it would let a bot lock a victim's address out of the form.
+            $rateLimit->guardRecipients($form, $this->allFields(), $this->data);
         }
 
         try {
@@ -164,10 +195,13 @@ final class FormComponent extends Component
                     meta: $metadata,
                 );
 
+                $checkoutUrl = CreateFormPaymentCheckoutRedirectUrlAction::run($submission);
                 $this->submitted = true;
                 $this->reset('data');
 
-                if ($this->redirectToPaymentCheckout($submission)) {
+                if ($checkoutUrl !== null) {
+                    $this->redirect($checkoutUrl);
+
                     return;
                 }
 
@@ -205,6 +239,7 @@ final class FormComponent extends Component
                 'capell-form-' . $this->instanceId,
             ),
             'fields' => $this->fields(),
+            'errorSteps' => $this->stepState()->steps,
             'form' => $form,
             'formInstanceId' => $this->instanceId,
             'currentStep' => $this->stepState()->currentStep,
@@ -222,7 +257,7 @@ final class FormComponent extends Component
     private function turnstileWidget(): ?array
     {
         if (! (bool) config('capell-form-builder.spam_protection.enabled', false)
-            || ! app(SpamProtectionProvider::class) instanceof TurnstileSpamProtectionProvider) {
+            || ! resolve(SpamProtectionProvider::class) instanceof TurnstileSpamProtectionProvider) {
             return null;
         }
 
@@ -363,7 +398,7 @@ final class FormComponent extends Component
 
     private function hasPaymentField(): bool
     {
-        return $this->allFields()
+        return $this->visibleFields()
             ->contains(static fn (FormFieldData $field): bool => $field->type === FormFieldType::Payment);
     }
 
@@ -380,19 +415,6 @@ final class FormComponent extends Component
         }
 
         return false;
-    }
-
-    private function redirectToPaymentCheckout(Submission $submission): bool
-    {
-        $checkoutUrl = CreateFormPaymentCheckoutRedirectUrlAction::run($submission);
-
-        if ($checkoutUrl === null) {
-            return false;
-        }
-
-        $this->redirect($checkoutUrl);
-
-        return true;
     }
 
     private function normalizeActionValidationException(ValidationException $exception): ValidationException

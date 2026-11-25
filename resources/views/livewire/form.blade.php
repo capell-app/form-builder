@@ -82,21 +82,33 @@
                                 <li>{{ $message }}</li>
                             @enderror
 
-                            @foreach ($fields as $field)
-                                @php
-                                    $errorKey = 'data.' . $field->key;
-                                @endphp
+                            @foreach ($errorSteps as $errorStep)
+                                @foreach ($errorStep->fields as $field)
+                                    @php
+                                        $errorKey = 'data.' . $field->key;
+                                    @endphp
 
-                                @error($errorKey)
-                                    <li>
-                                        <a
-                                            href="#capell-form-{{ $formInstanceId }}-{{ $field->key }}"
-                                            class="underline underline-offset-2"
-                                        >
-                                            {{ $field->displayLabel() }}: {{ $message }}
-                                        </a>
-                                    </li>
-                                @enderror
+                                    @error($errorKey)
+                                        <li>
+                                            @if ($currentStep === null || $errorStep->key === $currentStep->key)
+                                                <a
+                                                    href="#capell-form-{{ $formInstanceId }}-{{ $field->key }}"
+                                                    class="underline underline-offset-2"
+                                                >
+                                                    {{ $field->displayLabel() }}: {{ $message }}
+                                                </a>
+                                            @else
+                                                <button
+                                                    type="button"
+                                                    wire:click="goToStep('{{ $errorStep->key }}')"
+                                                    class="underline underline-offset-2"
+                                                >
+                                                    {{ $errorStep->label }} - {{ $field->displayLabel() }}: {{ $message }}
+                                                </button>
+                                            @endif
+                                        </li>
+                                    @enderror
+                                @endforeach
                             @endforeach
                         </ul>
                     </div>
@@ -110,6 +122,7 @@
                         $errorId = $fieldId . '-error';
                         $describedBy = collect([
                             $field->helpText ? $helpId : null,
+                            $field->type === FormFieldType::Payment ? $fieldId . '-unit' : null,
                             $errors->has($errorKey) ? $errorId : null,
                         ])->filter()->implode(' ');
                     @endphp
@@ -235,6 +248,15 @@
                                 />
                             @endif
 
+                            @if ($field->type === FormFieldType::Payment && ! (is_int($field->paymentAmountCents) && $field->paymentAmountCents > 0))
+                                <p
+                                    id="{{ $fieldId }}-unit"
+                                    class="capell-form__help text-sm text-gray-500 dark:text-gray-400"
+                                >
+                                    {{ __('capell-form-builder::form.payment_amount_unit_hint') }}
+                                </p>
+                            @endif
+
                             @if ($field->helpText)
                                 <p
                                     id="{{ $helpId }}"
@@ -248,7 +270,6 @@
                                 <p
                                     id="{{ $errorId }}"
                                     class="capell-form__error text-sm font-medium text-red-700"
-                                    role="alert"
                                 >
                                     {{ $message }}
                                 </p>

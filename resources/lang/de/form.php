@@ -111,6 +111,7 @@ return [
     'errors_heading' => 'Bitte prüfen Sie die markierten Felder.',
     'continue_to_payment' => 'Weiter zur Zahlung',
     'next_step' => 'Weiter',
+    'payment_amount_unit_hint' => 'Geben Sie den Betrag in der kleinsten Währungseinheit ein, zum Beispiel 2500 für 25,00.',
     'payment_fixed_amount' => ':currency :amount nach dem Absenden fällig.',
     'previous_step' => 'Zurück',
     'redirecting_to_payment' => 'Zahlung wird geöffnet ...',

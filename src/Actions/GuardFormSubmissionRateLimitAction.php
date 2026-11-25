@@ -25,6 +25,8 @@ final class GuardFormSubmissionRateLimitAction
     use AsObject;
 
     /**
+     * Both limits at once, for callers that have already validated the input.
+     *
      * @param  Collection<int, FormFieldData>  $fields
      * @param  array<string, mixed>  $input
      *
@@ -32,12 +34,35 @@ final class GuardFormSubmissionRateLimitAction
      */
     public function handle(Form $form, Collection $fields, array $input, Request $request): void
     {
-        if (! FormSubmissionThrottle::throttle()->hit($request, ['form' => $this->formDimension($form)])) {
-            throw ValidationException::withMessages([
-                'data' => __('capell-form-builder::message.too_many_submissions'),
-            ]);
-        }
+        $this->guardAddress($form, $request);
+        $this->guardRecipients($form, $fields, $input);
+    }
 
+    /**
+     * The short per-address budget (12 a minute by default), spent by every final submission attempt, valid or not,
+     * so flooding a form from one address is refused before any validation work.
+     *
+     * @throws ValidationException
+     */
+    public function guardAddress(Form $form, Request $request): void
+    {
+        if (! FormSubmissionThrottle::throttle()->hit($request, ['form' => $this->formDimension($form)])) {
+            throw $this->tooMany();
+        }
+    }
+
+    /**
+     * The long per-recipient budget (3 an hour by default). It protects the people whose addresses go into the
+     * form from repeated autoresponder mail, so only a submission that passed validation spends it: a visitor who
+     * mistypes another field is told what to fix, not locked out for an hour.
+     *
+     * @param  Collection<int, FormFieldData>  $fields
+     * @param  array<string, mixed>  $input
+     *
+     * @throws ValidationException
+     */
+    public function guardRecipients(Form $form, Collection $fields, array $input): void
+    {
         $limits = [];
 
         // Every address on the form counts: the autoresponder may mail any email field, so capping only one would
@@ -51,11 +76,16 @@ final class GuardFormSubmissionRateLimitAction
 
         foreach ($limits as $key => [$maxAttempts, $decaySeconds]) {
             if (RateLimiter::hit($key, $decaySeconds) > $maxAttempts) {
-                throw ValidationException::withMessages([
-                    'data' => __('capell-form-builder::message.too_many_submissions'),
-                ]);
+                throw $this->tooMany();
             }
         }
+    }
+
+    private function tooMany(): ValidationException
+    {
+        return ValidationException::withMessages([
+            'data' => __('capell-form-builder::message.too_many_submissions'),
+        ]);
     }
 
     private function recipientRateLimitKey(Form $form, string $email): string

@@ -9,6 +9,7 @@ return [
     ],
     'empty_value' => 'Not provided',
     'form' => 'Form',
+    'payment_checkout_unavailable' => 'Payment is temporarily unavailable. Please try again in a few minutes.',
     'submission_status' => [
         'archived' => 'Archived',
         'new' => 'New',

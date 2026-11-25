@@ -66,7 +66,10 @@
         {
             "type": "route",
             "class": "Capell\\FormBuilder\\Manifest\\FormBuilderPaymentRoutesContribution",
-            "routes": ["capell-payments.form-builder.checkout"]
+            "routes": [
+                "capell-payments.form-builder.checkout",
+                "capell-payments.form-builder.selected-checkout"
+            ]
         },
         {
             "type": "model",
@@ -133,7 +136,7 @@
         "calculateSubmissionSpamScore": "Capell\\FormBuilder\\Actions\\CalculateSubmissionSpamScoreAction",
         "createFormPaymentCheckoutRedirectUrl": "Capell\\FormBuilder\\Actions\\CreateFormPaymentCheckoutRedirectUrlAction",
         "createFormPaymentCheckoutUrl": "Capell\\FormBuilder\\Actions\\CreateFormPaymentCheckoutUrlAction",
-        "createFormPaymentCheckout": "Capell\\FormBuilder\\Actions\\CreateFormPaymentCheckoutSessionAction",
+        "createFormPaymentCheckout": "Capell\\FormBuilder\\Bridges\\Payments\\CreateFormPaymentCheckoutSessionAction",
         "createSubmission": "Capell\\FormBuilder\\Actions\\CreateSubmissionAction",
         "dispatchUnstoredFormSubmission": "Capell\\FormBuilder\\Actions\\DispatchUnstoredFormSubmissionAction",
         "evaluateFormFieldVisibility": "Capell\\FormBuilder\\Actions\\EvaluateFormFieldVisibilityAction",
@@ -208,17 +211,20 @@
         "riskTier": "sensitive",
         "publicSurface": {
             "routeNames": [
-                "GET /capell/payments/forms/{submission}/checkout (capell-payments.form-builder.checkout)"
+                "GET /capell/payments/forms/{submission}/checkout (capell-payments.form-builder.checkout)",
+                "GET /capell/payments/forms/{submission}/selected-checkout (capell-payments.form-builder.selected-checkout)"
             ],
             "auth": "public",
             "csrfExemptRoutes": [],
             "signedRoutes": [
-                "GET /capell/payments/forms/{submission}/checkout (capell-payments.form-builder.checkout)"
+                "GET /capell/payments/forms/{submission}/checkout (capell-payments.form-builder.checkout)",
+                "GET /capell/payments/forms/{submission}/selected-checkout (capell-payments.form-builder.selected-checkout)"
             ],
             "tokenizedRoutes": [],
             "webhookRoutes": [],
             "throttledRoutes": [
-                "GET /capell/payments/forms/{submission}/checkout (capell-payments.form-builder.checkout)"
+                "GET /capell/payments/forms/{submission}/checkout (capell-payments.form-builder.checkout)",
+                "GET /capell/payments/forms/{submission}/selected-checkout (capell-payments.form-builder.selected-checkout)"
             ]
         },
         "throttles": {
@@ -231,12 +237,16 @@
                 "maxAttempts": 10,
                 "decaySeconds": 60,
                 "routes": [
-                    "GET /capell/payments/forms/{submission}/checkout (capell-payments.form-builder.checkout)"
+                    "GET /capell/payments/forms/{submission}/checkout (capell-payments.form-builder.checkout)",
+                    "GET /capell/payments/forms/{submission}/selected-checkout (capell-payments.form-builder.selected-checkout)"
                 ]
             }
         },
         "sensitiveData": {
-            "encryptedFields": [],
+            "encryptedFields": [
+                "Capell\\FormBuilder\\Models\\Submission::$meta",
+                "Capell\\FormBuilder\\Models\\Submission::$payload"
+            ],
             "hashedTokenFields": ["submissions.subject_email_hash"],
             "redactedOutputClasses": [
                 "Capell\\FormBuilder\\Actions\\DispatchSubmissionWebhookAction",

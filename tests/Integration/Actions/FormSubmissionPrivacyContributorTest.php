@@ -2,8 +2,12 @@
 
 declare(strict_types=1);
 
+use Capell\Core\Data\Privacy\PrivacyErasureReceiptData;
 use Capell\Core\Data\Privacy\PrivacyReviewCandidateData;
 use Capell\Core\Data\Privacy\PrivacySubject;
+use Capell\Core\Enums\PrivacyErasureMode;
+use Capell\Core\Exceptions\SiteHasRetainedRecordsException;
+use Capell\Core\Models\Site;
 use Capell\Core\Support\Packages\InstalledRuntimeLifecycle;
 use Capell\Core\Support\Privacy\PrivacySubjectRegistry;
 use Capell\FormBuilder\Actions\BuildFormSubmissionPrivacyExportAction;
@@ -13,6 +17,7 @@ use Capell\FormBuilder\Actions\ResolveFormSubmissionPrivacyRecordIdsAction;
 use Capell\FormBuilder\Data\SubmissionMetaData;
 use Capell\FormBuilder\Data\SubmissionPayloadData;
 use Capell\FormBuilder\Events\FormSubmitted;
+use Capell\FormBuilder\Exceptions\FormHasSubmissionsUnderLegalHoldException;
 use Capell\FormBuilder\Models\Form;
 use Capell\FormBuilder\Models\Submission;
 use Capell\FormBuilder\Providers\FormBuilderServiceProvider;
@@ -25,6 +30,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 
 beforeEach(function (): void {
     Event::fake([FormSubmitted::class]);
@@ -109,7 +115,7 @@ it("never exports or erases another person's submission that names the subject a
     expect($records->submissionIds)->toBe([])
         ->and($records->reviewSubmissionIds)->toHaveKeys([$someoneElses->id])->toHaveCount(1)
         ->and(BuildFormSubmissionPrivacyExportAction::run($subject))->toBe([])
-        ->and(EraseFormSubmissionPrivacyDataAction::run($subject))->toBe(0)
+        ->and(EraseFormSubmissionPrivacyDataAction::run($subject)->deleted)->toBe(0)
         ->and(Submission::query()->whereKey($someoneElses->getKey())->exists())->toBeTrue();
 
     // The sender's own request still finds it.
@@ -173,6 +179,58 @@ it('includes a reviewed submission once an operator links it to the subject', fu
     $subject = privacySubject('privacy@example.test');
 
     expect(BuildFormSubmissionPrivacyExportAction::run($subject, [$legacy->getKey()])['submissions'])->toHaveCount(1)
-        ->and(EraseFormSubmissionPrivacyDataAction::run($subject, [$legacy->getKey()]))->toBe(1)
+        ->and(EraseFormSubmissionPrivacyDataAction::run($subject, [$legacy->getKey()])->deleted)->toBe(1)
         ->and(Submission::query()->whereKey($legacy->getKey())->exists())->toBeFalse();
+});
+
+it('keeps the subject\'s submissions under legal hold, with their uploads, and names them on the erasure receipt', function (): void {
+    Storage::fake('local');
+    registerFormBuilderPrivacyContributor();
+    $form = privacyContactForm();
+    $own = CreateSubmissionAction::run($form, ['email' => 'privacy@example.test'], new SubmissionMetaData);
+    $held = CreateSubmissionAction::run($form, ['email' => 'privacy@example.test'], new SubmissionMetaData);
+    $held->forceFill([
+        'legal_hold' => true,
+        'payload' => new SubmissionPayloadData(['email' => 'privacy@example.test', 'cv' => ['disk' => 'local', 'path' => 'form-builder/submissions/held-cv.pdf']]),
+    ])->save();
+    Storage::disk('local')->put('form-builder/submissions/held-cv.pdf', 'claim evidence');
+
+    $subject = persistedPrivacySubject('privacy@example.test');
+    $result = resolve(PrivacySubjectRegistry::class)->erase(PrivacySubject::forModel($subject), PrivacyErasureMode::Delete);
+    $receipt = $result->receipts[0] ?? null;
+
+    expect($result->failures)->toBe([])
+        ->and($receipt?->affectedRecords)->toBe(1)
+        ->and($receipt?->retainedRecords)->toBe([PrivacyErasureReceiptData::RETAINED_LEGAL_HOLD => [$held->getKey()]])
+        ->and(Submission::query()->whereKey($own->getKey())->exists())->toBeFalse()
+        ->and(Submission::query()->whereKey($held->getKey())->exists())->toBeTrue();
+    Storage::disk('local')->assertExists('form-builder/submissions/held-cv.pdf');
+});
+
+it('refuses to delete a form that keeps a submission under legal hold, because its submissions would go with it', function (): void {
+    $form = privacyContactForm();
+    $held = Submission::factory()->for($form)->create(['legal_hold' => true]);
+
+    expect(fn (): ?bool => $form->delete())->toThrow(FormHasSubmissionsUnderLegalHoldException::class)
+        ->and(Form::query()->whereKey($form->getKey())->exists())->toBeTrue()
+        ->and(Submission::query()->whereKey($held->getKey())->exists())->toBeTrue();
+
+    $held->forceFill(['legal_hold' => false])->save();
+
+    expect($form->delete())->toBeTrue();
+});
+
+it('refuses to permanently delete a site whose forms keep a submission under legal hold, so the cascade cannot destroy it', function (): void {
+    $form = privacyContactForm();
+    $held = Submission::factory()->for($form)->create(['legal_hold' => true, 'site_id' => $form->site_id]);
+    $site = Site::query()->findOrFail($form->site_id);
+
+    expect(fn (): ?bool => $site->forceDelete())->toThrow(SiteHasRetainedRecordsException::class, '1 form submission under legal hold')
+        ->and(Site::withTrashed()->whereKey($site->getKey())->exists())->toBeTrue()
+        ->and(Submission::query()->whereKey($held->getKey())->exists())->toBeTrue();
+
+    $held->forceFill(['legal_hold' => false])->save();
+
+    expect($site->forceDelete())->toBeTrue()
+        ->and(Submission::query()->whereKey($held->getKey())->exists())->toBeFalse();
 });

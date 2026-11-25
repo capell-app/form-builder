@@ -32,6 +32,7 @@ Form Builder is an **Available** Capell package in the **Capell Engagement & CRM
 - `packages/form-builder/database/migrations/2026_05_10_190849_02_create_submissions_table.php`
 - `packages/form-builder/database/migrations/2026_07_12_000001_add_retention_to_submissions_table.php`
 - `packages/form-builder/database/migrations/2026_11_12_000001_add_subject_and_delivery_to_submissions_table.php`
+- `packages/form-builder/database/migrations/2026_11_19_000001_add_payment_rail_to_submissions_table.php`
 
 ### Models
 
@@ -65,6 +66,7 @@ Form Builder is an **Available** Capell package in the **Capell Engagement & CRM
 ### Extension contracts
 
 - `FormBuilderWebhookHostResolver`
+- `FormPaymentCheckoutRail`
 - `SpamProtectionProvider`
 
 ### Events
@@ -88,7 +90,6 @@ Form Builder is an **Available** Capell package in the **Capell Engagement & CRM
 - `CalculateFormFieldValuesAction`
 - `CalculateSubmissionSpamScoreAction`
 - `CreateFormPaymentCheckoutRedirectUrlAction`
-- `CreateFormPaymentCheckoutSessionAction`
 - `CreateFormPaymentCheckoutUrlAction`
 - `CreateSubmissionAction`
 - `DeleteSubmissionAction`
@@ -103,7 +104,6 @@ Form Builder is an **Available** Capell package in the **Capell Engagement & CRM
 - `GuardFormSubmissionRateLimitAction`
 - `InstallThemeDemoFormsAction`
 - `InvalidateFormWidgetPagesAction`
-- `IsFormPaymentIntegrationAvailableAction`
 - `ListSubmissionUploadsAction`
 - `MarkSubmissionReadAction`
 - `MarkSubmissionSpamAction`
@@ -117,6 +117,7 @@ Form Builder is an **Available** Capell package in the **Capell Engagement & CRM
 - `ResolveFormComponentStepStateAction`
 - `ResolveFormInitialValuesAction`
 - `ResolveFormPaymentCheckoutDataAction`
+- `ResolveFormPaymentCheckoutRailAction`
 - `ResolveFormRequestSiteAction`
 - `ResolveFormSubmissionPrivacyRecordIdsAction`
 - `ResolveFormWidgetPlacementAction`
@@ -141,6 +142,7 @@ Form Builder is an **Available** Capell package in the **Capell Engagement & CRM
 - `FormSettingsData`
 - `FormStepData`
 - `FormSubmissionData`
+- `FormSubmissionPrivacyErasureResultData`
 - `FormSubmissionPrivacyRecordIdsData`
 - `FormWidgetPlacementData`
 - `ResolvedFormWebhookEndpointData`
@@ -168,7 +170,7 @@ Form Builder is an **Available** Capell package in the **Capell Engagement & CRM
 - `buildSubmissionPayloadData: Capell\FormBuilder\Actions\BuildSubmissionPayloadDataAction`
 - `calculateFormFieldValues: Capell\FormBuilder\Actions\CalculateFormFieldValuesAction`
 - `calculateSubmissionSpamScore: Capell\FormBuilder\Actions\CalculateSubmissionSpamScoreAction`
-- `createFormPaymentCheckout: Capell\FormBuilder\Actions\CreateFormPaymentCheckoutSessionAction`
+- `createFormPaymentCheckout: Capell\FormBuilder\Bridges\Payments\CreateFormPaymentCheckoutSessionAction`
 - `createFormPaymentCheckoutRedirectUrl: Capell\FormBuilder\Actions\CreateFormPaymentCheckoutRedirectUrlAction`
 - `createFormPaymentCheckoutUrl: Capell\FormBuilder\Actions\CreateFormPaymentCheckoutUrlAction`
 - `createSubmission: Capell\FormBuilder\Actions\CreateSubmissionAction`
@@ -229,7 +231,7 @@ Form Builder is an **Available** Capell package in the **Capell Engagement & CRM
 - Required tables: `forms`, `submissions`.
 - Models: `Form`, `Submission`.
 - Core record references in migrations: `sites via site_id`.
-- Migration files: `2026_05_10_190849_01_create_form-builder_table.php`, `2026_05_10_190849_02_create_submissions_table.php`, `2026_07_12_000001_add_retention_to_submissions_table.php`, `2026_11_12_000001_add_subject_and_delivery_to_submissions_table.php`.
+- Migration files: `2026_05_10_190849_01_create_form-builder_table.php`, `2026_05_10_190849_02_create_submissions_table.php`, `2026_07_12_000001_add_retention_to_submissions_table.php`, `2026_11_12_000001_add_subject_and_delivery_to_submissions_table.php`, `2026_11_19_000001_add_payment_rail_to_submissions_table.php`.
 - Migration impact: run host migrations through the package install flow before opening package surfaces.
 - Deletion/retention behaviour: migrations declare cascade-on-delete relationships; retention is scheduled through `capell:form-builder:prune` (daily; registered by the package provider).
 

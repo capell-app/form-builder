@@ -57,12 +57,20 @@ final readonly class FormBuilderPrivacyContributor implements PrivacySubjectEras
     #[Override]
     public function erase(PrivacySubject $subject, PrivacyErasureMode $mode): PrivacyErasureReceiptData
     {
-        // Submissions and their uploads are deleted outright whichever mode is asked for.
-        $affectedRecords = $subject->model instanceof Model
-            ? EraseFormSubmissionPrivacyDataAction::run($subject->model, $this->linkedIds($subject))
-            : 0;
+        // Submissions and their uploads are deleted outright whichever mode is asked for, except those under legal
+        // hold, which are kept and named on the receipt.
+        if (! $subject->model instanceof Model) {
+            return new PrivacyErasureReceiptData(self::KEY, PrivacyErasureMode::Delete, 0);
+        }
 
-        return new PrivacyErasureReceiptData(self::KEY, PrivacyErasureMode::Delete, $affectedRecords);
+        $result = EraseFormSubmissionPrivacyDataAction::run($subject->model, $this->linkedIds($subject));
+
+        return new PrivacyErasureReceiptData(
+            self::KEY,
+            PrivacyErasureMode::Delete,
+            $result->deleted,
+            retainedRecords: $result->legalHoldIds === [] ? [] : [PrivacyErasureReceiptData::RETAINED_LEGAL_HOLD => $result->legalHoldIds],
+        );
     }
 
     #[Override]

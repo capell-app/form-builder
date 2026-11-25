@@ -111,6 +111,7 @@ return [
     'errors_heading' => 'Please check the highlighted fields.',
     'continue_to_payment' => 'Continue to payment',
     'next_step' => 'Continue',
+    'payment_amount_unit_hint' => 'Enter the amount in the smallest currency unit, for example 2500 for 25.00.',
     'payment_fixed_amount' => ':currency :amount due after submission.',
     'previous_step' => 'Back',
     'redirecting_to_payment' => 'Opening payment...',

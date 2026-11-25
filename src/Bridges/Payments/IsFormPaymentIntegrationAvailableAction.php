@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Capell\FormBuilder\Actions;
+namespace Capell\FormBuilder\Bridges\Payments;
 
 use Capell\Core\Facades\CapellCore;
 use Capell\Core\Support\TableName;

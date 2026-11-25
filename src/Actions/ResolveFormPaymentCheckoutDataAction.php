@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace Capell\FormBuilder\Actions;
 
 use Capell\Core\Facades\CapellCore;
+use Capell\FormBuilder\Bridges\Payments\FormPaymentReturnUrlBridge;
+use Capell\FormBuilder\Bridges\Payments\IsFormPaymentIntegrationAvailableAction;
 use Capell\FormBuilder\Data\FormFieldData;
 use Capell\FormBuilder\Data\FormPaymentCheckoutData;
 use Capell\FormBuilder\Enums\FormFieldType;
 use Capell\FormBuilder\Models\Form;
 use Capell\FormBuilder\Models\Submission;
-use Capell\Payments\Actions\ValidateFormPaymentReturnUrlAction;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Validation\ValidationException;
@@ -41,11 +42,11 @@ final class ResolveFormPaymentCheckoutDataAction
 
         /** @var Form $form */
         $form = $submission->form;
-        $field = $this->paymentField($form);
+        $field = $this->paymentField($form, $submission);
         $amount = $this->amount($field, $submission);
         $currency = $this->currency($field);
-        $successUrl = ValidateFormPaymentReturnUrlAction::run($successUrl);
-        $cancelUrl = ValidateFormPaymentReturnUrlAction::run($cancelUrl);
+        $successUrl = FormPaymentReturnUrlBridge::validate($successUrl);
+        $cancelUrl = FormPaymentReturnUrlBridge::validate($cancelUrl);
         $successUrl = is_string($successUrl) ? $successUrl : null;
         $cancelUrl = is_string($cancelUrl) ? $cancelUrl : null;
 
@@ -61,11 +62,9 @@ final class ResolveFormPaymentCheckoutDataAction
         );
     }
 
-    private function paymentField(Form $form): FormFieldData
+    private function paymentField(Form $form, Submission $submission): FormFieldData
     {
-        foreach ($form->schema ?? [] as $field) {
-            $field = $field instanceof FormFieldData ? $field : FormFieldData::from($field);
-
+        foreach (ResolveVisibleFormFieldsAction::run($form, $submission->payload->values) as $field) {
             if ($field->type === FormFieldType::Payment) {
                 return $field;
             }

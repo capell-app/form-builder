@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
+use LogicException;
 use Override;
 
 /**
@@ -24,6 +25,7 @@ use Override;
  * @property SubmissionMetaData $meta
  * @property SubmissionStatus $status
  * @property Carbon $submitted_at
+ * @property string|null $payment_rail
  * @property string|null $subject_email_hash
  * @property Carbon|null $delivery_pending_at
  * @property Carbon|null $delivery_failed_at
@@ -51,12 +53,21 @@ class Submission extends Model
         'retention_until',
     ];
 
+    protected $hidden = ['payment_rail'];
+
     protected static string $factory = SubmissionFactory::class;
 
     /** A stable index of the submitter's address; the encrypted payload already holds the address itself. */
     public static function subjectEmailHash(string $email): string
     {
         return hash('sha256', mb_strtolower(trim($email)));
+    }
+
+    public function paymentRail(): ?string
+    {
+        $rail = $this->getRawOriginal('payment_rail');
+
+        return is_string($rail) ? $rail : null;
     }
 
     /**
@@ -73,6 +84,16 @@ class Submission extends Model
     public function site(): BelongsTo
     {
         return $this->belongsTo(Site::class);
+    }
+
+    #[Override]
+    protected static function booted(): void
+    {
+        static::updating(static function (self $submission): void {
+            if ($submission->isDirty('payment_rail')) {
+                throw new LogicException('A submission payment rail cannot change.');
+            }
+        });
     }
 
     /**

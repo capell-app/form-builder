@@ -6,11 +6,10 @@ namespace Capell\FormBuilder\Models;
 
 use Capell\Core\Concerns\HasCapellTable;
 use Capell\Core\Models\Site;
-use Capell\FormBuilder\Actions\DeleteSubmissionUploadsAction;
+use Capell\FormBuilder\Actions\DeleteFormSubmissionsAction;
 use Capell\FormBuilder\Data\FormFieldData;
 use Capell\FormBuilder\Data\FormSettingsData;
 use Capell\FormBuilder\Database\Factories\FormFactory;
-use Capell\FormBuilder\Exceptions\FormHasSubmissionsUnderLegalHoldException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -68,10 +67,9 @@ class Form extends Model
     protected static function booted(): void
     {
         static::deleting(static function (self $form): void {
-            // The database removes a deleted form's submissions with it, which would destroy any under legal hold.
-            throw_if($form->hasSubmissionsUnderLegalHold(), FormHasSubmissionsUnderLegalHoldException::make());
-
-            DeleteSubmissionUploadsAction::run($form->submissions()->getQuery());
+            // Each submission goes through the one delete routine. The form goes only once none remain; the database
+            // refuses to delete a form that still has submissions, so they can never be removed by a cascade.
+            DeleteFormSubmissionsAction::run($form);
         });
     }
 

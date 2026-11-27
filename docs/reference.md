@@ -33,6 +33,10 @@ Form Builder is an **Available** Capell package in the **Capell Engagement & CRM
 - `packages/form-builder/database/migrations/2026_07_12_000001_add_retention_to_submissions_table.php`
 - `packages/form-builder/database/migrations/2026_11_12_000001_add_subject_and_delivery_to_submissions_table.php`
 - `packages/form-builder/database/migrations/2026_11_19_000001_add_payment_rail_to_submissions_table.php`
+- `packages/form-builder/database/migrations/2026_11_26_000001_add_erasure_requested_at_to_submissions_table.php`
+- `packages/form-builder/database/migrations/2026_11_27_000001_restrict_form_deletion_while_submissions_remain.php`
+- `packages/form-builder/database/migrations/2026_11_27_000002_restrict_site_deletion_while_submissions_remain.php`
+- `packages/form-builder/database/migrations/2026_11_27_000003_mark_submissions_kept_by_earlier_erasures.php`
 
 ### Models
 
@@ -92,6 +96,8 @@ Form Builder is an **Available** Capell package in the **Capell Engagement & CRM
 - `CreateFormPaymentCheckoutRedirectUrlAction`
 - `CreateFormPaymentCheckoutUrlAction`
 - `CreateSubmissionAction`
+- `DeleteFormSubmissionsAction`
+- `DeleteSiteSubmissionsAction`
 - `DeleteSubmissionAction`
 - `DeleteSubmissionUploadsAction`
 - `DeliverSubmissionMailAction`
@@ -99,6 +105,7 @@ Form Builder is an **Available** Capell package in the **Capell Engagement & CRM
 - `DispatchSubmissionWebhookAction`
 - `DispatchUnstoredFormSubmissionAction`
 - `EraseFormSubmissionPrivacyDataAction`
+- `ErasePendingHeldSubmissionsAction`
 - `EvaluateFormFieldVisibilityAction`
 - `FindActiveSiteFormAction`
 - `GuardFormSubmissionRateLimitAction`
@@ -128,6 +135,7 @@ Form Builder is an **Available** Capell package in the **Capell Engagement & CRM
 - `SeedFormBuilderScreenshotFixtureAction`
 - `SendSubmissionAutoresponderAction`
 - `SendSubmissionNotificationAction`
+- `SetSubmissionLegalHoldAction`
 - `ValidateFormFieldKeysAction`
 - `ValidateFormSchemaAuthoringAction`
 
@@ -231,8 +239,8 @@ Form Builder is an **Available** Capell package in the **Capell Engagement & CRM
 - Required tables: `forms`, `submissions`.
 - Models: `Form`, `Submission`.
 - Core record references in migrations: `sites via site_id`.
-- Migration files: `2026_05_10_190849_01_create_form-builder_table.php`, `2026_05_10_190849_02_create_submissions_table.php`, `2026_07_12_000001_add_retention_to_submissions_table.php`, `2026_11_12_000001_add_subject_and_delivery_to_submissions_table.php`, `2026_11_19_000001_add_payment_rail_to_submissions_table.php`.
+- Migration files: `2026_05_10_190849_01_create_form-builder_table.php`, `2026_05_10_190849_02_create_submissions_table.php`, `2026_07_12_000001_add_retention_to_submissions_table.php`, `2026_11_12_000001_add_subject_and_delivery_to_submissions_table.php`, `2026_11_19_000001_add_payment_rail_to_submissions_table.php`, `2026_11_26_000001_add_erasure_requested_at_to_submissions_table.php`, `2026_11_27_000001_restrict_form_deletion_while_submissions_remain.php`, `2026_11_27_000002_restrict_site_deletion_while_submissions_remain.php`, `2026_11_27_000003_mark_submissions_kept_by_earlier_erasures.php`.
 - Migration impact: run host migrations through the package install flow before opening package surfaces.
-- Deletion/retention behaviour: migrations declare cascade-on-delete relationships; retention is scheduled through `capell:form-builder:prune` (daily; registered by the package provider).
+- Deletion/retention behaviour: migrations declare cascade-on-delete relationships and restricted-delete relationships; retention is scheduled through `capell:form-builder:prune` (daily; registered by the package provider).
 
 <!-- prettier-ignore-end -->

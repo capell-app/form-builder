@@ -19,6 +19,7 @@ use Capell\FormBuilder\Support\SubmissionSiteAccess;
 use Capell\Tests\Support\Concerns\CreatesAdminUser;
 use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
+use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
@@ -150,4 +151,31 @@ it('emails every notification recipient', function (): void {
 
     expect(ParseNotificationRecipientsAction::run('a@example.com, b@example.com; not-an-email'))->toBe(['a@example.com', 'b@example.com']);
     Mail::assertQueued(FormSubmissionNotificationMail::class, fn ($mail): bool => $mail->hasTo('a@example.com') && $mail->hasTo('b@example.com'));
+});
+
+it('tells the operator when a submission was kept because its upload could not be deleted', function (): void {
+    test()->actingAsAdmin();
+    $submission = uploadedSubmission();
+    $failing = Mockery::mock(Filesystem::class);
+    $failing->shouldReceive('delete')->andReturnFalse();
+    Storage::set('local', $failing);
+
+    livewire(ListSubmissions::class)
+        ->callAction(TestAction::make('delete')->table($submission))
+        ->assertNotified(__('capell-form-builder::message.submission_delete_failed'));
+
+    expect(Submission::query()->whereKey($submission->getKey())->exists())->toBeTrue();
+});
+
+it('says that releasing a hold erased this submission, never that the whole erasure request is complete', function (): void {
+    test()->actingAsAdmin();
+    $submission = uploadedSubmission(['legal_hold' => true, 'erasure_requested_at' => now()]);
+
+    livewire(ListSubmissions::class)
+        ->callAction(TestAction::make('release_legal_hold')->table($submission))
+        ->assertNotified(__('capell-form-builder::message.legal_hold_released_submission_erased'));
+
+    expect(Submission::query()->whereKey($submission->getKey())->exists())->toBeFalse()
+        ->and((string) __('capell-form-builder::message.legal_hold_released_submission_erased'))->not->toContain('request')
+        ->and((string) __('capell-form-builder::message.legal_hold_released_submission_erased', locale: 'de'))->not->toContain('Antrag');
 });

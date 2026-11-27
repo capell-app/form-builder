@@ -28,13 +28,17 @@ final class PruneExpiredFormSubmissionsAction
             return $count;
         }
 
-        // Chunked, re-checking legal hold per chunk, so a hold applied mid-run keeps both the row and its files.
-        (clone $query)->select('id')->chunkById(200, static function ($chunk): void {
-            $ids = $chunk->modelKeys();
-            $expired = static fn (): Builder => Submission::query()->whereKey($ids)->where('legal_hold', false);
+        // A privacy erasure postponed by a hold that has since been released is finished here, whatever the age.
+        ErasePendingHeldSubmissionsAction::run();
 
-            DeleteSubmissionUploadsAction::run($expired());
-            $expired()->delete();
+        // Each expired submission goes through the one delete routine, which re-checks the hold under a row lock and
+        // keeps any submission whose uploads could not all be deleted.
+        (clone $query)->select('id')->chunkById(200, static function ($chunk): void {
+            foreach ($chunk->modelKeys() as $id) {
+                if (is_numeric($id)) {
+                    DeleteSubmissionAction::run((int) $id);
+                }
+            }
         });
 
         return $count;

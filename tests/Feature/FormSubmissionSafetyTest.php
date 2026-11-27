@@ -10,6 +10,7 @@ use Capell\FormBuilder\Data\SubmissionMetaData;
 use Capell\FormBuilder\Data\SubmissionPayloadData;
 use Capell\FormBuilder\Enums\FormFieldType;
 use Capell\FormBuilder\Enums\SubmissionStatus;
+use Capell\FormBuilder\Exceptions\FormHasSubmissionsUnderLegalHoldException;
 use Capell\FormBuilder\Livewire\FormComponent;
 use Capell\FormBuilder\Models\Form;
 use Capell\FormBuilder\Models\Submission;
@@ -117,7 +118,7 @@ it('writes no upload to storage for a submission the spam gate rejects', functio
         ->and(Storage::disk('form-builder-test')->allFiles())->toBe([]);
 });
 
-it('removes stored uploads when a form is deleted, but never files outside the upload directory', function (): void {
+it('never deletes a file outside the upload directory, and keeps the form and submission that point at one', function (): void {
     Storage::fake('local');
     Storage::disk('local')->put('form-builder/submissions/a.pdf', 'a');
     Storage::disk('local')->put('elsewhere/keep.txt', 'keep');
@@ -130,11 +131,12 @@ it('removes stored uploads when a form is deleted, but never files outside the u
         'meta' => new SubmissionMetaData,
     ]);
 
-    $form->delete();
+    expect(fn (): ?bool => $form->delete())->toThrow(FormHasSubmissionsUnderLegalHoldException::class);
 
     Storage::disk('local')->assertMissing('form-builder/submissions/a.pdf');
     Storage::disk('local')->assertExists('elsewhere/keep.txt');
-    expect(Submission::query()->count())->toBe(0);
+    expect(Submission::query()->count())->toBe(1)
+        ->and(Form::query()->whereKey($form->getKey())->exists())->toBeTrue();
 });
 
 it('deletes uploads for the given submissions', function (): void {

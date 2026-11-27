@@ -6,6 +6,7 @@ namespace Capell\FormBuilder\Models;
 
 use Capell\Core\Concerns\HasCapellTable;
 use Capell\Core\Models\Site;
+use Capell\FormBuilder\Builders\SubmissionBuilder;
 use Capell\FormBuilder\Casts\EncryptedDataCast;
 use Capell\FormBuilder\Data\SubmissionMetaData;
 use Capell\FormBuilder\Data\SubmissionPayloadData;
@@ -14,6 +15,7 @@ use Capell\FormBuilder\Enums\SubmissionStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Carbon;
 use LogicException;
 use Override;
@@ -27,6 +29,7 @@ use Override;
  * @property Carbon $submitted_at
  * @property string|null $payment_rail
  * @property string|null $subject_email_hash
+ * @property Carbon|null $erasure_requested_at
  * @property Carbon|null $delivery_pending_at
  * @property Carbon|null $delivery_failed_at
  * @property int $delivery_attempts
@@ -61,6 +64,17 @@ class Submission extends Model
     public static function subjectEmailHash(string $email): string
     {
         return hash('sha256', mb_strtolower(trim($email)));
+    }
+
+    /**
+     * Every delete of a submission row is refused unless DeleteSubmissionAction is running (see SubmissionBuilder).
+     *
+     * @param  QueryBuilder  $query
+     */
+    #[Override]
+    public function newEloquentBuilder($query): SubmissionBuilder
+    {
+        return new SubmissionBuilder($query);
     }
 
     public function paymentRail(): ?string
@@ -109,6 +123,7 @@ class Submission extends Model
             'submitted_at' => 'datetime',
             'legal_hold' => 'boolean',
             'retention_until' => 'datetime',
+            'erasure_requested_at' => 'datetime',
             'delivery_pending_at' => 'datetime',
             'delivery_failed_at' => 'datetime',
             'delivery_attempts' => 'integer',

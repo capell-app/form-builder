@@ -7,6 +7,7 @@ namespace Capell\FormBuilder\Actions;
 use Capell\FormBuilder\Data\FormSubmissionPrivacyErasureResultData;
 use Capell\FormBuilder\Models\Submission;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 use Lorisleiva\Actions\Concerns\AsFake;
 use Lorisleiva\Actions\Concerns\AsObject;
 
@@ -15,7 +16,9 @@ use Lorisleiva\Actions\Concerns\AsObject;
  *
  * A submission under legal hold is kept, with its uploads: an operator placed the hold because it may be needed
  * for a complaint, claim or investigation, and erasure does not override that. Its id is returned so the privacy
- * request records what was kept and why.
+ * request records what was kept and why. Each held submission is marked with when its erasure was asked for, so
+ * releasing the hold erases it (see SetSubmissionLegalHoldAction). A submission whose uploads could not all be deleted
+ * is kept for retry and returned as failed, so the privacy request is not reported fulfilled while its data remains.
  *
  * @method static FormSubmissionPrivacyErasureResultData run(Model $subject, list<int> $linkedSubmissionIds = [])
  */
@@ -30,16 +33,43 @@ final class EraseFormSubmissionPrivacyDataAction
         $recordIds = ResolveFormSubmissionPrivacyRecordIdsAction::run($subject);
         $ids = array_values(array_unique([...$recordIds->submissionIds, ...$linkedSubmissionIds]));
 
-        $submissions = Submission::query()->whereKey($ids)->where('legal_hold', false);
+        $deleted = 0;
+        $heldIds = [];
+        $failedIds = [];
 
-        DeleteSubmissionUploadsAction::run(clone $submissions);
+        // One decision per submission, made on the locked row: a held one is marked to be erased once its hold is
+        // released, anything else goes through the one delete routine.
+        foreach ($ids as $id) {
+            $outcome = DB::transaction(static function () use ($id): ?string {
+                $current = Submission::query()->whereKey($id)->lockForUpdate()->first();
 
-        $deleted = $submissions->delete();
+                if (! $current instanceof Submission) {
+                    return null;
+                }
 
-        // Read after the delete, so a hold placed while the erasure ran is still reported.
-        /** @var list<int> $heldIds */
-        $heldIds = array_map(static fn (mixed $id): int => is_numeric($id) ? (int) $id : 0, Submission::query()->whereKey($ids)->where('legal_hold', true)->orderBy('id')->pluck('id')->all());
+                if ($current->legal_hold) {
+                    if ($current->erasure_requested_at === null) {
+                        $current->forceFill(['erasure_requested_at' => now()])->save();
+                    }
 
-        return new FormSubmissionPrivacyErasureResultData(is_int($deleted) ? $deleted : 0, $heldIds);
+                    return 'held';
+                }
+
+                return DeleteSubmissionAction::run($current) ? 'deleted' : 'failed';
+            });
+
+            if ($outcome === 'held') {
+                $heldIds[] = $id;
+            } elseif ($outcome === 'deleted') {
+                $deleted++;
+            } elseif ($outcome === 'failed') {
+                $failedIds[] = $id;
+            }
+        }
+
+        sort($heldIds);
+        sort($failedIds);
+
+        return new FormSubmissionPrivacyErasureResultData($deleted, $heldIds, $failedIds);
     }
 }

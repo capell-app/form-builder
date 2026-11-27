@@ -6,6 +6,7 @@
     "kind": "package",
     "capellApiVersion": "^1.0",
     "version": "1.0.0",
+    "launchStatus": "preview",
     "description": "Build your own contact, quote and application forms, with answers arriving in an admin inbox you can reply from.",
     "product": {
         "group": "Capell Engagement & CRM",

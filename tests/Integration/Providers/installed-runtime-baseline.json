@@ -5,9 +5,9 @@
         "default": {
             "source": {
                 "ref": "HEAD",
-                "commit": "34958d8f4fb6adb88d0d0606cecb87df321fcb6c",
+                "commit": "3d1e31f34a512de6ef106c5b6ce41cf1a5be4da9",
                 "providers": {
-                    "Providers/FormBuilderServiceProvider.php": "8333eee2ef0623d07fed69e6ba58e2c60f356621f505a7792635617f954d2a5f",
+                    "Providers/FormBuilderServiceProvider.php": "1ff12c9a472a2fbf63f36cba3aaf07f0fd81125731a07e7994884e09cdb7b07a",
                     "Providers/MigrationMetadataServiceProvider.php": "b7aa37fceb0646ec459c84f625b5ea88cd33156d1bade6cb9f40aa37c9a6e7dc"
                 },
                 "configure": null
@@ -171,10 +171,17 @@
                     "eloquent.deleted: Capell\\FormBuilder\\Models\\Form": [
                         "Capell\\FormBuilder\\LayoutBuilder\\InvalidateFormWidgetPagesObserver@deleted"
                     ],
+                    "eloquent.deleting: Capell\\Core\\Models\\Site": [
+                        [
+                            "<package>/src/Providers/FormBuilderServiceProvider.php",
+                            "static Capell\\FormBuilder\\Providers\\FormBuilderServiceProvider(Capell\\Core\\Models\\Site $site):void source=8d316a9ce216cc2c475bd64d180809e3",
+                            []
+                        ]
+                    ],
                     "eloquent.deleting: Capell\\FormBuilder\\Models\\Form": [
                         [
                             "<package>/src/Models/Form.php",
-                            "static Capell\\FormBuilder\\Models\\Form(self $form):void source=a35f431ff2e3a4b87924357a58a85191",
+                            "static Capell\\FormBuilder\\Models\\Form(self $form):void source=c24fe8f1f6b103cf1c2f7de044e08ea6",
                             []
                         ]
                     ],
@@ -187,6 +194,23 @@
                             "static Capell\\FormBuilder\\Models\\Submission(self $submission):void source=46bd95d1480f6ca81fa92e75b503ff59",
                             []
                         ]
+                    ]
+                },
+                "listeners-positions": {
+                    "eloquent.deleting: Capell\\Core\\Models\\Site": [
+                        {
+                            "after": null,
+                            "before": [
+                                "<vendor>/spatie/laravel-medialibrary/src/InteractsWithMedia.php",
+                                "Capell\\Core\\Models\\Site(Spatie\\MediaLibrary\\HasMedia $model):",
+                                []
+                            ],
+                            "entry": [
+                                "<package>/src/Providers/FormBuilderServiceProvider.php",
+                                "static Capell\\FormBuilder\\Providers\\FormBuilderServiceProvider(Capell\\Core\\Models\\Site $site):void source=8d316a9ce216cc2c475bd64d180809e3",
+                                []
+                            ]
+                        }
                     ]
                 },
                 "livewire": {
@@ -884,9 +908,9 @@
         "retention-disabled": {
             "source": {
                 "ref": "HEAD",
-                "commit": "34958d8f4fb6adb88d0d0606cecb87df321fcb6c",
+                "commit": "3d1e31f34a512de6ef106c5b6ce41cf1a5be4da9",
                 "providers": {
-                    "Providers/FormBuilderServiceProvider.php": "8333eee2ef0623d07fed69e6ba58e2c60f356621f505a7792635617f954d2a5f",
+                    "Providers/FormBuilderServiceProvider.php": "1ff12c9a472a2fbf63f36cba3aaf07f0fd81125731a07e7994884e09cdb7b07a",
                     "Providers/MigrationMetadataServiceProvider.php": "b7aa37fceb0646ec459c84f625b5ea88cd33156d1bade6cb9f40aa37c9a6e7dc"
                 },
                 "configure": "tests/Support/Fixtures/InstalledRuntime/form-builder-retention-disabled.php"
@@ -1047,10 +1071,17 @@
                     "eloquent.deleted: Capell\\FormBuilder\\Models\\Form": [
                         "Capell\\FormBuilder\\LayoutBuilder\\InvalidateFormWidgetPagesObserver@deleted"
                     ],
+                    "eloquent.deleting: Capell\\Core\\Models\\Site": [
+                        [
+                            "<package>/src/Providers/FormBuilderServiceProvider.php",
+                            "static Capell\\FormBuilder\\Providers\\FormBuilderServiceProvider(Capell\\Core\\Models\\Site $site):void source=8d316a9ce216cc2c475bd64d180809e3",
+                            []
+                        ]
+                    ],
                     "eloquent.deleting: Capell\\FormBuilder\\Models\\Form": [
                         [
                             "<package>/src/Models/Form.php",
-                            "static Capell\\FormBuilder\\Models\\Form(self $form):void source=a35f431ff2e3a4b87924357a58a85191",
+                            "static Capell\\FormBuilder\\Models\\Form(self $form):void source=c24fe8f1f6b103cf1c2f7de044e08ea6",
                             []
                         ]
                     ],
@@ -1063,6 +1094,23 @@
                             "static Capell\\FormBuilder\\Models\\Submission(self $submission):void source=46bd95d1480f6ca81fa92e75b503ff59",
                             []
                         ]
+                    ]
+                },
+                "listeners-positions": {
+                    "eloquent.deleting: Capell\\Core\\Models\\Site": [
+                        {
+                            "after": null,
+                            "before": [
+                                "<vendor>/spatie/laravel-medialibrary/src/InteractsWithMedia.php",
+                                "Capell\\Core\\Models\\Site(Spatie\\MediaLibrary\\HasMedia $model):",
+                                []
+                            ],
+                            "entry": [
+                                "<package>/src/Providers/FormBuilderServiceProvider.php",
+                                "static Capell\\FormBuilder\\Providers\\FormBuilderServiceProvider(Capell\\Core\\Models\\Site $site):void source=8d316a9ce216cc2c475bd64d180809e3",
+                                []
+                            ]
+                        }
                     ]
                 },
                 "livewire": {
@@ -1750,9 +1798,9 @@
         "privacy-enabled": {
             "source": {
                 "ref": "HEAD",
-                "commit": "34958d8f4fb6adb88d0d0606cecb87df321fcb6c",
+                "commit": "3d1e31f34a512de6ef106c5b6ce41cf1a5be4da9",
                 "providers": {
-                    "Providers/FormBuilderServiceProvider.php": "8333eee2ef0623d07fed69e6ba58e2c60f356621f505a7792635617f954d2a5f",
+                    "Providers/FormBuilderServiceProvider.php": "1ff12c9a472a2fbf63f36cba3aaf07f0fd81125731a07e7994884e09cdb7b07a",
                     "Providers/MigrationMetadataServiceProvider.php": "b7aa37fceb0646ec459c84f625b5ea88cd33156d1bade6cb9f40aa37c9a6e7dc"
                 },
                 "configure": "tests/Support/Fixtures/InstalledRuntime/privacy-enabled.php"
@@ -1916,10 +1964,17 @@
                     "eloquent.deleted: Capell\\FormBuilder\\Models\\Form": [
                         "Capell\\FormBuilder\\LayoutBuilder\\InvalidateFormWidgetPagesObserver@deleted"
                     ],
+                    "eloquent.deleting: Capell\\Core\\Models\\Site": [
+                        [
+                            "<package>/src/Providers/FormBuilderServiceProvider.php",
+                            "static Capell\\FormBuilder\\Providers\\FormBuilderServiceProvider(Capell\\Core\\Models\\Site $site):void source=8d316a9ce216cc2c475bd64d180809e3",
+                            []
+                        ]
+                    ],
                     "eloquent.deleting: Capell\\FormBuilder\\Models\\Form": [
                         [
                             "<package>/src/Models/Form.php",
-                            "static Capell\\FormBuilder\\Models\\Form(self $form):void source=a35f431ff2e3a4b87924357a58a85191",
+                            "static Capell\\FormBuilder\\Models\\Form(self $form):void source=c24fe8f1f6b103cf1c2f7de044e08ea6",
                             []
                         ]
                     ],
@@ -1932,6 +1987,23 @@
                             "static Capell\\FormBuilder\\Models\\Submission(self $submission):void source=46bd95d1480f6ca81fa92e75b503ff59",
                             []
                         ]
+                    ]
+                },
+                "listeners-positions": {
+                    "eloquent.deleting: Capell\\Core\\Models\\Site": [
+                        {
+                            "after": null,
+                            "before": [
+                                "<vendor>/spatie/laravel-medialibrary/src/InteractsWithMedia.php",
+                                "Capell\\Core\\Models\\Site(Spatie\\MediaLibrary\\HasMedia $model):",
+                                []
+                            ],
+                            "entry": [
+                                "<package>/src/Providers/FormBuilderServiceProvider.php",
+                                "static Capell\\FormBuilder\\Providers\\FormBuilderServiceProvider(Capell\\Core\\Models\\Site $site):void source=8d316a9ce216cc2c475bd64d180809e3",
+                                []
+                            ]
+                        }
                     ]
                 },
                 "livewire": {
@@ -2629,9 +2701,9 @@
         "companions-absent": {
             "source": {
                 "ref": "HEAD",
-                "commit": "34958d8f4fb6adb88d0d0606cecb87df321fcb6c",
+                "commit": "3d1e31f34a512de6ef106c5b6ce41cf1a5be4da9",
                 "providers": {
-                    "Providers/FormBuilderServiceProvider.php": "8333eee2ef0623d07fed69e6ba58e2c60f356621f505a7792635617f954d2a5f",
+                    "Providers/FormBuilderServiceProvider.php": "1ff12c9a472a2fbf63f36cba3aaf07f0fd81125731a07e7994884e09cdb7b07a",
                     "Providers/MigrationMetadataServiceProvider.php": "b7aa37fceb0646ec459c84f625b5ea88cd33156d1bade6cb9f40aa37c9a6e7dc"
                 },
                 "configure": "tests/Support/Fixtures/InstalledRuntime/companions-absent.php"
@@ -2795,10 +2867,17 @@
                     "eloquent.deleted: Capell\\FormBuilder\\Models\\Form": [
                         "Capell\\FormBuilder\\LayoutBuilder\\InvalidateFormWidgetPagesObserver@deleted"
                     ],
+                    "eloquent.deleting: Capell\\Core\\Models\\Site": [
+                        [
+                            "<package>/src/Providers/FormBuilderServiceProvider.php",
+                            "static Capell\\FormBuilder\\Providers\\FormBuilderServiceProvider(Capell\\Core\\Models\\Site $site):void source=8d316a9ce216cc2c475bd64d180809e3",
+                            []
+                        ]
+                    ],
                     "eloquent.deleting: Capell\\FormBuilder\\Models\\Form": [
                         [
                             "<package>/src/Models/Form.php",
-                            "static Capell\\FormBuilder\\Models\\Form(self $form):void source=a35f431ff2e3a4b87924357a58a85191",
+                            "static Capell\\FormBuilder\\Models\\Form(self $form):void source=c24fe8f1f6b103cf1c2f7de044e08ea6",
                             []
                         ]
                     ],
@@ -2811,6 +2890,23 @@
                             "static Capell\\FormBuilder\\Models\\Submission(self $submission):void source=46bd95d1480f6ca81fa92e75b503ff59",
                             []
                         ]
+                    ]
+                },
+                "listeners-positions": {
+                    "eloquent.deleting: Capell\\Core\\Models\\Site": [
+                        {
+                            "after": null,
+                            "before": [
+                                "<vendor>/spatie/laravel-medialibrary/src/InteractsWithMedia.php",
+                                "Capell\\Core\\Models\\Site(Spatie\\MediaLibrary\\HasMedia $model):",
+                                []
+                            ],
+                            "entry": [
+                                "<package>/src/Providers/FormBuilderServiceProvider.php",
+                                "static Capell\\FormBuilder\\Providers\\FormBuilderServiceProvider(Capell\\Core\\Models\\Site $site):void source=8d316a9ce216cc2c475bd64d180809e3",
+                                []
+                            ]
+                        }
                     ]
                 },
                 "livewire": {

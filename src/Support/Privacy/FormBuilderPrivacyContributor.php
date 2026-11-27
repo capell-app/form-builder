@@ -18,6 +18,7 @@ use Capell\FormBuilder\Actions\EraseFormSubmissionPrivacyDataAction;
 use Capell\FormBuilder\Actions\ResolveFormSubmissionPrivacyRecordIdsAction;
 use Illuminate\Database\Eloquent\Model;
 use Override;
+use RuntimeException;
 
 /**
  * Exports and erases form submissions through Core's privacy registry.
@@ -64,6 +65,13 @@ final readonly class FormBuilderPrivacyContributor implements PrivacySubjectEras
         }
 
         $result = EraseFormSubmissionPrivacyDataAction::run($subject->model, $this->linkedIds($subject));
+
+        // A submission kept because its upload could not be deleted still holds the person's data: fail the erasure so
+        // the request is not fulfilled. Erasure is safe to repeat, so the request runs again once the file is fixed.
+        throw_if($result->failedIds !== [], RuntimeException::class, sprintf(
+            'Form Builder could not delete the uploads of %d form submissions; they are kept and the erasure is unfinished.',
+            count($result->failedIds),
+        ));
 
         return new PrivacyErasureReceiptData(
             self::KEY,

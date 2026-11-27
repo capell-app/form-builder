@@ -7,13 +7,18 @@ namespace Capell\FormBuilder\Exceptions;
 use RuntimeException;
 
 /**
- * Deleting a form deletes its submissions with it, so a form keeping a submission under legal hold cannot be
- * deleted until the hold is released.
+ * A form is deleted only once every one of its submissions has been deleted. Submissions under legal hold, and any
+ * whose uploaded files could not be deleted, are kept, so the form is kept too and the operator is told how many.
  */
 final class FormHasSubmissionsUnderLegalHoldException extends RuntimeException
 {
-    public static function make(): self
+    public function __construct(string $message, public readonly int $held = 0, public readonly int $failed = 0)
     {
-        return new self(__('capell-form-builder::message.form_delete_blocked_by_legal_hold'));
+        parent::__construct($message);
+    }
+
+    public static function make(int $held = 1, int $failed = 0): self
+    {
+        return new self(__('capell-form-builder::message.form_delete_blocked_by_legal_hold', ['held' => $held, 'failed' => $failed]), $held, $failed);
     }
 }

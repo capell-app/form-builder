@@ -4,6 +4,13 @@ All notable changes to `capell-app/form-builder` will be documented in this file
 
 ## Unreleased
 
+- `DeleteSubmissionUploadsAction` now decides each submission on its locked row and never deletes the files of one under legal hold; its `deleteFilesOf()` refuses a held submission.
+- A submission whose payload can no longer be decrypted (for example after an app key change) is no longer deleted as if it had no files. It is kept, marked as awaiting erasure and reported, and no erasure is recorded for it.
+- Releasing a legal hold now commits before the submission is erased, and a disk that throws while deleting a file counts as a failed deletion. A release can no longer put the hold back on a submission whose files were partly deleted: it stays released and marked, and the prune sweep finishes it.
+- Deleting a submission that was awaiting erasure now records on the privacy request that kept it that it was erased, whether it was deleted on its own, with its form or site, or by the sweep.
+- Submissions kept under legal hold by an erasure fulfilled before this release are marked as awaiting erasure, so releasing their holds erases them.
+- A privacy erasure request is no longer marked fulfilled while a submission it covers was kept because its uploaded files could not be deleted: the Form Builder erasure fails, the request stays in processing, and it completes when run again once the files can be deleted. `FormSubmissionPrivacyErasureResultData` gains `failedIds`. The admin Delete action now says when a submission was kept for that reason.
+- The database now refuses to delete a site that still has submissions recorded against it, so a raw or mass site delete can no longer remove a submission under legal hold. Permanently deleting a site through its model first deletes its submissions and their uploads through the submission delete routine.
 - A site whose submissions, or whose forms' submissions, are under legal hold can no longer be permanently deleted, because the database would delete those submissions with it. Release the hold first. Requires `capell-app/core` 1.0.80.
 
 - Privacy erasure now keeps the subject's submissions under legal hold, with their uploads, and names them on the erasure receipt. `EraseFormSubmissionPrivacyDataAction` returns `FormSubmissionPrivacyErasureResultData` (deleted count and held ids) instead of an int. A form that keeps a submission under legal hold can no longer be deleted, because its submissions would be deleted with it; release the hold first.

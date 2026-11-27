@@ -14,6 +14,7 @@ return [
     'apply_legal_hold_description' => 'Sie wird nicht automatisch gelöscht, auch nicht nach Ablauf der Aufbewahrungsfrist. Verwenden Sie diese Option, wenn sie für eine Beschwerde, einen Anspruch oder eine Untersuchung benötigt werden könnte.',
     'release_legal_hold_heading' => 'Aufbewahrungssperre aufheben?',
     'release_legal_hold_description' => 'Diese Einsendung kann nach Ablauf ihrer Aufbewahrungsfrist automatisch gelöscht werden und lässt sich manuell löschen. Heben Sie die Sperre nur auf, wenn die Einsendung nicht mehr benötigt wird.',
+    'release_legal_hold_erasure_description' => 'Die Person hat die Löschung ihrer Daten beantragt, während diese Einsendung unter Aufbewahrungssperre stand. Wenn Sie die Aufbewahrungssperre aufheben, werden die Einsendung und ihre Uploads sofort gelöscht. Das lässt sich nicht rückgängig machen.',
     'delete' => 'Löschen',
     'delete_heading' => 'Diese Einsendung löschen?',
     'delete_description' => 'Die Einsendung und alle von ihr hochgeladenen Dateien werden dauerhaft entfernt. Dies kann nicht rückgängig gemacht werden. Einsendungen unter Aufbewahrungssperre können nicht gelöscht werden.',

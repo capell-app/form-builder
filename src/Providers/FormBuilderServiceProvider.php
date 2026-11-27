@@ -14,11 +14,13 @@ use Capell\Core\Contracts\SiteSpec\SiteSpecApplier;
 use Capell\Core\Data\RenderableDefinitionData;
 use Capell\Core\Data\VendorAssetData;
 use Capell\Core\Facades\CapellCore;
+use Capell\Core\Models\Site;
 use Capell\Core\Support\Packages\AbstractPackageServiceProvider;
 use Capell\Core\Support\Packages\RouteGroupIsolation;
 use Capell\Core\Support\Privacy\PrivacySubjectRegistry;
 use Capell\Core\Support\Renderables\RenderableRegistry;
 use Capell\FormBuilder\Actions\ApplyFormSiteSpecAction;
+use Capell\FormBuilder\Actions\DeleteSiteSubmissionsAction;
 use Capell\FormBuilder\Actions\InstallThemeDemoFormsAction;
 use Capell\FormBuilder\Bridges\LayoutBuilder\FormBuilderLayoutBuilderBridge;
 use Capell\FormBuilder\Console\Commands\ExportSubmissionsCommand;
@@ -81,6 +83,10 @@ final class FormBuilderServiceProvider extends AbstractPackageServiceProvider
                 '2026_07_12_000001_add_retention_to_submissions_table',
                 '2026_11_12_000001_add_subject_and_delivery_to_submissions_table',
                 '2026_11_19_000001_add_payment_rail_to_submissions_table',
+                '2026_11_26_000001_add_erasure_requested_at_to_submissions_table',
+                '2026_11_27_000001_restrict_form_deletion_while_submissions_remain',
+                '2026_11_27_000002_restrict_site_deletion_while_submissions_remain',
+                '2026_11_27_000003_mark_submissions_kept_by_earlier_erasures',
             ]);
     }
 
@@ -130,6 +136,12 @@ final class FormBuilderServiceProvider extends AbstractPackageServiceProvider
         });
         Gate::policy(Form::class, FormPolicy::class);
         Gate::policy(Submission::class, SubmissionPolicy::class);
+        // The database refuses to delete a site that still has submissions; they go first, through the delete routine.
+        Site::deleting(static function (Site $site): void {
+            if ($site->isForceDeleting()) {
+                DeleteSiteSubmissionsAction::run($site);
+            }
+        });
         $this->app->tag([ApplyFormSiteSpecAction::class], SiteSpecApplier::TAG);
         Relation::morphMap([
             'form' => Form::class,

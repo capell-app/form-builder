@@ -13,6 +13,7 @@ use Capell\FormBuilder\Actions\MarkSubmissionSpamAction;
 use Capell\FormBuilder\Actions\ReplyToSubmissionAction;
 use Capell\FormBuilder\Actions\ResolveSubmissionReplyAddressAction;
 use Capell\FormBuilder\Actions\ResolveSubmissionUploadDownloadAction;
+use Capell\FormBuilder\Actions\SetSubmissionLegalHoldAction;
 use Capell\FormBuilder\Enums\SubmissionStatus;
 use Capell\FormBuilder\Models\Submission;
 use Capell\FormBuilder\Support\SubmissionSiteAccess;
@@ -132,26 +133,37 @@ final class SubmissionsTable
                             ->iconColor('success')
                             ->send();
                     }),
-                Action::make('toggle_legal_hold')
-                    ->label(fn (Submission $record): string => $record->legal_hold
-                        ? __('capell-form-builder::table.release_legal_hold')
-                        : __('capell-form-builder::table.apply_legal_hold'))
+                Action::make('apply_legal_hold')
+                    ->label(__('capell-form-builder::table.apply_legal_hold'))
                     ->icon('heroicon-o-lock-closed')
                     ->requiresConfirmation()
-                    ->modalHeading(fn (Submission $record): string => $record->legal_hold
-                        ? __('capell-form-builder::table.release_legal_hold_heading')
-                        : __('capell-form-builder::table.apply_legal_hold_heading'))
-                    ->modalDescription(fn (Submission $record): string => $record->legal_hold
-                        ? __('capell-form-builder::table.release_legal_hold_description')
-                        : __('capell-form-builder::table.apply_legal_hold_description'))
-                    ->visible(fn (Submission $record): bool => Gate::allows('update', $record))
+                    ->modalHeading(__('capell-form-builder::table.apply_legal_hold_heading'))
+                    ->modalDescription(__('capell-form-builder::table.apply_legal_hold_description'))
+                    ->visible(fn (Submission $record): bool => ! $record->legal_hold && Gate::allows('update', $record))
                     ->action(function (Submission $record): void {
-                        Gate::authorize('update', $record);
-                        $record->forceFill(['legal_hold' => ! $record->legal_hold])->save();
+                        SetSubmissionLegalHoldAction::run($record, true);
 
                         Notification::make('form-builder-submission-legal-hold-updated')
-                            ->title($record->legal_hold
-                                ? __('capell-form-builder::message.legal_hold_applied')
+                            ->title(__('capell-form-builder::message.legal_hold_applied'))
+                            ->icon('heroicon-o-check-circle')
+                            ->iconColor('success')
+                            ->send();
+                    }),
+                Action::make('release_legal_hold')
+                    ->label(__('capell-form-builder::table.release_legal_hold'))
+                    ->icon('heroicon-o-lock-open')
+                    ->requiresConfirmation()
+                    ->modalHeading(__('capell-form-builder::table.release_legal_hold_heading'))
+                    ->modalDescription(fn (Submission $record): string => $record->erasure_requested_at !== null
+                        ? __('capell-form-builder::table.release_legal_hold_erasure_description')
+                        : __('capell-form-builder::table.release_legal_hold_description'))
+                    ->visible(fn (Submission $record): bool => $record->legal_hold && Gate::allows('update', $record))
+                    ->action(function (Submission $record): void {
+                        $erased = SetSubmissionLegalHoldAction::run($record, false);
+
+                        Notification::make('form-builder-submission-legal-hold-updated')
+                            ->title($erased
+                                ? __('capell-form-builder::message.legal_hold_released_submission_erased')
                                 : __('capell-form-builder::message.legal_hold_released'))
                             ->icon('heroicon-o-check-circle')
                             ->iconColor('success')
@@ -207,7 +219,16 @@ final class SubmissionsTable
                     ->action(function (Submission $record): void {
                         Gate::authorize('delete', $record);
 
-                        DeleteSubmissionAction::run($record);
+                        if (! DeleteSubmissionAction::run($record)) {
+                            Notification::make('form-builder-submission-delete-failed')
+                                ->title(__('capell-form-builder::message.submission_delete_failed'))
+                                ->icon('heroicon-o-exclamation-triangle')
+                                ->iconColor('danger')
+                                ->persistent()
+                                ->send();
+
+                            return;
+                        }
 
                         Notification::make('form-builder-submission-deleted')
                             ->title(__('capell-form-builder::message.submission_deleted'))

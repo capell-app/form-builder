@@ -14,6 +14,7 @@ return [
     'apply_legal_hold_description' => 'It will not be deleted automatically, even after the retention period. Use this when it may be needed for a complaint, claim or investigation.',
     'release_legal_hold_heading' => 'Release the legal hold?',
     'release_legal_hold_description' => 'This submission becomes eligible for automatic deletion once its retention period has passed, and can be deleted by hand. Release it only when it is no longer needed.',
+    'release_legal_hold_erasure_description' => 'The person asked for their data to be erased while this submission was under legal hold. Releasing the hold deletes this submission and its uploads straight away. This cannot be undone.',
     'delete' => 'Delete',
     'delete_heading' => 'Delete this submission?',
     'delete_description' => 'The submission and any files it uploaded are removed permanently. This cannot be undone. Submissions under a legal hold cannot be deleted.',
